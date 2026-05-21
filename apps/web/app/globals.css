@@ -206,6 +206,22 @@ button:hover,
   margin-top: 12px;
 }
 
+.edit-form {
+  border-top: 1px solid var(--line);
+  margin-top: 14px;
+  padding-top: 4px;
+}
+
+.edit-form textarea {
+  min-height: 92px;
+}
+
+.compact-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 160px;
+  gap: 10px;
+}
+
 .event {
   padding: 12px;
   font-size: 13px;
@@ -228,5 +244,8 @@ button:hover,
   .grid > * + * {
     margin-top: 20px;
   }
-}
 
+  .compact-grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -172,6 +172,40 @@ try {
     );
   });
 
+  await record("proposed task can be edited before approval", async () => {
+    const storeBefore = await readStore();
+    const task = storeBefore.proposedTasks.find((item) => item.status === "proposed");
+    assert(task, "Trebuie sa existe un task propus pentru editare.");
+    const response = await postForm(`/tasks/${task.id}/update`, {
+      title: "Trimite centralizatorul PV actualizat",
+      description: "Descriere editata manual inainte de aprobare.",
+      assigneeEmail: "ana@firma.ro",
+      dueDate: "2026-05-25",
+      projectHint: "PV-uri"
+    });
+    assert(response.status === 303, "Editarea valida ar trebui sa redirectioneze.", response.status);
+    const store = await readStore();
+    const updated = store.proposedTasks.find((item) => item.id === task.id);
+    assert(updated.title === "Trimite centralizatorul PV actualizat", "Titlul editat trebuie salvat.", updated);
+    assert(updated.description === "Descriere editata manual inainte de aprobare.", "Descrierea editata trebuie salvata.", updated);
+    assert(updated.assigneeEmail === "ana@firma.ro", "Responsabilul editat trebuie salvat.", updated);
+    assert(updated.dueDate === "2026-05-25", "Termenul editat trebuie salvat.", updated);
+    assert(updated.projectHint === "PV-uri", "Proiectul editat trebuie salvat.", updated);
+    assert(updated.status === "proposed", "Editarea nu trebuie sa aprobe taskul.", updated);
+    assert(store.auditEvents.some((event) => event.type === "task.updated"), "Editarea trebuie auditata.");
+  });
+
+  await record("invalid task edit is rejected", async () => {
+    const storeBefore = await readStore();
+    const task = storeBefore.proposedTasks.find((item) => item.status === "proposed");
+    assert(task, "Trebuie sa existe un task propus pentru test invalid.");
+    const response = await postForm(`/tasks/${task.id}/update`, {
+      title: "x",
+      description: "invalid"
+    });
+    assert(response.status === 400, "Titlul prea scurt trebuie respins cu 400.", response.status);
+  });
+
   await record("approval without Planner config fails safely", async () => {
     const storeBefore = await readStore();
     const task = storeBefore.proposedTasks.find((item) => item.status === "proposed");
@@ -206,6 +240,16 @@ try {
     assert(task, "Trebuie sa existe un task respins.");
     const response = await fetch(`${baseUrl}/tasks/${task.id}/reject`, { method: "POST", redirect: "manual" });
     assert(response.status === 409, "Respingerea repetata trebuie sa intoarca 409.", response.status);
+  });
+
+  await record("rejected tasks cannot be edited", async () => {
+    const storeBefore = await readStore();
+    const task = storeBefore.proposedTasks.find((item) => item.status === "rejected");
+    assert(task, "Trebuie sa existe un task respins.");
+    const response = await postForm(`/tasks/${task.id}/update`, {
+      title: "Nu ar trebui salvat"
+    });
+    assert(response.status === 409, "Editarea unui task respins trebuie sa intoarca 409.", response.status);
   });
 
   await record("HTML-like task content is escaped in UI", async () => {

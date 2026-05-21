@@ -14,10 +14,13 @@ node .\tools\test-local-mvp.mjs
 - Sursa fara actiuni clare nu creeaza taskuri.
 - Sursa clara creeaza taskuri propuse.
 - Sursa duplicata este ignorata idempotent.
+- Task propus poate fi editat inainte de aprobare.
+- Editarea invalida este respinsa.
 - Aprobare fara Planner configurat esueaza controlat in `planner_sync_failed`.
 - Aprobare pentru task inexistent intoarce `404`.
 - Respingerea schimba statusul in `rejected`.
 - Respingerea repetata a unui task respins intoarce `409`.
+- Task respins nu mai poate fi editat.
 - Continutul HTML-like este scapat in UI.
 - Dialog lung de meeting extrage mai multe taskuri operationale.
 
@@ -34,13 +37,13 @@ node .\tools\test-local-mvp.mjs
 Rezultat:
 
 ```text
-12 teste rulate
-12 passed
+15 teste rulate
+15 passed
 0 failed
 4 surse create in test
 9 taskuri propuse
 1 eroare controlata de Planner neconfigurat
-11 evenimente audit
+12 evenimente audit
 ```
 
 ## Dialog lung testat

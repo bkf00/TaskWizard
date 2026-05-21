@@ -14,7 +14,7 @@
 - [x] Extractie fallback.
 - [x] Aprobare/respingere.
 - [x] Audit si erori.
-- [ ] Editare task inainte de aprobare.
+- [x] Editare task inainte de aprobare.
 - [ ] Autentificare mock/local pentru actor real.
 
 ## Milestone 2 - Microsoft 365 integration
@@ -42,4 +42,3 @@
 - [ ] Teste cu dialoguri romanesti reale.
 - [ ] Deduplicare cu `pgvector`.
 - [ ] Clasificare pe proiect/client.
-

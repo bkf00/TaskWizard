@@ -99,7 +99,48 @@ export default async function HomePage() {
                     ) : null}
 
                     {task.status === "proposed" || task.status === "planner_sync_failed" ? (
-                      <div className="task-actions">
+                      <div>
+                        <form action={`/api/tasks/${task.id}/update`} method="post" className="edit-form">
+                          <input type="hidden" name="actorEmail" value="approver@firma.ro" />
+
+                          <label htmlFor={`title-${task.id}`}>Titlu</label>
+                          <input id={`title-${task.id}`} name="title" defaultValue={task.title} required />
+
+                          <label htmlFor={`description-${task.id}`}>Descriere</label>
+                          <textarea
+                            id={`description-${task.id}`}
+                            name="description"
+                            defaultValue={task.description ?? ""}
+                          />
+
+                          <div className="compact-grid">
+                            <div>
+                              <label htmlFor={`assignee-${task.id}`}>Responsabil</label>
+                              <input
+                                id={`assignee-${task.id}`}
+                                name="assigneeEmail"
+                                type="email"
+                                defaultValue={task.assigneeEmail ?? ""}
+                                placeholder="nume@firma.ro"
+                              />
+                            </div>
+                            <div>
+                              <label htmlFor={`due-${task.id}`}>Termen</label>
+                              <input id={`due-${task.id}`} name="dueDate" type="date" defaultValue={task.dueDate ?? ""} />
+                            </div>
+                          </div>
+
+                          <label htmlFor={`project-${task.id}`}>Proiect</label>
+                          <input id={`project-${task.id}`} name="projectHint" defaultValue={task.projectHint ?? ""} />
+
+                          <div className="task-actions">
+                            <button className="button-secondary" type="submit">
+                              Salveaza editarea
+                            </button>
+                          </div>
+                        </form>
+
+                        <div className="task-actions">
                         <form action={`/api/tasks/${task.id}/approve`} method="post">
                           <input type="hidden" name="actorEmail" value="approver@firma.ro" />
                           <button type="submit">Aproba</button>
@@ -112,6 +153,7 @@ export default async function HomePage() {
                             </button>
                           </form>
                         ) : null}
+                      </div>
                       </div>
                     ) : null}
                   </article>
@@ -158,4 +200,3 @@ export default async function HomePage() {
     </main>
   );
 }
-

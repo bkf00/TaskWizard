@@ -86,6 +86,48 @@ export async function approveTask(input: {
   }
 }
 
+export async function updateProposedTask(input: {
+  taskId: string;
+  actorEmail: string;
+  patch: Partial<Pick<ProposedTask, "title" | "description" | "assigneeEmail" | "dueDate" | "projectHint">>;
+}): Promise<ProposedTask> {
+  const task = await store.getProposedTask(input.taskId);
+  if (!task) {
+    throw new Error("Taskul propus nu exista.");
+  }
+  if (task.status !== "proposed" && task.status !== "planner_sync_failed") {
+    throw new Error(`Taskul nu poate fi editat din statusul ${task.status}.`);
+  }
+
+  const title = input.patch.title?.trim();
+  if (title !== undefined && title.length < 3) {
+    throw new Error("Titlul taskului trebuie sa aiba cel putin 3 caractere.");
+  }
+
+  const updated: ProposedTask = {
+    ...task,
+    ...input.patch,
+    title: title ?? task.title,
+    description: input.patch.description?.trim() || null,
+    assigneeEmail: input.patch.assigneeEmail?.trim() || null,
+    dueDate: input.patch.dueDate?.trim() || null,
+    projectHint: input.patch.projectHint?.trim() || null,
+    updatedAt: new Date().toISOString()
+  };
+
+  await store.saveProposedTask(updated);
+  await audit({
+    type: "task.updated",
+    actorEmail: input.actorEmail,
+    sourceId: updated.sourceId,
+    proposedTaskId: updated.id,
+    message: "Taskul propus a fost editat.",
+    metadata: { fields: Object.keys(input.patch) }
+  });
+
+  return updated;
+}
+
 export async function rejectTask(input: {
   taskId: string;
   actorEmail: string;
@@ -115,4 +157,3 @@ export async function rejectTask(input: {
 
   return rejected;
 }
-

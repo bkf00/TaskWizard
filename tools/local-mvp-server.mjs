@@ -200,6 +200,40 @@ async function handleApprove(req, res, taskId) {
   redirect(res);
 }
 
+async function handleUpdate(req, res, taskId) {
+  const form = await parseForm(req);
+  const data = await readStore();
+  const task = data.proposedTasks.find((item) => item.id === taskId);
+  if (!task) {
+    res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
+    res.end("Taskul nu exista.");
+    return;
+  }
+  if (task.status !== "proposed" && task.status !== "planner_sync_failed") {
+    res.writeHead(409, { "Content-Type": "text/plain; charset=utf-8" });
+    res.end(`Taskul nu poate fi editat din statusul ${task.status}.`);
+    return;
+  }
+
+  const title = String(form.title || "").trim();
+  if (title.length < 3) {
+    res.writeHead(400, { "Content-Type": "text/plain; charset=utf-8" });
+    res.end("Titlul taskului trebuie sa aiba cel putin 3 caractere.");
+    return;
+  }
+
+  task.title = title;
+  task.description = String(form.description || "").trim() || null;
+  task.assigneeEmail = String(form.assigneeEmail || "").trim() || null;
+  task.dueDate = String(form.dueDate || "").trim() || null;
+  task.projectHint = String(form.projectHint || "").trim() || null;
+  task.updatedAt = new Date().toISOString();
+
+  audit(data, { type: "task.updated", proposedTaskId: task.id, sourceId: task.sourceId, message: "Task editat." });
+  await writeStore(data);
+  redirect(res);
+}
+
 async function handleReject(req, res, taskId) {
   const data = await readStore();
   const task = data.proposedTasks.find((item) => item.id === taskId);
@@ -244,6 +278,7 @@ async function renderHome(res) {
     .danger{background:#fee4e2;color:#b42318}.stack{display:grid;gap:10px}.row{display:flex;justify-content:space-between;gap:10px}
     .badge{display:inline-block;border-radius:999px;background:#eef2f6;padding:4px 8px;font-size:12px;font-weight:700;margin:3px}
     .proposed{background:#e0f2fe;color:#075985}.planner_sync_failed,.rejected{background:#fee4e2;color:#b42318}.approved,.created_in_planner{background:#dcfae6;color:#067647}
+    .edit{border-top:1px solid #d9dee7;margin-top:12px;padding-top:4px}.edit textarea{min-height:80px}.compact{display:grid;grid-template-columns:1fr 150px;gap:8px}
     @media(max-width:850px){.grid{display:block}.grid>*+*{margin-top:18px}}
   </style>
 </head>
@@ -270,7 +305,15 @@ async function renderHome(res) {
           <p class="muted">${escapeHtml(task.description)}</p>
           <span class="badge">confidence: ${escapeHtml(task.confidence)}</span><span class="badge">${escapeHtml(task.assigneeEmail || "fara responsabil")}</span><span class="badge">${escapeHtml(task.dueDate || "fara termen")}</span>
           <p class="muted"><strong>Evidence:</strong> ${escapeHtml(task.evidence)}</p>
-          ${task.status === "proposed" || task.status === "planner_sync_failed" ? `<form style="display:inline" method="post" action="/tasks/${task.id}/approve"><button>Aproba</button></form> <form style="display:inline" method="post" action="/tasks/${task.id}/reject"><button class="danger">Respinge</button></form>` : ""}
+          ${task.status === "proposed" || task.status === "planner_sync_failed" ? `
+            <form class="edit" method="post" action="/tasks/${task.id}/update">
+              <label>Titlu</label><input name="title" value="${escapeHtml(task.title)}" required />
+              <label>Descriere</label><textarea name="description">${escapeHtml(task.description || "")}</textarea>
+              <div class="compact"><div><label>Responsabil</label><input name="assigneeEmail" type="email" value="${escapeHtml(task.assigneeEmail || "")}" /></div><div><label>Termen</label><input name="dueDate" type="date" value="${escapeHtml(task.dueDate || "")}" /></div></div>
+              <label>Proiect</label><input name="projectHint" value="${escapeHtml(task.projectHint || "")}" />
+              <p><button type="submit">Salveaza editarea</button></p>
+            </form>
+            <form style="display:inline" method="post" action="/tasks/${task.id}/approve"><button>Aproba</button></form> <form style="display:inline" method="post" action="/tasks/${task.id}/reject"><button class="danger">Respinge</button></form>` : ""}
         </article>`).join("") : `<p class="muted">Nu exista taskuri propuse inca.</p>`}</div>
       <div class="panel"><h2>Erori</h2>${errors.length ? errors.slice(0,5).map((error) => `<div class="event"><strong>${escapeHtml(error.stage)}</strong><br>${escapeHtml(error.message)}</div>`).join("") : `<p class="muted">Nu exista erori.</p>`}</div>
       <div class="panel"><h2>Audit recent</h2>${auditEvents.length ? auditEvents.slice(0,8).map((event) => `<div class="event"><strong>${escapeHtml(event.type)}</strong><br><span class="muted">${escapeHtml(event.message)}</span></div>`).join("") : `<p class="muted">Nu exista evenimente.</p>`}</div>
@@ -291,6 +334,8 @@ createServer(async (req, res) => {
     if (req.method === "POST" && url.pathname === "/sources/manual") return handleIngest(req, res);
     const approve = url.pathname.match(/^\/tasks\/([^/]+)\/approve$/);
     if (req.method === "POST" && approve) return handleApprove(req, res, approve[1]);
+    const update = url.pathname.match(/^\/tasks\/([^/]+)\/update$/);
+    if (req.method === "POST" && update) return handleUpdate(req, res, update[1]);
     const reject = url.pathname.match(/^\/tasks\/([^/]+)\/reject$/);
     if (req.method === "POST" && reject) return handleReject(req, res, reject[1]);
     res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });

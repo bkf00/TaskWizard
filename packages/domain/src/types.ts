@@ -22,6 +22,7 @@ export type AuditEventType =
   | "source.extraction_started"
   | "source.extraction_completed"
   | "source.extraction_failed"
+  | "task.updated"
   | "task.approved"
   | "task.rejected"
   | "task.planner_created"
@@ -81,4 +82,3 @@ export type ProcessingError = {
   retryable: boolean;
   createdAt: string;
 };
-

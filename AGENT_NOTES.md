@@ -12,6 +12,14 @@ Acest fisier este jurnalul de lucru al agentului. Se actualizeaza la fiecare sch
 - Am adaugat teste extensive pentru runnerul local: 12/12 passing.
 - Am pregatit repository-ul pentru GitHub cu governance, CI, issue templates, PR template, security policy, roadmap si changelog.
 
+## 2026-05-21
+
+- Am mutat proiectul intr-un folder local curat: `C:\Users\BogdanCojocaru\TaskWizard`.
+- Am initializat Git local si am publicat commit-ul initial pe `bkf00/TaskWizard`.
+- Am reverificat remote-ul GitHub si testele locale.
+- Am continuat roadmap-ul cu editarea taskului inainte de aprobare.
+- Am extins testele locale la 15 cazuri, toate passing.
+
 ## Regula de utilizare
 
 La fiecare schimbare viitoare:
@@ -20,4 +28,3 @@ La fiecare schimbare viitoare:
 2. Actualizeaza `CHANGELOG.md` daca se schimba comportamentul.
 3. Adauga o nota scurta aici daca decizia conteaza pentru directia proiectului.
 4. Daca apare un impas, verifica `pasi/08-checklist-impasuri.md`.
-

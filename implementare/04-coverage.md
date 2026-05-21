@@ -14,10 +14,13 @@ Acest coverage este comportamental, nu coverage instrumentat de linii de cod. Mo
 | Ingestie fara task | Sursa salvata, fara taskuri false | `source without action phrases creates no proposed tasks` |
 | Ingestie actionabila | Creeaza taskuri propuse | `clear source creates expected proposed tasks` |
 | Idempotenta | Duplicat ignorat | `duplicate source is ignored idempotently` |
+| Editare task | `proposed` ramane editabil inainte de aprobare | `proposed task can be edited before approval` |
+| Validare editare | Titlu prea scurt respins | `invalid task edit is rejected` |
 | Aprobare | Fara Planner configurat esueaza controlat | `approval without Planner config fails safely` |
 | Task inexistent | Returneaza `404` | `unknown task approval returns 404` |
 | Respingere | `proposed` -> `rejected` | `reject changes only proposed tasks to rejected` |
 | Tranzitii invalide | Respinge repetare cu `409` | `rejected tasks cannot be rejected twice` |
+| Tranzitii invalide | Blocheaza editarea unui task respins | `rejected tasks cannot be edited` |
 | UI escaping | Nu reda script raw | `HTML-like task content is escaped in UI` |
 | Dialog lung | Extrage taskuri operationale din sedinta | `long meeting dialog extracts multiple operational tasks` |
 
@@ -42,4 +45,3 @@ Inainte de productie:
 - teste integration pentru Graph/Planner intr-un tenant de test;
 - teste de regresie pe dialoguri romanesti reale;
 - test de securitate pentru acces neautentificat dupa activarea Entra ID.
-
