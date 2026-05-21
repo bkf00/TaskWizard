@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["dom", "dom.iterable", "ES2022"],
+    "allowJs": false,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "baseUrl": ".",
+    "paths": {
+      "@repo/domain/*": ["packages/domain/src/*"],
+      "@repo/storage/*": ["packages/storage/src/*"],
+      "@repo/audit/*": ["packages/audit/src/*"],
+      "@repo/queue/*": ["packages/queue/src/*"],
+      "@repo/ai/*": ["packages/ai/src/*"],
+      "@repo/graph/*": ["packages/graph/src/*"],
+      "@repo/db/*": ["packages/db/src/*"],
+      "@web/*": ["apps/web/*"]
+    }
+  },
+  "include": ["apps/**/*.ts", "apps/**/*.tsx", "packages/**/*.ts", "workers/**/*.ts"],
+  "exclude": ["node_modules"]
+}
