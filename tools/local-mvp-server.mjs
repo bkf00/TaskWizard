@@ -214,6 +214,21 @@ async function handleIngest(req, res) {
 
   const existing = data.sources.find((source) => source.sourceHash === sourceHash);
   if (existing) {
+    const existingTasks = data.proposedTasks.filter((task) => task.sourceId === existing.id);
+    const hasReviewableTasks = existingTasks.some((task) => task.status === "proposed" || task.status === "planner_sync_failed");
+    if (!hasReviewableTasks) {
+      const tasks = fallbackExtract(existing);
+      data.proposedTasks.push(...tasks);
+      audit(data, {
+        type: "source.reprocessed",
+        actorEmail,
+        sourceId: existing.id,
+        message: `Sursa duplicata a fost reprocesata si au fost propuse ${tasks.length} taskuri.`
+      });
+      await writeStore(data);
+      redirect(res);
+      return;
+    }
     audit(data, {
       type: "source.duplicate_ignored",
       actorEmail,

@@ -31,6 +31,7 @@ Acest fisier este jurnalul de lucru al agentului. Se actualizeaza la fiecare sch
 - Am simplificat introducerea emailurilor: utilizatorul poate lipi un `.eml`/email complet intr-un singur camp, iar sistemul extrage automat subiectul, expeditorul, participantii si corpul text/plain.
 - Am imbunatatit extractorul fallback pentru minute: liniile de forma `data = responsabil actiune` extrag responsabilul textual si genereaza titluri de actiune mai curate.
 - Am redesenat UI-ul local ca un triage inbox: import simplu, review vizual al taskurilor active, editare expandabila si panou separat pentru istoricul complet/audit.
+- Am corectat fluxul de retestare: aceeasi sursa poate fi reprocesata daca nu mai are taskuri active de review, pastrand in continuare protectia anti-duplicare cand exista propuneri active.
 
 ## Regula de utilizare
 

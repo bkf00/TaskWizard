@@ -236,6 +236,36 @@ Pregateste lista de observatii pentru acoperis.
     );
   });
 
+  await record("duplicate source can be reprocessed after all review tasks are closed", async () => {
+    const storeBefore = await readStore();
+    const source = storeBefore.sources.find((item) => item.subject === "PV Lucrare X");
+    assert(source, "Sursa PV Lucrare X trebuie sa existe.");
+    const sourceTasks = storeBefore.proposedTasks.filter((task) => task.sourceId === source.id && task.status === "proposed");
+    assert(sourceTasks.length === 3, "Sursa trebuie sa aiba trei taskuri active inainte de inchidere.", sourceTasks);
+
+    for (const task of sourceTasks) {
+      const rejectResponse = await postForm(`/tasks/${task.id}/reject`, { actorEmail: "ana@firma.ro" });
+      assert(rejectResponse.status === 303, "Respingerile pregatitoare ar trebui sa redirectioneze.", rejectResponse.status);
+    }
+
+    const response = await postForm("/sources/manual", {
+      type: "email",
+      subject: "PV Lucrare X",
+      rawText:
+        "Te rog verifica PV-ul pentru lucrarea X. Ramane sa trimitem documentatia catre client. Pregateste lista de observatii pentru sedinta urmatoare.",
+      fromEmail: "manager@firma.ro"
+    });
+    assert(response.status === 303, "Reprocesarea duplicatului ar trebui sa redirectioneze.", response.status);
+    const store = await readStore();
+    const reviewableTasks = store.proposedTasks.filter((task) => task.sourceId === source.id && task.status === "proposed");
+    assert(store.sources.length === 4, "Reprocesarea nu trebuie sa creeze o sursa noua.", store.sources);
+    assert(reviewableTasks.length === 3, "Reprocesarea trebuie sa creeze taskuri noi de verificat.", reviewableTasks);
+    assert(
+      store.auditEvents.some((event) => event.type === "source.reprocessed"),
+      "Reprocesarea trebuie marcata in audit."
+    );
+  });
+
   await record("proposed task can be edited before approval", async () => {
     const storeBefore = await readStore();
     const task = storeBefore.proposedTasks.find((item) => item.status === "proposed");
