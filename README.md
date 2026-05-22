@@ -26,6 +26,7 @@ MVP includes:
 
 - one-field raw email paste for `.eml`/Outlook-style messages;
 - manual source input for copied email, recap or transcript text;
+- triage-style local interface for import, review and task history;
 - action-item extraction into proposed tasks;
 - approval/rejection flow;
 - controlled Planner sync path;

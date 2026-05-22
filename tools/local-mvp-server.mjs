@@ -356,12 +356,14 @@ async function handleReject(req, res, taskId) {
 async function renderHome(res) {
   const data = await readStore();
   const tasks = [...data.proposedTasks].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  const sourcesById = new Map(data.sources.map((source) => [source.id, source]));
   const taskStatusCounts = tasks.reduce((acc, task) => {
     acc[task.status] = (acc[task.status] ?? 0) + 1;
     return acc;
   }, {});
   const errors = [...data.processingErrors].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   const auditEvents = [...data.auditEvents].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  const reviewTasks = tasks.filter((task) => task.status === "proposed" || task.status === "planner_sync_failed");
 
   const html = `<!doctype html>
 <html lang="ro">
@@ -370,20 +372,8 @@ async function renderHome(res) {
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Taskuri AI</title>
   <style>
-    body{margin:0;background:#f7f8fa;color:#17202a;font-family:Arial,Helvetica,sans-serif}
-    main{max-width:1120px;margin:0 auto;padding:28px 18px 48px}
-    h1{margin:0 0 8px;font-size:28px} h2{font-size:18px;margin:0 0 14px}
-    .muted{color:#667085}.grid{display:grid;grid-template-columns:390px 1fr;gap:18px;align-items:start}
-    .panel,.task,.event{background:#fff;border:1px solid #d9dee7;border-radius:8px}.panel{padding:18px}.task{padding:14px}.event{padding:10px;font-size:13px}
-    label{display:block;font-size:13px;font-weight:700;margin:12px 0 6px}
-    input,select,textarea{width:100%;box-sizing:border-box;border:1px solid #cbd5e1;border-radius:6px;padding:10px;font:inherit}
-    textarea{min-height:170px;resize:vertical}button{border:0;border-radius:6px;background:#0f766e;color:#fff;font-weight:700;padding:9px 13px;cursor:pointer}
-    .danger{background:#fee4e2;color:#b42318}.stack{display:grid;gap:10px}.row{display:flex;justify-content:space-between;gap:10px}
-    .badge{display:inline-block;border-radius:999px;background:#eef2f6;padding:4px 8px;font-size:12px;font-weight:700;margin:3px}
-    .proposed{background:#e0f2fe;color:#075985}.planner_sync_failed,.rejected{background:#fee4e2;color:#b42318}.approved,.created_in_planner{background:#dcfae6;color:#067647}
-    .edit{border-top:1px solid #d9dee7;margin-top:12px;padding-top:4px}.edit textarea{min-height:80px}.compact{display:grid;grid-template-columns:1fr 150px;gap:8px}
-    .filters{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 14px}.task-table{width:100%;border-collapse:collapse;font-size:13px}.task-table th,.task-table td{border-top:1px solid #d9dee7;padding:8px;text-align:left;vertical-align:top}.task-table th{color:#667085;font-size:12px}.task-row{display:table-row}.task-row.hidden{display:none}
-    @media(max-width:850px){.grid{display:block}.grid>*+*{margin-top:18px}}
+    :root{--bg:#f6f7f9;--surface:#fff;--surface-2:#fbfcfd;--line:#d8dee8;--text:#17202a;--muted:#657083;--accent:#12635f;--danger:#b42318;--danger-bg:#fee4e2;--ok:#067647;--ok-bg:#dcfae6}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,Arial,Helvetica,sans-serif}main{max-width:1380px;margin:0 auto;padding:22px 22px 48px}h1,h2,h3,p{margin-top:0}h1{font-size:24px;line-height:1.2;margin-bottom:4px}h2{font-size:15px;margin-bottom:12px}.muted{color:var(--muted)}.app-header{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:18px}.summary{display:flex;gap:8px;flex-wrap:wrap}.metric{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:9px 12px;min-width:108px}.metric strong{display:block;font-size:20px}.workspace{display:grid;grid-template-columns:330px minmax(0,1fr) 300px;gap:16px;align-items:start}.panel{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:16px}.panel-subtle{background:var(--surface-2)}label{display:block;font-size:12px;font-weight:700;color:#344054;margin:12px 0 6px}input,select,textarea{width:100%;border:1px solid #cbd5e1;border-radius:6px;padding:9px 10px;background:#fff;color:var(--text);font:inherit}textarea{min-height:170px;resize:vertical}button{border:0;border-radius:6px;background:var(--accent);color:#fff;font-weight:700;padding:9px 12px;cursor:pointer}.button-muted{background:#eef2f6;color:#263445}.danger{background:var(--danger-bg);color:var(--danger)}.task-list{display:grid;gap:10px}.task-card{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px}.task-card[data-status="planner_sync_failed"]{border-color:#f6c7c3}.task-top{display:flex;justify-content:space-between;gap:12px}.task-title{font-weight:800;font-size:15px;line-height:1.35}.badge{display:inline-flex;align-items:center;border-radius:999px;background:#eef2f6;color:#344054;padding:4px 8px;font-size:12px;font-weight:700;white-space:nowrap}.proposed{background:#e0f2fe;color:#075985}.planner_sync_failed,.rejected{background:var(--danger-bg);color:var(--danger)}.approved,.created_in_planner{background:var(--ok-bg);color:var(--ok)}.meta{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}.evidence{border-left:3px solid #b7c4d5;background:#f8fafc;margin:10px 0;padding:9px 10px;color:#334155;font-size:13px}.source{font-size:12px;color:var(--muted);margin-top:6px}.edit{border-top:1px solid var(--line);margin-top:12px;padding-top:10px}.edit textarea{min-height:74px}.advanced summary,.edit summary{cursor:pointer;color:#344054;font-size:13px;font-weight:700}.compact{display:grid;grid-template-columns:1fr 150px;gap:8px}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.filters{display:flex;flex-wrap:wrap;gap:7px;margin:8px 0 12px}.task-table{width:100%;border-collapse:collapse;font-size:13px}.task-table th,.task-table td{border-top:1px solid var(--line);padding:8px;text-align:left;vertical-align:top}.task-table th{color:var(--muted);font-size:12px}.task-row{display:table-row}.task-row.hidden{display:none}.event{border-top:1px solid var(--line);padding:10px 0;font-size:13px}.empty{border:1px dashed var(--line);border-radius:8px;padding:20px;text-align:center;color:var(--muted);background:#fbfcfd}.review-heading{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:12px}.review-heading p{margin:0}.drawer{display:grid;gap:12px;position:sticky;top:16px}@media(max-width:1100px){.workspace{grid-template-columns:1fr}.drawer{position:static}.app-header{display:block}.summary{margin-top:12px}}@media(max-width:680px){main{padding:14px}.compact{grid-template-columns:1fr}.task-top{display:block}.badge{margin-top:8px}}
   </style>
   <script>
     function filterTasks(status) {
@@ -405,18 +395,28 @@ async function renderHome(res) {
 </head>
 <body>
 <main>
-  <h1>Taskuri AI din Teams si emailuri</h1>
-  <p class="muted">Runner local fara dependinte. AI propune, omul aproba, Planner vine dupa configurare.</p>
-  <div class="grid">
-    <section class="panel">
-      <h2>Proceseaza email</h2>
+  <header class="app-header">
+    <div>
+      <h1>TaskWizard</h1>
+      <p class="muted">Inbox de verificare pentru taskuri extrase din emailuri si minute.</p>
+    </div>
+    <div class="summary">
+      <div class="metric"><strong>${reviewTasks.length}</strong><span class="muted">de verificat</span></div>
+      <div class="metric"><strong>${tasks.length}</strong><span class="muted">total taskuri</span></div>
+      <div class="metric"><strong>${errors.length}</strong><span class="muted">erori</span></div>
+    </div>
+  </header>
+
+  <div class="workspace">
+    <aside class="panel panel-subtle">
+      <h2>Import email</h2>
       <form method="post" action="/sources/manual">
         <label>Procesat de</label><input name="actorEmail" type="email" value="${escapeHtml(defaultActorEmail)}" />
         <label>Fisier .eml</label><input type="file" accept=".eml,message/rfc822,text/plain" onchange="loadEmailFile(this)" />
-        <label>Email complet / text copiat</label><textarea name="rawEmail" required placeholder="Lipeste aici emailul complet din Outlook (.eml) sau continutul emailului."></textarea>
+        <label>Email complet / text copiat</label><textarea name="rawEmail" required placeholder="Alege fisierul .eml sau lipeste emailul complet aici."></textarea>
         <p><button type="submit">Extrage taskuri propuse</button></p>
       </form>
-      <details class="edit">
+      <details class="advanced">
         <summary>Introducere avansata</summary>
         <form method="post" action="/sources/manual">
           <input type="hidden" name="actorEmail" value="${escapeHtml(defaultActorEmail)}" />
@@ -428,31 +428,53 @@ async function renderHome(res) {
           <p><button type="submit">Proceseaza sursa avansata</button></p>
         </form>
       </details>
-    </section>
-    <section class="stack">
-      <div class="panel"><h2>Taskuri propuse</h2>${tasks.length ? tasks.map((task) => `
-        <article class="task">
-          <div class="row"><strong>${escapeHtml(task.title)}</strong><span class="badge ${escapeHtml(task.status)}">${escapeHtml(task.status)}</span></div>
-          <p class="muted">${escapeHtml(task.description)}</p>
-          <span class="badge">confidence: ${escapeHtml(task.confidence)}</span><span class="badge">${escapeHtml(task.assigneeName || task.assigneeEmail || "fara responsabil")}</span><span class="badge">${escapeHtml(task.dueDate || "fara termen")}</span>
-          <p class="muted"><strong>Evidence:</strong> ${escapeHtml(task.evidence)}</p>
-          ${task.status === "proposed" || task.status === "planner_sync_failed" ? `
-            <form class="edit" method="post" action="/tasks/${task.id}/update">
-              <label>Actor</label><input name="actorEmail" type="email" value="${escapeHtml(defaultActorEmail)}" />
+    </aside>
+
+    <section class="panel">
+      <div class="review-heading">
+        <div>
+          <h2>Review taskuri</h2>
+          <p class="muted">Verifica titlul, responsabilul si dovada inainte de aprobare.</p>
+        </div>
+        <span class="badge proposed">${reviewTasks.length} active</span>
+      </div>
+      <div class="task-list">${reviewTasks.length ? reviewTasks.map((task) => {
+        const source = sourcesById.get(task.sourceId);
+        return `
+        <article class="task-card" data-status="${escapeHtml(task.status)}">
+          <div class="task-top">
+            <div class="task-title">${escapeHtml(task.title)}</div>
+            <span class="badge ${escapeHtml(task.status)}">${escapeHtml(task.status)}</span>
+          </div>
+          <div class="meta">
+            <span class="badge">${escapeHtml(task.assigneeName || task.assigneeEmail || "fara responsabil")}</span>
+            <span class="badge">${escapeHtml(task.dueDate || "fara termen")}</span>
+            <span class="badge">confidence: ${escapeHtml(task.confidence)}</span>
+          </div>
+          <div class="evidence">${escapeHtml(task.evidence)}</div>
+          <div class="source">${escapeHtml(source?.subject ?? "sursa necunoscuta")}</div>
+          <details class="edit">
+            <summary>Editeaza taskul</summary>
+            <form method="post" action="/tasks/${task.id}/update">
+              <input type="hidden" name="actorEmail" value="${escapeHtml(defaultActorEmail)}" />
               <label>Titlu</label><input name="title" value="${escapeHtml(task.title)}" required />
-              <label>Descriere</label><textarea name="description">${escapeHtml(task.description || "")}</textarea>
               <div class="compact"><div><label>Responsabil</label><input name="assigneeName" value="${escapeHtml(task.assigneeName || task.assigneeEmail || "")}" /></div><div><label>Termen</label><input name="dueDate" type="date" value="${escapeHtml(task.dueDate || "")}" /></div></div>
+              <label>Descriere</label><textarea name="description">${escapeHtml(task.description || "")}</textarea>
               <label>Proiect</label><input name="projectHint" value="${escapeHtml(task.projectHint || "")}" />
-              <p><button type="submit">Salveaza editarea</button></p>
+              <div class="actions"><button class="button-muted" type="submit">Salveaza</button></div>
             </form>
-            <form style="display:inline" method="post" action="/tasks/${task.id}/approve"><input type="hidden" name="actorEmail" value="${escapeHtml(defaultActorEmail)}" /><button>Aproba</button></form> <form style="display:inline" method="post" action="/tasks/${task.id}/reject"><input type="hidden" name="actorEmail" value="${escapeHtml(defaultActorEmail)}" /><button class="danger">Respinge</button></form>` : ""}
-        </article>`).join("") : `<p class="muted">Nu exista taskuri propuse inca.</p>`}</div>
-      <div class="panel"><h2>Erori</h2>${errors.length ? errors.slice(0,5).map((error) => `<div class="event"><strong>${escapeHtml(error.stage)}</strong><br>${escapeHtml(error.message)}</div>`).join("") : `<p class="muted">Nu exista erori.</p>`}</div>
-      <div class="panel"><h2>Audit recent</h2>${auditEvents.length ? auditEvents.slice(0,8).map((event) => `<div class="event"><strong>${escapeHtml(event.type)}</strong><br><span class="muted">${escapeHtml(event.message)}</span></div>`).join("") : `<p class="muted">Nu exista evenimente.</p>`}</div>
+          </details>
+          <div class="actions">
+            <form method="post" action="/tasks/${task.id}/approve"><input type="hidden" name="actorEmail" value="${escapeHtml(defaultActorEmail)}" /><button>Aproba</button></form>
+            ${task.status === "proposed" ? `<form method="post" action="/tasks/${task.id}/reject"><input type="hidden" name="actorEmail" value="${escapeHtml(defaultActorEmail)}" /><button class="danger">Respinge</button></form>` : ""}
+          </div>
+        </article>`;
+      }).join("") : `<div class="empty">Nu exista taskuri de verificat.</div>`}</div>
     </section>
-  </div>
-  <section class="panel" style="margin-top:18px">
-    <h2>Toate taskurile</h2>
+
+    <aside class="drawer">
+      <section class="panel">
+        <h2>Toate taskurile</h2>
     <div class="filters">
       <button type="button" onclick="filterTasks('all')">Toate (${tasks.length})</button>
       ${["proposed", "planner_sync_failed", "rejected", "approved", "created_in_planner"]
@@ -473,7 +495,11 @@ async function renderHome(res) {
           </table>`
         : `<p class="muted">Nu exista taskuri inca.</p>`
     }
-  </section>
+      </section>
+      <section class="panel"><h2>Erori</h2>${errors.length ? errors.slice(0,5).map((error) => `<div class="event"><strong>${escapeHtml(error.stage)}</strong><br>${escapeHtml(error.message)}</div>`).join("") : `<p class="muted">Nu exista erori.</p>`}</section>
+      <section class="panel"><h2>Audit recent</h2>${auditEvents.length ? auditEvents.slice(0,6).map((event) => `<div class="event"><strong>${escapeHtml(event.type)}</strong><br><span class="muted">${escapeHtml(event.message)}</span></div>`).join("") : `<p class="muted">Nu exista evenimente.</p>`}</section>
+    </aside>
+  </div>
 </main>
 </body>
 </html>`;

@@ -40,11 +40,13 @@ Format inspirat de Keep a Changelog. Proiectul foloseste versionare pragmatica p
 - Parser pentru headere `From`, `To`, `CC`, `Subject` si corp `text/plain` quoted-printable.
 - Extractor fallback imbunatatit pentru linii de minuta de forma `data = responsabil actiune`.
 - Responsabili textuali precum `RST`, `AVT` sau `echipa de proiectare`.
+- Interfata locala tip triage inbox: import email in stanga, review taskuri in centru, context/audit in dreapta.
 
 ### Changed
 
 - Aprobarea locala salveaza `approvedBy` din formular, nu un placeholder hardcodat.
 - AI provider local/Ollama a fost mutat in Milestone 4 ca prioritate ulterioara.
+- Cardurile de review pun in prim-plan titlul, responsabilul, termenul si dovada; editarea completa este disponibila expandabil.
 - Testele locale cresc de la 15 la 18 cazuri.
 
 ### Known Limitations

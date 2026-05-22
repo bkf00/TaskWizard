@@ -98,7 +98,10 @@ try {
     const response = await fetch(baseUrl);
     const html = await response.text();
     assert(response.status === 200, "GET / nu a raspuns cu 200", response.status);
-    assert(html.includes("Taskuri AI din Teams si emailuri"), "Pagina principala nu contine titlul asteptat.");
+    assert(html.includes("TaskWizard"), "Pagina principala nu contine brandul aplicatiei.");
+    assert(html.includes("Import email"), "Pagina principala nu contine zona de import.");
+    assert(html.includes("Review taskuri"), "Pagina principala nu contine zona de review.");
+    assert(html.includes("Toate taskurile"), "Pagina principala nu contine istoricul taskurilor.");
   });
 
   await record("empty input is rejected", async () => {
