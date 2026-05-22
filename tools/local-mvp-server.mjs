@@ -104,32 +104,60 @@ function parseEmailPaste(rawEmail, actorEmail) {
   };
 }
 
+function normalizeLine(line) {
+  return line.replace(/\s+/g, " ").replace(/^[*•-]\s*/, "").trim();
+}
+
+function structuredActionFromLine(line) {
+  const normalized = normalizeLine(line);
+  const structured = normalized.match(/^(?:(?:\d{1,2}\.\d{1,2}\.\d{4}|\d{4})\s*=\s*)?(.+?)\s+(trebuie|pregateste|pregatesc|transmite|transmit|trimite|verifica|actualizeaza|creeaza|preia|preluat|stabileste|confirma|clarifica)\b(.*)$/i);
+  if (!structured) return null;
+
+  const assigneeName = structured[1].trim().replace(/\s+a$/i, "");
+  if (/^(te rog|ramane sa|de facut)$/i.test(assigneeName)) return null;
+  const actionVerb = structured[2].trim();
+  const actionRest = structured[3].trim();
+  const title = `${actionVerb} ${actionRest}`.trim();
+
+  return {
+    title: title.length > 110 ? `${title.slice(0, 107)}...` : title,
+    description: normalized,
+    assigneeName: assigneeName.length <= 60 ? assigneeName : null
+  };
+}
+
 function fallbackExtract(source) {
   return source.rawText
-    .split(/\r?\n|[.;]/)
-    .map((line) => line.trim())
+    .split(/\r?\n/)
+    .flatMap((line) => (line.includes("=") ? [line] : line.split(/(?<=[.;])\s+/)))
+    .map(normalizeLine)
     .filter(Boolean)
+    .filter((line) => !/^daca sunt elemente pe care le-am omis/i.test(line))
     .filter((line) =>
-      /\b(trebuie|de facut|rog|te rog|ramane|verifica|trimite|pregateste|actualizeaza|creeaza)\b/i.test(line)
+      /\b(trebuie|de facut|rog|te rog|ramane|verifica|trimite|transmite|pregateste|pregatesc|actualizeaza|creeaza|preia|preluat|stabileste|confirma|clarifica)\b/i.test(line)
     )
     .slice(0, 5)
-    .map((line) => ({
-      id: id("ptask"),
-      sourceId: source.id,
-      title: line.length > 90 ? `${line.slice(0, 87)}...` : line,
-      description: line,
-      assigneeEmail: null,
-      dueDate: null,
-      projectHint: null,
-      confidence: "low",
-      evidence: line,
-      status: "proposed",
-      approvedBy: null,
-      approvedAt: null,
-      plannerTaskId: null,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    }));
+    .map((line) => {
+      const structured = structuredActionFromLine(line);
+      return {
+        id: id("ptask"),
+        sourceId: source.id,
+        title: structured?.title ?? (line.length > 90 ? `${line.slice(0, 87)}...` : line),
+        description: structured?.description ?? line,
+        assigneeEmail: null,
+        assigneeName: structured?.assigneeName ?? null,
+        dueDate: null,
+        projectHint: null,
+        confidence: structured ? "medium" : "low",
+        evidence: line,
+        status: "proposed",
+        approvedBy: null,
+        approvedAt: null,
+        plannerTaskId: null,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+    });
 }
 
 function audit(data, event) {
@@ -293,6 +321,7 @@ async function handleUpdate(req, res, taskId) {
   task.title = title;
   task.description = String(form.description || "").trim() || null;
   task.assigneeEmail = String(form.assigneeEmail || "").trim() || null;
+  task.assigneeName = String(form.assigneeName || "").trim() || null;
   task.dueDate = String(form.dueDate || "").trim() || null;
   task.projectHint = String(form.projectHint || "").trim() || null;
   task.updatedAt = new Date().toISOString();
@@ -362,6 +391,16 @@ async function renderHome(res) {
         row.classList.toggle("hidden", status !== "all" && row.dataset.status !== status);
       });
     }
+    function loadEmailFile(input) {
+      const file = input.files && input.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        const target = document.querySelector("[name='rawEmail']");
+        if (target) target.value = String(reader.result || "");
+      };
+      reader.readAsText(file);
+    }
   </script>
 </head>
 <body>
@@ -373,6 +412,7 @@ async function renderHome(res) {
       <h2>Proceseaza email</h2>
       <form method="post" action="/sources/manual">
         <label>Procesat de</label><input name="actorEmail" type="email" value="${escapeHtml(defaultActorEmail)}" />
+        <label>Fisier .eml</label><input type="file" accept=".eml,message/rfc822,text/plain" onchange="loadEmailFile(this)" />
         <label>Email complet / text copiat</label><textarea name="rawEmail" required placeholder="Lipeste aici emailul complet din Outlook (.eml) sau continutul emailului."></textarea>
         <p><button type="submit">Extrage taskuri propuse</button></p>
       </form>
@@ -394,14 +434,14 @@ async function renderHome(res) {
         <article class="task">
           <div class="row"><strong>${escapeHtml(task.title)}</strong><span class="badge ${escapeHtml(task.status)}">${escapeHtml(task.status)}</span></div>
           <p class="muted">${escapeHtml(task.description)}</p>
-          <span class="badge">confidence: ${escapeHtml(task.confidence)}</span><span class="badge">${escapeHtml(task.assigneeEmail || "fara responsabil")}</span><span class="badge">${escapeHtml(task.dueDate || "fara termen")}</span>
+          <span class="badge">confidence: ${escapeHtml(task.confidence)}</span><span class="badge">${escapeHtml(task.assigneeName || task.assigneeEmail || "fara responsabil")}</span><span class="badge">${escapeHtml(task.dueDate || "fara termen")}</span>
           <p class="muted"><strong>Evidence:</strong> ${escapeHtml(task.evidence)}</p>
           ${task.status === "proposed" || task.status === "planner_sync_failed" ? `
             <form class="edit" method="post" action="/tasks/${task.id}/update">
               <label>Actor</label><input name="actorEmail" type="email" value="${escapeHtml(defaultActorEmail)}" />
               <label>Titlu</label><input name="title" value="${escapeHtml(task.title)}" required />
               <label>Descriere</label><textarea name="description">${escapeHtml(task.description || "")}</textarea>
-              <div class="compact"><div><label>Responsabil</label><input name="assigneeEmail" type="email" value="${escapeHtml(task.assigneeEmail || "")}" /></div><div><label>Termen</label><input name="dueDate" type="date" value="${escapeHtml(task.dueDate || "")}" /></div></div>
+              <div class="compact"><div><label>Responsabil</label><input name="assigneeName" value="${escapeHtml(task.assigneeName || task.assigneeEmail || "")}" /></div><div><label>Termen</label><input name="dueDate" type="date" value="${escapeHtml(task.dueDate || "")}" /></div></div>
               <label>Proiect</label><input name="projectHint" value="${escapeHtml(task.projectHint || "")}" />
               <p><button type="submit">Salveaza editarea</button></p>
             </form>
@@ -426,7 +466,7 @@ async function renderHome(res) {
             <tbody>
               ${tasks
                 .map(
-                  (task) => `<tr class="task-row" data-task-row data-status="${escapeHtml(task.status)}"><td><span class="badge ${escapeHtml(task.status)}">${escapeHtml(task.status)}</span></td><td>${escapeHtml(task.title)}</td><td>${escapeHtml(task.assigneeEmail || "fara responsabil")}</td><td>${escapeHtml(task.dueDate || "fara termen")}</td><td>${escapeHtml(task.projectHint || "-")}</td></tr>`
+                  (task) => `<tr class="task-row" data-task-row data-status="${escapeHtml(task.status)}"><td><span class="badge ${escapeHtml(task.status)}">${escapeHtml(task.status)}</span></td><td>${escapeHtml(task.title)}</td><td>${escapeHtml(task.assigneeName || task.assigneeEmail || "fara responsabil")}</td><td>${escapeHtml(task.dueDate || "fara termen")}</td><td>${escapeHtml(task.projectHint || "-")}</td></tr>`
                 )
                 .join("")}
             </tbody>

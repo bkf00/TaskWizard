@@ -15,6 +15,7 @@ export async function POST(req: Request, context: { params: Promise<{ taskId: st
       title: String(form.get("title") ?? ""),
       description: String(form.get("description") ?? ""),
       assigneeEmail: String(form.get("assigneeEmail") ?? ""),
+      assigneeName: String(form.get("assigneeName") ?? ""),
       dueDate: String(form.get("dueDate") ?? ""),
       projectHint: String(form.get("projectHint") ?? "")
     }
@@ -22,4 +23,3 @@ export async function POST(req: Request, context: { params: Promise<{ taskId: st
 
   return NextResponse.redirect(new URL("/", req.url), { status: 303 });
 }
-

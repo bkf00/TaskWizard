@@ -1,4 +1,5 @@
 import { store } from "@repo/storage/local-store";
+import { EmailSourceForm } from "./email-source-form";
 
 export const dynamic = "force-dynamic";
 const defaultActorEmail = process.env.LOCAL_ACTOR_EMAIL ?? "approver@firma.ro";
@@ -37,54 +38,7 @@ export default async function HomePage() {
       <div className="grid">
         <section className="panel">
           <h2>Proceseaza email</h2>
-          <form action="/api/sources/manual" method="post">
-            <label htmlFor="actorEmail">Procesat de</label>
-            <input id="actorEmail" name="actorEmail" type="email" defaultValue={defaultActorEmail} />
-
-            <label htmlFor="rawEmail">Email complet / text copiat</label>
-            <textarea
-              id="rawEmail"
-              name="rawEmail"
-              required
-              placeholder="Lipeste aici emailul complet din Outlook (.eml) sau continutul emailului. Subiectul, expeditorul si participantii vor fi extrasi automat cand exista headere."
-            />
-
-            <div style={{ marginTop: 16 }}>
-              <button type="submit">Extrage taskuri propuse</button>
-            </div>
-          </form>
-
-          <details className="advanced-source">
-            <summary>Introducere avansata</summary>
-            <form action="/api/sources/manual" method="post">
-              <input type="hidden" name="actorEmail" value={defaultActorEmail} />
-
-              <label htmlFor="type">Tip sursa</label>
-              <select id="type" name="type" defaultValue="manual_upload">
-                <option value="manual_upload">Recap / text manual</option>
-                <option value="email">Email copiat</option>
-                <option value="teams_transcript">Transcript Teams</option>
-              </select>
-
-              <label htmlFor="subject">Subiect</label>
-              <input id="subject" name="subject" placeholder="Ex: Sedinta PV lucrare X" />
-
-              <label htmlFor="fromEmail">Expeditor / organizator</label>
-              <input id="fromEmail" name="fromEmail" type="email" placeholder="optional@firma.ro" />
-
-              <label htmlFor="participants">Participanti</label>
-              <input id="participants" name="participants" placeholder="email1@firma.ro, email2@firma.ro" />
-
-              <label htmlFor="rawText">Text email / recap / transcript</label>
-              <textarea id="rawText" name="rawText" />
-
-              <div style={{ marginTop: 16 }}>
-                <button className="button-secondary" type="submit">
-                  Proceseaza sursa avansata
-                </button>
-              </div>
-            </form>
-          </details>
+          <EmailSourceForm defaultActorEmail={defaultActorEmail} />
         </section>
 
         <section className="stack">
@@ -105,7 +59,7 @@ export default async function HomePage() {
 
                     <div className="task-meta">
                       <span className="badge">confidence: {task.confidence}</span>
-                      <span className="badge">{task.assigneeEmail ?? "fara responsabil"}</span>
+                      <span className="badge">{task.assigneeName ?? task.assigneeEmail ?? "fara responsabil"}</span>
                       <span className="badge">{formatDate(task.dueDate)}</span>
                       {task.projectHint ? <span className="badge">{task.projectHint}</span> : null}
                     </div>
@@ -147,10 +101,9 @@ export default async function HomePage() {
                               <label htmlFor={`assignee-${task.id}`}>Responsabil</label>
                               <input
                                 id={`assignee-${task.id}`}
-                                name="assigneeEmail"
-                                type="email"
-                                defaultValue={task.assigneeEmail ?? ""}
-                                placeholder="nume@firma.ro"
+                                name="assigneeName"
+                                defaultValue={task.assigneeName ?? task.assigneeEmail ?? ""}
+                                placeholder="persoana, echipa sau firma"
                               />
                             </div>
                             <div>

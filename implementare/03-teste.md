@@ -14,6 +14,7 @@ node .\tools\test-local-mvp.mjs
 - Sursa fara actiuni clare nu creeaza taskuri.
 - Sursa clara creeaza taskuri propuse.
 - Email brut `.eml` extrage headerele si corpul `text/plain`.
+- Linii de minuta extrag responsabili de tip firma/acronim si titluri sumarizate.
 - Sursa duplicata este ignorata idempotent.
 - Task propus poate fi editat inainte de aprobare.
 - Editarea invalida este respinsa.
@@ -39,13 +40,13 @@ node .\tools\test-local-mvp.mjs
 Rezultat:
 
 ```text
-17 teste rulate
-17 passed
+18 teste rulate
+18 passed
 0 failed
-5 surse create in test
-12 taskuri propuse
+6 surse create in test
+14 taskuri propuse
 1 eroare controlata de Planner neconfigurat
-14 evenimente audit
+16 evenimente audit
 ```
 
 ## Dialog lung testat

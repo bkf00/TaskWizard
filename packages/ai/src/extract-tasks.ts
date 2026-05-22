@@ -6,6 +6,7 @@ const ExtractedTaskSchema = z.object({
   title: z.string().min(3),
   description: z.string().nullable().default(null),
   assigneeEmail: z.string().email().nullable().default(null),
+  assigneeName: z.string().nullable().default(null),
   dueDate: z.string().nullable().default(null),
   projectHint: z.string().nullable().default(null),
   confidence: z.enum(["high", "medium", "low"]),
@@ -28,6 +29,7 @@ function buildPrompt(source: SourceItem): string {
           title: "string",
           description: "string | null",
           assigneeEmail: "email | null",
+          assigneeName: "nume persoana, echipa sau firma responsabila | null",
           dueDate: "YYYY-MM-DD | null",
           projectHint: "string | null",
           confidence: "high | medium | low",
@@ -90,24 +92,48 @@ async function callAzureOpenAI(source: SourceItem): Promise<ExtractedTask[]> {
 }
 
 function fallbackExtractTasks(source: SourceItem): ExtractedTask[] {
+  const normalizeLine = (line: string) => line.replace(/\s+/g, " ").replace(/^[*•-]\s*/, "").trim();
+  const structuredActionFromLine = (line: string) => {
+    const normalized = normalizeLine(line);
+    const structured = normalized.match(/^(?:(?:\d{1,2}\.\d{1,2}\.\d{4}|\d{4})\s*=\s*)?(.+?)\s+(trebuie|pregateste|pregatesc|transmite|transmit|trimite|verifica|actualizeaza|creeaza|preia|preluat|stabileste|confirma|clarifica)\b(.*)$/i);
+    if (!structured) return null;
+
+    const assigneeName = structured[1].trim().replace(/\s+a$/i, "");
+    if (/^(te rog|ramane sa|de facut)$/i.test(assigneeName)) return null;
+
+    const title = `${structured[2].trim()} ${structured[3].trim()}`.trim();
+    return {
+      title: title.length > 110 ? `${title.slice(0, 107)}...` : title,
+      description: normalized,
+      assigneeName: assigneeName.length <= 60 ? assigneeName : null
+    };
+  };
+
   const lines = source.rawText
-    .split(/\r?\n|[.;]/)
-    .map((line) => line.trim())
+    .split(/\r?\n/)
+    .flatMap((line) => (line.includes("=") ? [line] : line.split(/(?<=[.;])\s+/)))
+    .map(normalizeLine)
     .filter(Boolean);
 
-  const candidates = lines.filter((line) =>
-    /\b(trebuie|de facut|rog|te rog|ramane|verifica|trimite|pregateste|actualizeaza|creeaza)\b/i.test(line)
-  );
+  const candidates = lines
+    .filter((line) => !/^daca sunt elemente pe care le-am omis/i.test(line))
+    .filter((line) =>
+      /\b(trebuie|de facut|rog|te rog|ramane|verifica|trimite|transmite|pregateste|pregatesc|actualizeaza|creeaza|preia|preluat|stabileste|confirma|clarifica)\b/i.test(line)
+    );
 
-  return candidates.slice(0, 5).map((line) => ({
-    title: line.length > 90 ? `${line.slice(0, 87)}...` : line,
-    description: line,
-    assigneeEmail: null,
-    dueDate: null,
-    projectHint: null,
-    confidence: "low",
-    evidence: line
-  }));
+  return candidates.slice(0, 5).map((line) => {
+    const structured = structuredActionFromLine(line);
+    return {
+      title: structured?.title ?? (line.length > 90 ? `${line.slice(0, 87)}...` : line),
+      description: structured?.description ?? line,
+      assigneeEmail: null,
+      assigneeName: structured?.assigneeName ?? null,
+      dueDate: null,
+      projectHint: null,
+      confidence: structured ? "medium" : "low",
+      evidence: line
+    };
+  });
 }
 
 export async function extractProposedTasks(source: SourceItem): Promise<ProposedTask[]> {
@@ -120,6 +146,7 @@ export async function extractProposedTasks(source: SourceItem): Promise<Proposed
     title: task.title,
     description: task.description,
     assigneeEmail: task.assigneeEmail,
+    assigneeName: task.assigneeName,
     dueDate: task.dueDate,
     projectHint: task.projectHint,
     confidence: task.confidence,
@@ -132,4 +159,3 @@ export async function extractProposedTasks(source: SourceItem): Promise<Proposed
     updatedAt: now
   }));
 }
-

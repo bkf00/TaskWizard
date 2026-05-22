@@ -50,6 +50,7 @@ export type ProposedTask = {
   title: string;
   description: string | null;
   assigneeEmail: string | null;
+  assigneeName: string | null;
   dueDate: string | null;
   projectHint: string | null;
   confidence: TaskConfidence;

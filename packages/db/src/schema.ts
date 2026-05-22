@@ -46,6 +46,7 @@ export const proposedTasks = pgTable("proposed_tasks", {
   title: text("title").notNull(),
   description: text("description"),
   assigneeEmail: text("assignee_email"),
+  assigneeName: text("assignee_name"),
   dueDate: text("due_date"),
   projectHint: text("project_hint"),
   confidence: taskConfidence("confidence").notNull(),
@@ -88,4 +89,3 @@ export const processingErrors = pgTable("processing_errors", {
   retryable: boolean("retryable").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull()
 });
-

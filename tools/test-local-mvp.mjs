@@ -190,6 +190,31 @@ Pregateste lista de observatii pentru acoperis.
     assert(tasks.length === 3, "Emailul .eml ar trebui sa creeze trei taskuri.", tasks);
   });
 
+  await record("meeting minute lines summarize actions and extract company assignees", async () => {
+    const response = await postForm("/sources/manual", {
+      type: "manual_upload",
+      subject: "Minuta structurata",
+      rawText: [
+        "15.05.2026 = RST a preluat arhiva de informatii despre proiect, se vor verifica datele si se vor transmite observatiile.",
+        "15.05.2026 = AVT transmite catre proiectare detaliile pentru prinderi seismice.",
+        "Daca sunt elemente pe care le-am omis va rog sa le adaugati."
+      ].join("\n")
+    });
+    assert(response.status === 303, "Minuta structurata ar trebui procesata.", response.status);
+    const store = await readStore();
+    const source = store.sources.find((item) => item.subject === "Minuta structurata");
+    assert(source, "Sursa minutei structurate trebuie salvata.");
+    const tasks = store.proposedTasks.filter((task) => task.sourceId === source.id);
+    assert(tasks.length === 2, "Linia generica de completari nu trebuie sa devina task.", tasks);
+    assert(tasks.some((task) => task.assigneeName === "RST"), "RST trebuie extras ca responsabil.", tasks);
+    assert(tasks.some((task) => task.assigneeName === "AVT"), "AVT trebuie extras ca responsabil.", tasks);
+    assert(tasks.every((task) => !task.title.startsWith("2026 =")), "Titlul nu trebuie sa inceapa cu resturi de data.", tasks);
+    assert(
+      tasks.some((task) => /preluat arhiva/i.test(task.title) || /verifica datele/i.test(task.title)),
+      "Titlul trebuie sa sumarizeze actiunea, nu sa copieze linia bruta."
+    );
+  });
+
   await record("duplicate source is ignored idempotently", async () => {
     const response = await postForm("/sources/manual", {
       type: "email",
@@ -200,8 +225,8 @@ Pregateste lista de observatii pentru acoperis.
     });
     assert(response.status === 303, "Duplicatul ar trebui sa redirectioneze.", response.status);
     const store = await readStore();
-    assert(store.sources.length === 3, "Duplicatul nu trebuie sa creeze o sursa noua.", store.sources);
-    assert(store.proposedTasks.length === 6, "Duplicatul nu trebuie sa creeze taskuri noi.", store.proposedTasks);
+    assert(store.sources.length === 4, "Duplicatul nu trebuie sa creeze o sursa noua.", store.sources);
+    assert(store.proposedTasks.length === 8, "Duplicatul nu trebuie sa creeze taskuri noi.", store.proposedTasks);
     assert(
       store.auditEvents.some((event) => event.type === "source.duplicate_ignored"),
       "Duplicatul trebuie marcat in audit."

@@ -14,6 +14,7 @@ Acest coverage este comportamental, nu coverage instrumentat de linii de cod. Mo
 | Ingestie fara task | Sursa salvata, fara taskuri false | `source without action phrases creates no proposed tasks` |
 | Ingestie actionabila | Creeaza taskuri propuse | `clear source creates expected proposed tasks` |
 | Email raw `.eml` | Extrage headere si corp text/plain | `raw EML paste extracts headers and plain text body` |
+| Minute structurate | Extrage firme/acronime ca responsabili si sumarizeaza titluri | `meeting minute lines summarize actions and extract company assignees` |
 | Idempotenta | Duplicat ignorat | `duplicate source is ignored idempotently` |
 | Editare task | `proposed` ramane editabil inainte de aprobare | `proposed task can be edited before approval` |
 | Validare editare | Titlu prea scurt respins | `invalid task edit is rejected` |

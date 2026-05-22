@@ -89,7 +89,7 @@ export async function approveTask(input: {
 export async function updateProposedTask(input: {
   taskId: string;
   actorEmail: string;
-  patch: Partial<Pick<ProposedTask, "title" | "description" | "assigneeEmail" | "dueDate" | "projectHint">>;
+  patch: Partial<Pick<ProposedTask, "title" | "description" | "assigneeEmail" | "assigneeName" | "dueDate" | "projectHint">>;
 }): Promise<ProposedTask> {
   const task = await store.getProposedTask(input.taskId);
   if (!task) {
@@ -110,6 +110,7 @@ export async function updateProposedTask(input: {
     title: title ?? task.title,
     description: input.patch.description?.trim() || null,
     assigneeEmail: input.patch.assigneeEmail?.trim() || null,
+    assigneeName: input.patch.assigneeName?.trim() || null,
     dueDate: input.patch.dueDate?.trim() || null,
     projectHint: input.patch.projectHint?.trim() || null,
     updatedAt: new Date().toISOString()

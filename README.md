@@ -90,6 +90,7 @@ The test runner starts an isolated server on port `3197`, uses a temporary data 
 - task editing before approval;
 - all-tasks status filters;
 - raw EML header/body parsing;
+- structured minute line extraction with organization assignees;
 - approval and rejection;
 - safe Planner failure when not configured;
 - HTML escaping;
@@ -98,7 +99,7 @@ The test runner starts an isolated server on port `3197`, uses a temporary data 
 Latest local result:
 
 ```text
-17 passed
+18 passed
 0 failed
 ```
 
