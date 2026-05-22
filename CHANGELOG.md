@@ -28,6 +28,21 @@ Format inspirat de Keep a Changelog. Proiectul foloseste versionare pragmatica p
 
 - Testele locale cresc de la 12 la 15 cazuri.
 
+## [0.1.2] - 2026-05-22
+
+### Added
+
+- Actor local/mock configurabil prin `LOCAL_ACTOR_EMAIL`.
+- Camp actor vizibil in formularele de editare din UI.
+- Audit pentru editare, aprobare si respingere cu emailul actorului real.
+- Sectiune locala "Toate taskurile" cu filtre pe status.
+
+### Changed
+
+- Aprobarea locala salveaza `approvedBy` din formular, nu un placeholder hardcodat.
+- AI provider local/Ollama a fost mutat in Milestone 4 ca prioritate ulterioara.
+- Testele locale cresc de la 15 la 16 cazuri.
+
 ### Known Limitations
 
 - `npm`/`pnpm` nu este disponibil in PATH pe masina curenta.

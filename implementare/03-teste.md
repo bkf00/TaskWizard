@@ -22,6 +22,7 @@ node .\tools\test-local-mvp.mjs
 - Respingerea repetata a unui task respins intoarce `409`.
 - Task respins nu mai poate fi editat.
 - Continutul HTML-like este scapat in UI.
+- Sectiunea "Toate taskurile" expune filtre pe status.
 - Dialog lung de meeting extrage mai multe taskuri operationale.
 
 ## Rezultat ultima rulare
@@ -37,8 +38,8 @@ node .\tools\test-local-mvp.mjs
 Rezultat:
 
 ```text
-15 teste rulate
-15 passed
+16 teste rulate
+16 passed
 0 failed
 4 surse create in test
 9 taskuri propuse

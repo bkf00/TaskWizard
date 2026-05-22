@@ -15,7 +15,9 @@
 - [x] Aprobare/respingere.
 - [x] Audit si erori.
 - [x] Editare task inainte de aprobare.
-- [ ] Autentificare mock/local pentru actor real.
+- [x] Autentificare mock/local pentru actor real.
+- [x] Ecran dedicat "Toate taskurile" cu filtre pe status.
+- [ ] Persistenta pregatita pentru migrare de la JSON la repository interface.
 
 ## Milestone 2 - Microsoft 365 integration
 
@@ -29,7 +31,6 @@
 ## Milestone 3 - Production foundation
 
 - [ ] PostgreSQL/Drizzle repository.
-- [ ] Azure OpenAI configurat.
 - [ ] Azure Key Vault.
 - [ ] Terraform pentru Azure.
 - [ ] Observability si backup.
@@ -37,6 +38,9 @@
 
 ## Milestone 4 - Quality and intelligence
 
+- [ ] Provider AI configurabil: `fallback` / `ollama`.
+- [ ] Teste cu 3 emailuri si 1 transcript folosind provider AI local.
+- [ ] Azure OpenAI configurat ca optiune platita, doar daca Ollama/local AI nu este suficient.
 - [ ] Teste Playwright UI.
 - [ ] Coverage instrumentat minimum 80% pe module critice.
 - [ ] Teste cu dialoguri romanesti reale.

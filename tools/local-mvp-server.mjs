@@ -14,6 +14,7 @@ const emptyStore = {
   processingErrors: []
 };
 const allowedSourceTypes = new Set(["email", "teams_transcript", "manual_upload"]);
+const defaultActorEmail = process.env.LOCAL_ACTOR_EMAIL ?? "approver@firma.ro";
 
 async function readStore() {
   try {
@@ -82,13 +83,17 @@ function fallbackExtract(source) {
 function audit(data, event) {
   data.auditEvents.push({
     id: id("audit"),
-    actorEmail: null,
+    actorEmail: event.actorEmail ?? null,
     sourceId: event.sourceId ?? null,
     proposedTaskId: event.proposedTaskId ?? null,
     metadata: {},
     createdAt: new Date().toISOString(),
     ...event
   });
+}
+
+function actorFromForm(form) {
+  return String(form.actorEmail || defaultActorEmail).trim() || defaultActorEmail;
 }
 
 async function parseForm(req) {
@@ -107,6 +112,7 @@ function redirect(res) {
 async function handleIngest(req, res) {
   const form = await parseForm(req);
   const type = form.type || "manual_upload";
+  const actorEmail = actorFromForm(form);
   const subject = String(form.subject || "").trim();
   const rawText = String(form.rawText || "").trim();
   const sourceHash = hashSource({ type, subject, rawText });
@@ -127,6 +133,7 @@ async function handleIngest(req, res) {
   if (existing) {
     audit(data, {
       type: "source.duplicate_ignored",
+      actorEmail,
       sourceId: existing.id,
       message: "Sursa duplicata a fost ignorata."
     });
@@ -155,11 +162,12 @@ async function handleIngest(req, res) {
   };
 
   data.sources.push(source);
-  audit(data, { type: "source.received", sourceId: source.id, message: "Sursa a fost primita." });
+  audit(data, { type: "source.received", actorEmail, sourceId: source.id, message: "Sursa a fost primita." });
   const tasks = fallbackExtract(source);
   data.proposedTasks.push(...tasks);
   audit(data, {
     type: "source.extraction_completed",
+    actorEmail,
     sourceId: source.id,
     message: `Au fost propuse ${tasks.length} taskuri.`
   });
@@ -168,6 +176,8 @@ async function handleIngest(req, res) {
 }
 
 async function handleApprove(req, res, taskId) {
+  const form = await parseForm(req);
+  const actorEmail = actorFromForm(form);
   const data = await readStore();
   const task = data.proposedTasks.find((item) => item.id === taskId);
   if (!task) {
@@ -181,10 +191,10 @@ async function handleApprove(req, res, taskId) {
     return;
   }
   task.status = process.env.PLANNER_PLAN_ID ? "approved" : "planner_sync_failed";
-  task.approvedBy = "approver@firma.ro";
+  task.approvedBy = actorEmail;
   task.approvedAt = new Date().toISOString();
   task.updatedAt = new Date().toISOString();
-  audit(data, { type: "task.approved", proposedTaskId: task.id, sourceId: task.sourceId, message: "Task aprobat." });
+  audit(data, { type: "task.approved", actorEmail, proposedTaskId: task.id, sourceId: task.sourceId, message: "Task aprobat." });
   if (task.status === "planner_sync_failed") {
     data.processingErrors.push({
       id: id("perr"),
@@ -202,6 +212,7 @@ async function handleApprove(req, res, taskId) {
 
 async function handleUpdate(req, res, taskId) {
   const form = await parseForm(req);
+  const actorEmail = actorFromForm(form);
   const data = await readStore();
   const task = data.proposedTasks.find((item) => item.id === taskId);
   if (!task) {
@@ -229,12 +240,14 @@ async function handleUpdate(req, res, taskId) {
   task.projectHint = String(form.projectHint || "").trim() || null;
   task.updatedAt = new Date().toISOString();
 
-  audit(data, { type: "task.updated", proposedTaskId: task.id, sourceId: task.sourceId, message: "Task editat." });
+  audit(data, { type: "task.updated", actorEmail, proposedTaskId: task.id, sourceId: task.sourceId, message: "Task editat." });
   await writeStore(data);
   redirect(res);
 }
 
 async function handleReject(req, res, taskId) {
+  const form = await parseForm(req);
+  const actorEmail = actorFromForm(form);
   const data = await readStore();
   const task = data.proposedTasks.find((item) => item.id === taskId);
   if (!task) {
@@ -249,7 +262,7 @@ async function handleReject(req, res, taskId) {
   }
   task.status = "rejected";
   task.updatedAt = new Date().toISOString();
-  audit(data, { type: "task.rejected", proposedTaskId: task.id, sourceId: task.sourceId, message: "Task respins." });
+  audit(data, { type: "task.rejected", actorEmail, proposedTaskId: task.id, sourceId: task.sourceId, message: "Task respins." });
   await writeStore(data);
   redirect(res);
 }
@@ -257,6 +270,10 @@ async function handleReject(req, res, taskId) {
 async function renderHome(res) {
   const data = await readStore();
   const tasks = [...data.proposedTasks].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  const taskStatusCounts = tasks.reduce((acc, task) => {
+    acc[task.status] = (acc[task.status] ?? 0) + 1;
+    return acc;
+  }, {});
   const errors = [...data.processingErrors].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   const auditEvents = [...data.auditEvents].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 
@@ -279,8 +296,16 @@ async function renderHome(res) {
     .badge{display:inline-block;border-radius:999px;background:#eef2f6;padding:4px 8px;font-size:12px;font-weight:700;margin:3px}
     .proposed{background:#e0f2fe;color:#075985}.planner_sync_failed,.rejected{background:#fee4e2;color:#b42318}.approved,.created_in_planner{background:#dcfae6;color:#067647}
     .edit{border-top:1px solid #d9dee7;margin-top:12px;padding-top:4px}.edit textarea{min-height:80px}.compact{display:grid;grid-template-columns:1fr 150px;gap:8px}
+    .filters{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0 14px}.task-table{width:100%;border-collapse:collapse;font-size:13px}.task-table th,.task-table td{border-top:1px solid #d9dee7;padding:8px;text-align:left;vertical-align:top}.task-table th{color:#667085;font-size:12px}.task-row{display:table-row}.task-row.hidden{display:none}
     @media(max-width:850px){.grid{display:block}.grid>*+*{margin-top:18px}}
   </style>
+  <script>
+    function filterTasks(status) {
+      document.querySelectorAll("[data-task-row]").forEach((row) => {
+        row.classList.toggle("hidden", status !== "all" && row.dataset.status !== status);
+      });
+    }
+  </script>
 </head>
 <body>
 <main>
@@ -294,6 +319,7 @@ async function renderHome(res) {
         <label>Subiect</label><input name="subject" required />
         <label>Expeditor / organizator</label><input name="fromEmail" type="email" />
         <label>Participanti</label><input name="participants" placeholder="email1, email2" />
+        <label>Procesat de</label><input name="actorEmail" type="email" value="${escapeHtml(defaultActorEmail)}" />
         <label>Text</label><textarea name="rawText" required></textarea>
         <p><button type="submit">Extrage taskuri propuse</button></p>
       </form>
@@ -307,18 +333,42 @@ async function renderHome(res) {
           <p class="muted"><strong>Evidence:</strong> ${escapeHtml(task.evidence)}</p>
           ${task.status === "proposed" || task.status === "planner_sync_failed" ? `
             <form class="edit" method="post" action="/tasks/${task.id}/update">
+              <label>Actor</label><input name="actorEmail" type="email" value="${escapeHtml(defaultActorEmail)}" />
               <label>Titlu</label><input name="title" value="${escapeHtml(task.title)}" required />
               <label>Descriere</label><textarea name="description">${escapeHtml(task.description || "")}</textarea>
               <div class="compact"><div><label>Responsabil</label><input name="assigneeEmail" type="email" value="${escapeHtml(task.assigneeEmail || "")}" /></div><div><label>Termen</label><input name="dueDate" type="date" value="${escapeHtml(task.dueDate || "")}" /></div></div>
               <label>Proiect</label><input name="projectHint" value="${escapeHtml(task.projectHint || "")}" />
               <p><button type="submit">Salveaza editarea</button></p>
             </form>
-            <form style="display:inline" method="post" action="/tasks/${task.id}/approve"><button>Aproba</button></form> <form style="display:inline" method="post" action="/tasks/${task.id}/reject"><button class="danger">Respinge</button></form>` : ""}
+            <form style="display:inline" method="post" action="/tasks/${task.id}/approve"><input type="hidden" name="actorEmail" value="${escapeHtml(defaultActorEmail)}" /><button>Aproba</button></form> <form style="display:inline" method="post" action="/tasks/${task.id}/reject"><input type="hidden" name="actorEmail" value="${escapeHtml(defaultActorEmail)}" /><button class="danger">Respinge</button></form>` : ""}
         </article>`).join("") : `<p class="muted">Nu exista taskuri propuse inca.</p>`}</div>
       <div class="panel"><h2>Erori</h2>${errors.length ? errors.slice(0,5).map((error) => `<div class="event"><strong>${escapeHtml(error.stage)}</strong><br>${escapeHtml(error.message)}</div>`).join("") : `<p class="muted">Nu exista erori.</p>`}</div>
       <div class="panel"><h2>Audit recent</h2>${auditEvents.length ? auditEvents.slice(0,8).map((event) => `<div class="event"><strong>${escapeHtml(event.type)}</strong><br><span class="muted">${escapeHtml(event.message)}</span></div>`).join("") : `<p class="muted">Nu exista evenimente.</p>`}</div>
     </section>
   </div>
+  <section class="panel" style="margin-top:18px">
+    <h2>Toate taskurile</h2>
+    <div class="filters">
+      <button type="button" onclick="filterTasks('all')">Toate (${tasks.length})</button>
+      ${["proposed", "planner_sync_failed", "rejected", "approved", "created_in_planner"]
+        .map((status) => `<button type="button" onclick="filterTasks('${status}')">${status} (${taskStatusCounts[status] ?? 0})</button>`)
+        .join("")}
+    </div>
+    ${
+      tasks.length
+        ? `<table class="task-table">
+            <thead><tr><th>Status</th><th>Titlu</th><th>Responsabil</th><th>Termen</th><th>Proiect</th></tr></thead>
+            <tbody>
+              ${tasks
+                .map(
+                  (task) => `<tr class="task-row" data-task-row data-status="${escapeHtml(task.status)}"><td><span class="badge ${escapeHtml(task.status)}">${escapeHtml(task.status)}</span></td><td>${escapeHtml(task.title)}</td><td>${escapeHtml(task.assigneeEmail || "fara responsabil")}</td><td>${escapeHtml(task.dueDate || "fara termen")}</td><td>${escapeHtml(task.projectHint || "-")}</td></tr>`
+                )
+                .join("")}
+            </tbody>
+          </table>`
+        : `<p class="muted">Nu exista taskuri inca.</p>`
+    }
+  </section>
 </main>
 </body>
 </html>`;

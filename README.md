@@ -87,6 +87,7 @@ The test runner starts an isolated server on port `3197`, uses a temporary data 
 - duplicate detection;
 - task extraction;
 - task editing before approval;
+- all-tasks status filters;
 - approval and rejection;
 - safe Planner failure when not configured;
 - HTML escaping;
@@ -95,7 +96,7 @@ The test runner starts an isolated server on port `3197`, uses a temporary data 
 Latest local result:
 
 ```text
-15 passed
+16 passed
 0 failed
 ```
 

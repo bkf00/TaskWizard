@@ -22,6 +22,7 @@ Acest coverage este comportamental, nu coverage instrumentat de linii de cod. Mo
 | Tranzitii invalide | Respinge repetare cu `409` | `rejected tasks cannot be rejected twice` |
 | Tranzitii invalide | Blocheaza editarea unui task respins | `rejected tasks cannot be edited` |
 | UI escaping | Nu reda script raw | `HTML-like task content is escaped in UI` |
+| Lista taskuri | Expune filtre pe status | `all tasks section exposes status filters` |
 | Dialog lung | Extrage taskuri operationale din sedinta | `long meeting dialog extracts multiple operational tasks` |
 
 ## Neacoperit inca

@@ -1,6 +1,7 @@
 import { store } from "@repo/storage/local-store";
 
 export const dynamic = "force-dynamic";
+const defaultActorEmail = process.env.LOCAL_ACTOR_EMAIL ?? "approver@firma.ro";
 
 function formatDate(value: string | null): string {
   if (!value) return "fara termen";
@@ -101,7 +102,14 @@ export default async function HomePage() {
                     {task.status === "proposed" || task.status === "planner_sync_failed" ? (
                       <div>
                         <form action={`/api/tasks/${task.id}/update`} method="post" className="edit-form">
-                          <input type="hidden" name="actorEmail" value="approver@firma.ro" />
+                          <label htmlFor={`actor-${task.id}`}>Actor</label>
+                          <input
+                            id={`actor-${task.id}`}
+                            name="actorEmail"
+                            type="email"
+                            defaultValue={defaultActorEmail}
+                            required
+                          />
 
                           <label htmlFor={`title-${task.id}`}>Titlu</label>
                           <input id={`title-${task.id}`} name="title" defaultValue={task.title} required />
@@ -142,12 +150,12 @@ export default async function HomePage() {
 
                         <div className="task-actions">
                         <form action={`/api/tasks/${task.id}/approve`} method="post">
-                          <input type="hidden" name="actorEmail" value="approver@firma.ro" />
+                          <input type="hidden" name="actorEmail" value={defaultActorEmail} />
                           <button type="submit">Aproba</button>
                         </form>
                         {task.status === "proposed" ? (
                           <form action={`/api/tasks/${task.id}/reject`} method="post">
-                            <input type="hidden" name="actorEmail" value="approver@firma.ro" />
+                            <input type="hidden" name="actorEmail" value={defaultActorEmail} />
                             <button className="button-danger" type="submit">
                               Respinge
                             </button>

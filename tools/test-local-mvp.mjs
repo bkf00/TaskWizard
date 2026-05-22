@@ -177,6 +177,7 @@ try {
     const task = storeBefore.proposedTasks.find((item) => item.status === "proposed");
     assert(task, "Trebuie sa existe un task propus pentru editare.");
     const response = await postForm(`/tasks/${task.id}/update`, {
+      actorEmail: "ana@firma.ro",
       title: "Trimite centralizatorul PV actualizat",
       description: "Descriere editata manual inainte de aprobare.",
       assigneeEmail: "ana@firma.ro",
@@ -192,7 +193,10 @@ try {
     assert(updated.dueDate === "2026-05-25", "Termenul editat trebuie salvat.", updated);
     assert(updated.projectHint === "PV-uri", "Proiectul editat trebuie salvat.", updated);
     assert(updated.status === "proposed", "Editarea nu trebuie sa aprobe taskul.", updated);
-    assert(store.auditEvents.some((event) => event.type === "task.updated"), "Editarea trebuie auditata.");
+    assert(
+      store.auditEvents.some((event) => event.type === "task.updated" && event.actorEmail === "ana@firma.ro"),
+      "Editarea trebuie auditata cu actorul real."
+    );
   });
 
   await record("invalid task edit is rejected", async () => {
@@ -210,11 +214,14 @@ try {
     const storeBefore = await readStore();
     const task = storeBefore.proposedTasks.find((item) => item.status === "proposed");
     assert(task, "Trebuie sa existe un task propus pentru aprobare.");
-    const response = await fetch(`${baseUrl}/tasks/${task.id}/approve`, { method: "POST", redirect: "manual" });
+    const response = await postForm(`/tasks/${task.id}/approve`, {
+      actorEmail: "bogdan@firma.ro"
+    });
     assert(response.status === 303, "Aprobarea ar trebui sa redirectioneze.", response.status);
     const store = await readStore();
     const updated = store.proposedTasks.find((item) => item.id === task.id);
     assert(updated.status === "planner_sync_failed", "Fara Planner configurat, statusul trebuie sa fie planner_sync_failed.", updated);
+    assert(updated.approvedBy === "bogdan@firma.ro", "Aprobarea trebuie sa salveze actorul real.", updated);
     assert(store.processingErrors.length === 1, "Eroarea Planner trebuie salvata.", store.processingErrors);
   });
 
@@ -227,11 +234,17 @@ try {
     const storeBefore = await readStore();
     const task = storeBefore.proposedTasks.find((item) => item.status === "proposed");
     assert(task, "Trebuie sa existe un task propus pentru respingere.");
-    const response = await fetch(`${baseUrl}/tasks/${task.id}/reject`, { method: "POST", redirect: "manual" });
+    const response = await postForm(`/tasks/${task.id}/reject`, {
+      actorEmail: "mihai@firma.ro"
+    });
     assert(response.status === 303, "Respingerea ar trebui sa redirectioneze.", response.status);
     const store = await readStore();
     const updated = store.proposedTasks.find((item) => item.id === task.id);
     assert(updated.status === "rejected", "Taskul trebuie sa devina rejected.", updated);
+    assert(
+      store.auditEvents.some((event) => event.type === "task.rejected" && event.actorEmail === "mihai@firma.ro"),
+      "Respingerea trebuie auditata cu actorul real."
+    );
   });
 
   await record("rejected tasks cannot be rejected twice", async () => {
@@ -262,6 +275,15 @@ try {
     const page = await (await fetch(baseUrl)).text();
     assert(!page.includes("<script>alert('x')</script>"), "UI-ul nu trebuie sa redea script raw.");
     assert(page.includes("&lt;script&gt;alert('x')&lt;/script&gt;"), "UI-ul trebuie sa scape continutul HTML-like.");
+  });
+
+  await record("all tasks section exposes status filters", async () => {
+    const page = await (await fetch(baseUrl)).text();
+    assert(page.includes("Toate taskurile"), "Pagina trebuie sa contina sectiunea Toate taskurile.");
+    assert(page.includes("filterTasks('all')"), "Sectiunea trebuie sa aiba filtru pentru toate taskurile.");
+    assert(page.includes("filterTasks('proposed')"), "Sectiunea trebuie sa aiba filtru pentru proposed.");
+    assert(page.includes("filterTasks('rejected')"), "Sectiunea trebuie sa aiba filtru pentru rejected.");
+    assert(page.includes("data-task-row"), "Sectiunea trebuie sa includa randuri filtrabile.");
   });
 
   await record("long meeting dialog extracts multiple operational tasks", async () => {

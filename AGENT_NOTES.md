@@ -20,6 +20,15 @@ Acest fisier este jurnalul de lucru al agentului. Se actualizeaza la fiecare sch
 - Am continuat roadmap-ul cu editarea taskului inainte de aprobare.
 - Am extins testele locale la 15 cazuri, toate passing.
 
+## 2026-05-22
+
+- Am clarificat ca pentru volumul firmei merita testata intai o solutie AI gratuita/locala.
+- Am adaugat in roadmap provider AI configurabil `fallback` / `ollama`.
+- Am pastrat Azure OpenAI ca optiune platita doar daca AI local nu este suficient.
+- Am decis sa mutam lucrul la AI mai tarziu si sa continuam cu functionalitatea de produs: actor local, lista taskuri, persistenta si integrare Microsoft.
+- Am implementat actor local/mock pentru audit si aprobare, configurabil prin `LOCAL_ACTOR_EMAIL`.
+- Am adaugat sectiunea locala "Toate taskurile" cu filtre pe status si test dedicat.
+
 ## Regula de utilizare
 
 La fiecare schimbare viitoare:
