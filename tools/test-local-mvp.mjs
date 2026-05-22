@@ -73,6 +73,10 @@ function countByStatus(tasks) {
   }, {});
 }
 
+function wordCount(value) {
+  return String(value).trim().split(/\s+/).filter(Boolean).length;
+}
+
 const server = spawn(process.execPath, ["tools/local-mvp-server.mjs"], {
   cwd: projectRoot,
   env: {
@@ -155,6 +159,12 @@ try {
     assert(store.proposedTasks.length === 3, "Ar trebui create trei taskuri propuse.", store.proposedTasks);
     assert(store.proposedTasks.every((task) => task.status === "proposed"), "Taskurile noi trebuie sa fie proposed.");
     assert(store.proposedTasks.every((task) => task.confidence === "low"), "Fallback extractor marcheaza confidence low.");
+    assert(store.proposedTasks.every((task) => wordCount(task.title) <= 5), "Titlurile trebuie sa fie scurte.", store.proposedTasks);
+    assert(
+      store.proposedTasks.some((task) => task.description === "Te rog verifica PV-ul pentru lucrarea X."),
+      "Descrierea trebuie sa pastreze actiunea completa.",
+      store.proposedTasks
+    );
   });
 
   await record("raw EML paste extracts headers and plain text body", async () => {
@@ -212,9 +222,17 @@ Pregateste lista de observatii pentru acoperis.
     assert(tasks.some((task) => task.assigneeName === "RST"), "RST trebuie extras ca responsabil.", tasks);
     assert(tasks.some((task) => task.assigneeName === "AVT"), "AVT trebuie extras ca responsabil.", tasks);
     assert(tasks.every((task) => !task.title.startsWith("2026 =")), "Titlul nu trebuie sa inceapa cu resturi de data.", tasks);
+    assert(tasks.every((task) => wordCount(task.title) <= 5), "Titlul sumarizat trebuie sa ramana scurt.", tasks);
+    assert(tasks.some((task) => task.title === "Verifica arhiva proiect"), "Titlul pentru arhiva trebuie sa fie scurt si natural.", tasks);
+    assert(tasks.some((task) => task.title === "Pregateste detaliu prinderi"), "Titlul pentru prinderi trebuie sa fie scurt si natural.", tasks);
     assert(
-      tasks.some((task) => /preluat arhiva/i.test(task.title) || /verifica datele/i.test(task.title)),
+      tasks.some((task) => /arhiva/i.test(task.title) || /verifica/i.test(task.title)),
       "Titlul trebuie sa sumarizeze actiunea, nu sa copieze linia bruta."
+    );
+    assert(
+      tasks.some((task) => task.description.includes("se vor verifica datele si se vor transmite observatiile")),
+      "Descrierea trebuie sa pastreze actiunea completa din minuta.",
+      tasks
     );
   });
 

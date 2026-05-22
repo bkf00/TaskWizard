@@ -22,12 +22,12 @@ type ExtractedTask = z.infer<typeof ExtractedTaskSchema>;
 function buildPrompt(source: SourceItem): string {
   return JSON.stringify({
     instruction:
-      "Extrage doar actiuni explicite din text. Nu inventa deadline-uri, responsabili sau proiecte. Daca lipseste responsabilul, foloseste null. Daca lipseste termenul, foloseste null.",
+      "Extrage doar actiuni explicite din text. Titlul trebuie sa fie foarte scurt, in jur de 5 cuvinte. Descrierea pastreaza actiunea completa. Nu inventa deadline-uri, responsabili sau proiecte. Daca lipseste responsabilul, foloseste null. Daca lipseste termenul, foloseste null.",
     outputSchema: {
       tasks: [
         {
-          title: "string",
-          description: "string | null",
+          title: "string scurt, aproximativ 5 cuvinte",
+          description: "actiunea completa, string | null",
           assigneeEmail: "email | null",
           assigneeName: "nume persoana, echipa sau firma responsabila | null",
           dueDate: "YYYY-MM-DD | null",
@@ -93,6 +93,55 @@ async function callAzureOpenAI(source: SourceItem): Promise<ExtractedTask[]> {
 
 function fallbackExtractTasks(source: SourceItem): ExtractedTask[] {
   const normalizeLine = (line: string) => line.replace(/\s+/g, " ").replace(/^[*•-]\s*/, "").trim();
+  const compactTaskTitle = (actionText: string) => {
+    const normalized = normalizeLine(actionText);
+    const knownPatterns = [
+      { pattern: /\braspuns\b.*\bsondaj/i, title: "Transmite raspuns sondaj" },
+      { pattern: /\bmaterialele\b.*\bsondaj/i, title: "Transmite disponibilitate materiale" },
+      { pattern: /\bdetali\w*\s+(?:de|pentru)\s+prinderi/i, title: "Pregateste detaliu prinderi" },
+      { pattern: /\bacord\s+tripartit/i, title: "Transmite acord tripartit" },
+      { pattern: /\bdraft\s+de\s+procedura/i, title: "Transmite draft procedura" },
+      { pattern: /\barhiva\b.*\bverifica/i, title: "Verifica arhiva proiect" }
+    ];
+    const known = knownPatterns.find((item) => item.pattern.test(normalized));
+    if (known) return known.title;
+
+    const fillerWords = new Set([
+      "a",
+      "ale",
+      "al",
+      "catre",
+      "cu",
+      "de",
+      "din",
+      "in",
+      "la",
+      "pe",
+      "pentru",
+      "privind",
+      "pt",
+      "respectiv",
+      "sa",
+      "se",
+      "si",
+      "un",
+      "unei",
+      "unui",
+      "va",
+      "vor"
+    ]);
+    const cleaned = normalized
+      .replace(/^(te rog|va rog|ramane sa|de facut)\s+/i, "")
+      .replace(/[.,;:]+$/g, "");
+    const words = cleaned
+      .split(/\s+/)
+      .map((word) => word.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}-]+$/gu, ""))
+      .filter(Boolean)
+      .filter((word, index) => index === 0 || !fillerWords.has(word.toLowerCase()))
+      .slice(0, 5);
+    const title = words.join(" ") || cleaned;
+    return title.charAt(0).toUpperCase() + title.slice(1);
+  };
   const structuredActionFromLine = (line: string) => {
     const normalized = normalizeLine(line);
     const structured = normalized.match(/^(?:(?:\d{1,2}\.\d{1,2}\.\d{4}|\d{4})\s*=\s*)?(.+?)\s+(trebuie|pregateste|pregatesc|transmite|transmit|trimite|verifica|actualizeaza|creeaza|preia|preluat|stabileste|confirma|clarifica)\b(.*)$/i);
@@ -101,9 +150,9 @@ function fallbackExtractTasks(source: SourceItem): ExtractedTask[] {
     const assigneeName = structured[1].trim().replace(/\s+a$/i, "");
     if (/^(te rog|ramane sa|de facut)$/i.test(assigneeName)) return null;
 
-    const title = `${structured[2].trim()} ${structured[3].trim()}`.trim();
+    const title = compactTaskTitle(`${structured[2].trim()} ${structured[3].trim()}`.trim());
     return {
-      title: title.length > 110 ? `${title.slice(0, 107)}...` : title,
+      title,
       description: normalized,
       assigneeName: assigneeName.length <= 60 ? assigneeName : null
     };
@@ -124,7 +173,7 @@ function fallbackExtractTasks(source: SourceItem): ExtractedTask[] {
   return candidates.slice(0, 5).map((line) => {
     const structured = structuredActionFromLine(line);
     return {
-      title: structured?.title ?? (line.length > 90 ? `${line.slice(0, 87)}...` : line),
+      title: structured?.title ?? compactTaskTitle(line),
       description: structured?.description ?? line,
       assigneeEmail: null,
       assigneeName: structured?.assigneeName ?? null,

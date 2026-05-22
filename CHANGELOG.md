@@ -42,6 +42,7 @@ Format inspirat de Keep a Changelog. Proiectul foloseste versionare pragmatica p
 - Responsabili textuali precum `RST`, `AVT` sau `echipa de proiectare`.
 - Interfata locala tip triage inbox: import email in stanga, review taskuri in centru, context/audit in dreapta.
 - Reprocesare pentru aceeasi sursa daca taskurile active anterioare au fost inchise.
+- Titluri compacte pentru taskurile extrase, cu descrierea completa pastrata in interiorul taskului.
 
 ### Changed
 
