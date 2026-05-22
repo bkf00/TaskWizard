@@ -52,6 +52,58 @@ function escapeHtml(value) {
     .replaceAll('"', "&quot;");
 }
 
+function unfoldHeaders(raw) {
+  return raw.replace(/\r?\n[ \t]+/g, " ");
+}
+
+function headerValue(raw, name) {
+  const match = unfoldHeaders(raw).match(new RegExp(`^${name}:\\s*(.+)$`, "im"));
+  return match?.[1]?.trim() ?? null;
+}
+
+function emailAddresses(value) {
+  if (!value) return [];
+  return [...new Set(value.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi) ?? [])];
+}
+
+function decodeQuotedPrintable(value) {
+  return value
+    .replace(/=\r?\n/g, "")
+    .replace(/=([0-9A-F]{2})/gi, (_, hex) => String.fromCharCode(Number.parseInt(hex, 16)));
+}
+
+function stripMimeNoise(value) {
+  return value
+    .split(/\r?\n/)
+    .filter((line) => !line.startsWith("--_"))
+    .filter((line) => !/^Content-(Type|Transfer-Encoding|ID|Disposition):/i.test(line))
+    .filter((line) => !/^MIME-Version:/i.test(line))
+    .join("\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+function parseEmailPaste(rawEmail, actorEmail) {
+  const subject = headerValue(rawEmail, "Subject") ?? "Email fara subiect";
+  const fromEmail = emailAddresses(headerValue(rawEmail, "From"))[0] ?? null;
+  const participants = [
+    ...emailAddresses(headerValue(rawEmail, "To")),
+    ...emailAddresses(headerValue(rawEmail, "CC")),
+    actorEmail
+  ].filter(Boolean);
+  const textPlainMatch = rawEmail.match(/Content-Type:\s*text\/plain[\s\S]*?\r?\n\r?\n([\s\S]*?)(?=\r?\n--[^\r\n]+|$)/i);
+  const fallbackBody = rawEmail.split(/\r?\n\r?\n/).slice(1).join("\n\n") || rawEmail;
+  const body = textPlainMatch?.[1] ?? fallbackBody;
+
+  return {
+    type: "email",
+    subject,
+    fromEmail,
+    participants: [...new Set(participants)],
+    rawText: stripMimeNoise(decodeQuotedPrintable(body))
+  };
+}
+
 function fallbackExtract(source) {
   return source.rawText
     .split(/\r?\n|[.;]/)
@@ -111,10 +163,13 @@ function redirect(res) {
 
 async function handleIngest(req, res) {
   const form = await parseForm(req);
-  const type = form.type || "manual_upload";
   const actorEmail = actorFromForm(form);
-  const subject = String(form.subject || "").trim();
-  const rawText = String(form.rawText || "").trim();
+  const parsedEmail = String(form.rawEmail || "").trim()
+    ? parseEmailPaste(String(form.rawEmail || "").trim(), actorEmail)
+    : null;
+  const type = parsedEmail?.type ?? form.type ?? "manual_upload";
+  const subject = parsedEmail?.subject ?? String(form.subject || "").trim();
+  const rawText = parsedEmail?.rawText ?? String(form.rawText || "").trim();
   const sourceHash = hashSource({ type, subject, rawText });
   const data = await readStore();
 
@@ -149,11 +204,13 @@ async function handleIngest(req, res) {
     externalId: null,
     sourceHash,
     subject,
-    fromEmail: form.fromEmail || null,
-    participants: String(form.participants || "")
-      .split(",")
-      .map((item) => item.trim())
-      .filter(Boolean),
+    fromEmail: parsedEmail?.fromEmail ?? form.fromEmail ?? null,
+    participants:
+      parsedEmail?.participants ??
+      String(form.participants || "")
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean),
     rawText,
     receivedAt: now.toISOString(),
     retentionUntil: new Date(now.getTime() + 60 * 24 * 60 * 60 * 1000).toISOString(),
@@ -313,16 +370,24 @@ async function renderHome(res) {
   <p class="muted">Runner local fara dependinte. AI propune, omul aproba, Planner vine dupa configurare.</p>
   <div class="grid">
     <section class="panel">
-      <h2>Adauga sursa</h2>
+      <h2>Proceseaza email</h2>
       <form method="post" action="/sources/manual">
-        <label>Tip sursa</label><select name="type"><option value="manual_upload">Recap / text manual</option><option value="email">Email copiat</option><option value="teams_transcript">Transcript Teams</option></select>
-        <label>Subiect</label><input name="subject" required />
-        <label>Expeditor / organizator</label><input name="fromEmail" type="email" />
-        <label>Participanti</label><input name="participants" placeholder="email1, email2" />
         <label>Procesat de</label><input name="actorEmail" type="email" value="${escapeHtml(defaultActorEmail)}" />
-        <label>Text</label><textarea name="rawText" required></textarea>
+        <label>Email complet / text copiat</label><textarea name="rawEmail" required placeholder="Lipeste aici emailul complet din Outlook (.eml) sau continutul emailului."></textarea>
         <p><button type="submit">Extrage taskuri propuse</button></p>
       </form>
+      <details class="edit">
+        <summary>Introducere avansata</summary>
+        <form method="post" action="/sources/manual">
+          <input type="hidden" name="actorEmail" value="${escapeHtml(defaultActorEmail)}" />
+          <label>Tip sursa</label><select name="type"><option value="manual_upload">Recap / text manual</option><option value="email">Email copiat</option><option value="teams_transcript">Transcript Teams</option></select>
+          <label>Subiect</label><input name="subject" />
+          <label>Expeditor / organizator</label><input name="fromEmail" type="email" />
+          <label>Participanti</label><input name="participants" placeholder="email1, email2" />
+          <label>Text</label><textarea name="rawText"></textarea>
+          <p><button type="submit">Proceseaza sursa avansata</button></p>
+        </form>
+      </details>
     </section>
     <section class="stack">
       <div class="panel"><h2>Taskuri propuse</h2>${tasks.length ? tasks.map((task) => `

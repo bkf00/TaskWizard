@@ -154,6 +154,42 @@ try {
     assert(store.proposedTasks.every((task) => task.confidence === "low"), "Fallback extractor marcheaza confidence low.");
   });
 
+  await record("raw EML paste extracts headers and plain text body", async () => {
+    const rawEmail = `From: Tudor Timofti <tudor.timofti@rst-services.ro>
+To: Daniel Florian <daniel.florian@dssmith.com>
+CC: Bogdan Cojocaru <bogdan.cojocaru@rst-services.ro>
+Subject: DSSPG - Proj. Reabilitare Acoperis Hala - minuta 15.05.2026
+Content-Type: multipart/alternative; boundary="_test"
+
+--_test
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+
+Buna ziua,
+
+Te rog verifica minuta intalnirii.
+Ramane sa trimitem documentatia catre client.
+Pregateste lista de observatii pentru acoperis.
+
+--_test--`;
+
+    const response = await postForm("/sources/manual", {
+      actorEmail: "bogdan.cojocaru@rst-services.ro",
+      rawEmail
+    });
+    assert(response.status === 303, "Emailul .eml lipit ar trebui procesat.", response.status);
+    const store = await readStore();
+    const source = store.sources.find((item) => item.subject.includes("Reabilitare Acoperis"));
+    assert(source, "Subiectul trebuie extras din headerul EML.");
+    assert(source.type === "email", "Sursa .eml trebuie marcata ca email.", source);
+    assert(source.fromEmail === "tudor.timofti@rst-services.ro", "Expeditorul trebuie extras.", source);
+    assert(source.participants.includes("daniel.florian@dssmith.com"), "To trebuie extras in participanti.", source);
+    assert(source.participants.includes("bogdan.cojocaru@rst-services.ro"), "CC/actor trebuie inclus in participanti.", source);
+    assert(source.rawText.includes("Te rog verifica minuta intalnirii."), "Corpul text/plain trebuie extras.", source.rawText);
+    const tasks = store.proposedTasks.filter((task) => task.sourceId === source.id);
+    assert(tasks.length === 3, "Emailul .eml ar trebui sa creeze trei taskuri.", tasks);
+  });
+
   await record("duplicate source is ignored idempotently", async () => {
     const response = await postForm("/sources/manual", {
       type: "email",
@@ -164,8 +200,8 @@ try {
     });
     assert(response.status === 303, "Duplicatul ar trebui sa redirectioneze.", response.status);
     const store = await readStore();
-    assert(store.sources.length === 2, "Duplicatul nu trebuie sa creeze o sursa noua.", store.sources);
-    assert(store.proposedTasks.length === 3, "Duplicatul nu trebuie sa creeze taskuri noi.", store.proposedTasks);
+    assert(store.sources.length === 3, "Duplicatul nu trebuie sa creeze o sursa noua.", store.sources);
+    assert(store.proposedTasks.length === 6, "Duplicatul nu trebuie sa creeze taskuri noi.", store.proposedTasks);
     assert(
       store.auditEvents.some((event) => event.type === "source.duplicate_ignored"),
       "Duplicatul trebuie marcat in audit."

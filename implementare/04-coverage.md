@@ -13,6 +13,7 @@ Acest coverage este comportamental, nu coverage instrumentat de linii de cod. Mo
 | Validare tip sursa | Doar `email`, `teams_transcript`, `manual_upload` | `invalid source type is rejected` |
 | Ingestie fara task | Sursa salvata, fara taskuri false | `source without action phrases creates no proposed tasks` |
 | Ingestie actionabila | Creeaza taskuri propuse | `clear source creates expected proposed tasks` |
+| Email raw `.eml` | Extrage headere si corp text/plain | `raw EML paste extracts headers and plain text body` |
 | Idempotenta | Duplicat ignorat | `duplicate source is ignored idempotently` |
 | Editare task | `proposed` ramane editabil inainte de aprobare | `proposed task can be edited before approval` |
 | Validare editare | Titlu prea scurt respins | `invalid task edit is rejected` |

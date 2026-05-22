@@ -24,6 +24,7 @@ The local MVP is runnable now with plain Node.js. The full Next.js app needs `np
 
 MVP includes:
 
+- one-field raw email paste for `.eml`/Outlook-style messages;
 - manual source input for copied email, recap or transcript text;
 - action-item extraction into proposed tasks;
 - approval/rejection flow;
@@ -88,6 +89,7 @@ The test runner starts an isolated server on port `3197`, uses a temporary data 
 - task extraction;
 - task editing before approval;
 - all-tasks status filters;
+- raw EML header/body parsing;
 - approval and rejection;
 - safe Planner failure when not configured;
 - HTML escaping;
@@ -96,7 +98,7 @@ The test runner starts an isolated server on port `3197`, uses a temporary data 
 Latest local result:
 
 ```text
-16 passed
+17 passed
 0 failed
 ```
 

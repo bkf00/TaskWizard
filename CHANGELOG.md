@@ -36,12 +36,14 @@ Format inspirat de Keep a Changelog. Proiectul foloseste versionare pragmatica p
 - Camp actor vizibil in formularele de editare din UI.
 - Audit pentru editare, aprobare si respingere cu emailul actorului real.
 - Sectiune locala "Toate taskurile" cu filtre pe status.
+- Formular simplificat pentru paste email complet / `.eml`.
+- Parser pentru headere `From`, `To`, `CC`, `Subject` si corp `text/plain` quoted-printable.
 
 ### Changed
 
 - Aprobarea locala salveaza `approvedBy` din formular, nu un placeholder hardcodat.
 - AI provider local/Ollama a fost mutat in Milestone 4 ca prioritate ulterioara.
-- Testele locale cresc de la 15 la 16 cazuri.
+- Testele locale cresc de la 15 la 17 cazuri.
 
 ### Known Limitations
 

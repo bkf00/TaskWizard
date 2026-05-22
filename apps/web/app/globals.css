@@ -222,6 +222,19 @@ button:hover,
   gap: 10px;
 }
 
+.advanced-source {
+  border-top: 1px solid var(--line);
+  margin-top: 18px;
+  padding-top: 12px;
+}
+
+.advanced-source summary {
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+}
+
 .event {
   padding: 12px;
   font-size: 13px;

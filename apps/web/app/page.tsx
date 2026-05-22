@@ -36,34 +36,55 @@ export default async function HomePage() {
 
       <div className="grid">
         <section className="panel">
-          <h2>Adauga sursa</h2>
+          <h2>Proceseaza email</h2>
           <form action="/api/sources/manual" method="post">
-            <label htmlFor="type">Tip sursa</label>
-            <select id="type" name="type" defaultValue="manual_upload">
-              <option value="manual_upload">Recap / text manual</option>
-              <option value="email">Email copiat</option>
-              <option value="teams_transcript">Transcript Teams</option>
-            </select>
-
-            <label htmlFor="subject">Subiect</label>
-            <input id="subject" name="subject" placeholder="Ex: Sedinta PV lucrare X" required />
-
-            <label htmlFor="fromEmail">Expeditor / organizator</label>
-            <input id="fromEmail" name="fromEmail" type="email" placeholder="optional@firma.ro" />
-
-            <label htmlFor="participants">Participanti</label>
-            <input id="participants" name="participants" placeholder="email1@firma.ro, email2@firma.ro" />
-
-            <label htmlFor="rawText">Text email / recap / transcript</label>
-            <textarea id="rawText" name="rawText" required />
-
             <label htmlFor="actorEmail">Procesat de</label>
-            <input id="actorEmail" name="actorEmail" type="email" placeholder="nume@firma.ro" />
+            <input id="actorEmail" name="actorEmail" type="email" defaultValue={defaultActorEmail} />
+
+            <label htmlFor="rawEmail">Email complet / text copiat</label>
+            <textarea
+              id="rawEmail"
+              name="rawEmail"
+              required
+              placeholder="Lipeste aici emailul complet din Outlook (.eml) sau continutul emailului. Subiectul, expeditorul si participantii vor fi extrasi automat cand exista headere."
+            />
 
             <div style={{ marginTop: 16 }}>
               <button type="submit">Extrage taskuri propuse</button>
             </div>
           </form>
+
+          <details className="advanced-source">
+            <summary>Introducere avansata</summary>
+            <form action="/api/sources/manual" method="post">
+              <input type="hidden" name="actorEmail" value={defaultActorEmail} />
+
+              <label htmlFor="type">Tip sursa</label>
+              <select id="type" name="type" defaultValue="manual_upload">
+                <option value="manual_upload">Recap / text manual</option>
+                <option value="email">Email copiat</option>
+                <option value="teams_transcript">Transcript Teams</option>
+              </select>
+
+              <label htmlFor="subject">Subiect</label>
+              <input id="subject" name="subject" placeholder="Ex: Sedinta PV lucrare X" />
+
+              <label htmlFor="fromEmail">Expeditor / organizator</label>
+              <input id="fromEmail" name="fromEmail" type="email" placeholder="optional@firma.ro" />
+
+              <label htmlFor="participants">Participanti</label>
+              <input id="participants" name="participants" placeholder="email1@firma.ro, email2@firma.ro" />
+
+              <label htmlFor="rawText">Text email / recap / transcript</label>
+              <textarea id="rawText" name="rawText" />
+
+              <div style={{ marginTop: 16 }}>
+                <button className="button-secondary" type="submit">
+                  Proceseaza sursa avansata
+                </button>
+              </div>
+            </form>
+          </details>
         </section>
 
         <section className="stack">

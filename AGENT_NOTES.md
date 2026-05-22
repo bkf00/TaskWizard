@@ -28,6 +28,7 @@ Acest fisier este jurnalul de lucru al agentului. Se actualizeaza la fiecare sch
 - Am decis sa mutam lucrul la AI mai tarziu si sa continuam cu functionalitatea de produs: actor local, lista taskuri, persistenta si integrare Microsoft.
 - Am implementat actor local/mock pentru audit si aprobare, configurabil prin `LOCAL_ACTOR_EMAIL`.
 - Am adaugat sectiunea locala "Toate taskurile" cu filtre pe status si test dedicat.
+- Am simplificat introducerea emailurilor: utilizatorul poate lipi un `.eml`/email complet intr-un singur camp, iar sistemul extrage automat subiectul, expeditorul, participantii si corpul text/plain.
 
 ## Regula de utilizare
 

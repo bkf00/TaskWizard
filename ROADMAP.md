@@ -17,6 +17,7 @@
 - [x] Editare task inainte de aprobare.
 - [x] Autentificare mock/local pentru actor real.
 - [x] Ecran dedicat "Toate taskurile" cu filtre pe status.
+- [x] Formular simplificat pentru paste email `.eml` / Outlook.
 - [ ] Persistenta pregatita pentru migrare de la JSON la repository interface.
 
 ## Milestone 2 - Microsoft 365 integration

@@ -13,6 +13,7 @@ node .\tools\test-local-mvp.mjs
 - Tip de sursa invalid este respins.
 - Sursa fara actiuni clare nu creeaza taskuri.
 - Sursa clara creeaza taskuri propuse.
+- Email brut `.eml` extrage headerele si corpul `text/plain`.
 - Sursa duplicata este ignorata idempotent.
 - Task propus poate fi editat inainte de aprobare.
 - Editarea invalida este respinsa.
@@ -38,13 +39,13 @@ node .\tools\test-local-mvp.mjs
 Rezultat:
 
 ```text
-16 teste rulate
-16 passed
+17 teste rulate
+17 passed
 0 failed
-4 surse create in test
-9 taskuri propuse
+5 surse create in test
+12 taskuri propuse
 1 eroare controlata de Planner neconfigurat
-12 evenimente audit
+14 evenimente audit
 ```
 
 ## Dialog lung testat
