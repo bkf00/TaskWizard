@@ -554,7 +554,7 @@ async function renderHome(res) {
   }, {});
   const errors = [...data.processingErrors].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   const auditEvents = [...data.auditEvents].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-  const reviewTasks = tasks.filter((task) => task.status === "proposed" || task.status === "planner_sync_failed");
+  const reviewTasks = tasks.filter((task) => task.status === "proposed");
   const plannerActiveTasks = tasks.filter((task) => plannerTerminalSourceStatuses.has(task.status));
 
   const html = `<!doctype html>

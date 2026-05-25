@@ -36,6 +36,7 @@ Acest fisier este jurnalul de lucru al agentului. Se actualizeaza la fiecare sch
 - Am adaugat detectie de termene in fallback: date explicite, `azi`, `maine`, `poimaine` si zile ale saptamanii calculate relativ la data curenta.
 - Am extins ciclul de viata post-aprobare: taskurile create/aprobate pot fi marcate ca terminate sau sterse din Planner, fara stergere hard din audit.
 - Am clarificat UI-ul local pentru ciclul post-aprobare: butoanele Terminat/Sters apar intr-o sectiune dedicata taskurilor aprobate/active.
+- Am corectat dublarea post-aprobare: `planner_sync_failed` nu mai apare in Review, ci doar in sectiunea de taskuri active/aprobate.
 
 ## Regula de utilizare
 

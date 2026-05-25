@@ -19,6 +19,8 @@ export default async function HomePage() {
   ]);
 
   const proposedCount = tasks.filter((task) => task.status === "proposed").length;
+  const reviewTasks = tasks.filter((task) => task.status === "proposed");
+  const plannerActiveTasks = tasks.filter((task) => plannerTerminalSourceStatuses.has(task.status));
 
   return (
     <main>
@@ -45,11 +47,11 @@ export default async function HomePage() {
         <section className="stack">
           <div className="panel">
             <h2>Taskuri propuse</h2>
-            {tasks.length === 0 ? (
+            {reviewTasks.length === 0 ? (
               <p className="muted">Nu exista taskuri propuse inca.</p>
             ) : (
               <div className="stack">
-                {tasks.map((task) => (
+                {reviewTasks.map((task) => (
                   <article className="task" key={task.id}>
                     <div className="task-header">
                       <div className="task-title">{task.title}</div>
@@ -75,7 +77,7 @@ export default async function HomePage() {
                       </p>
                     ) : null}
 
-                    {task.status === "proposed" || task.status === "planner_sync_failed" ? (
+                    {task.status === "proposed" ? (
                       <div>
                         <form action={`/api/tasks/${task.id}/update`} method="post" className="edit-form">
                           <label htmlFor={`actor-${task.id}`}>Actor</label>
@@ -139,23 +141,45 @@ export default async function HomePage() {
                       </div>
                       </div>
                     ) : null}
+                  </article>
+                ))}
+              </div>
+            )}
+          </div>
 
-                    {plannerTerminalSourceStatuses.has(task.status) ? (
-                      <div className="task-actions">
-                        <form action={`/api/tasks/${task.id}/complete`} method="post">
-                          <input type="hidden" name="actorEmail" value={defaultActorEmail} />
-                          <button className="button-secondary" type="submit">
-                            Marcheaza terminat
-                          </button>
-                        </form>
-                        <form action={`/api/tasks/${task.id}/delete`} method="post">
-                          <input type="hidden" name="actorEmail" value={defaultActorEmail} />
-                          <button className="button-danger" type="submit">
-                            Marcheaza sters
-                          </button>
-                        </form>
-                      </div>
-                    ) : null}
+          <div className="panel">
+            <h2>Taskuri active / aprobate</h2>
+            <p className="muted">Aici apar butoanele de terminare sau stergere dupa aprobare.</p>
+            {plannerActiveTasks.length === 0 ? (
+              <p className="muted">Nu exista taskuri aprobate. Aproba un task propus, apoi vor aparea aici butoanele.</p>
+            ) : (
+              <div className="stack">
+                {plannerActiveTasks.map((task) => (
+                  <article className="task" key={task.id}>
+                    <div className="task-header">
+                      <div className="task-title">{task.title}</div>
+                      <span className={`badge ${task.status}`}>{task.status}</span>
+                    </div>
+                    {task.description ? <p className="muted">{task.description}</p> : null}
+                    <div className="task-meta">
+                      <span className="badge">{task.assigneeName ?? task.assigneeEmail ?? "fara responsabil"}</span>
+                      <span className="badge">{formatDate(task.dueDate)}</span>
+                      {task.plannerTaskId ? <span className="badge">Planner: {task.plannerTaskId}</span> : null}
+                    </div>
+                    <div className="task-actions">
+                      <form action={`/api/tasks/${task.id}/complete`} method="post">
+                        <input type="hidden" name="actorEmail" value={defaultActorEmail} />
+                        <button className="button-secondary" type="submit">
+                          Marcheaza terminat
+                        </button>
+                      </form>
+                      <form action={`/api/tasks/${task.id}/delete`} method="post">
+                        <input type="hidden" name="actorEmail" value={defaultActorEmail} />
+                        <button className="button-danger" type="submit">
+                          Marcheaza sters
+                        </button>
+                      </form>
+                    </div>
                   </article>
                 ))}
               </div>

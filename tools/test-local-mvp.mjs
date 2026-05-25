@@ -476,6 +476,13 @@ Pregateste lista de observatii pentru acoperis.
     assert(page.includes("data-task-row"), "Sectiunea trebuie sa includa randuri filtrabile.");
   });
 
+  await record("approved tasks are not duplicated in review and active sections", async () => {
+    const page = await (await fetch(baseUrl)).text();
+    const reviewSection = page.slice(page.indexOf("Review taskuri"), page.indexOf("Taskuri active / aprobate"));
+    assert(!reviewSection.includes("planner_sync_failed"), "Taskurile aprobate local nu trebuie sa ramana in sectiunea Review.");
+    assert(page.includes("Taskuri active / aprobate"), "Sectiunea activa trebuie sa existe.");
+  });
+
   await record("long meeting dialog extracts multiple operational tasks", async () => {
     const longDialog = `
 Bogdan: Hai sa trecem prin sedinta de azi pentru proiectul de evidenta PV-uri.
