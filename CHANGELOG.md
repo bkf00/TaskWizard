@@ -44,13 +44,14 @@ Format inspirat de Keep a Changelog. Proiectul foloseste versionare pragmatica p
 - Reprocesare pentru aceeasi sursa daca taskurile active anterioare au fost inchise.
 - Titluri compacte pentru taskurile extrase, cu descrierea completa pastrata in interiorul taskului.
 - Detectie de termene din date explicite si cuvinte relative precum `maine`, `poimaine`, `marti`, `miercuri`.
+- Statusuri post-aprobare `completed_in_planner` si `deleted_in_planner`, cu audit si actiuni in UI.
 
 ### Changed
 
 - Aprobarea locala salveaza `approvedBy` din formular, nu un placeholder hardcodat.
 - AI provider local/Ollama a fost mutat in Milestone 4 ca prioritate ulterioara.
 - Cardurile de review pun in prim-plan titlul, responsabilul, termenul si dovada; editarea completa este disponibila expandabil.
-- Testele locale cresc de la 15 la 20 cazuri.
+- Testele locale cresc de la 15 la 23 cazuri.
 
 ### Known Limitations
 

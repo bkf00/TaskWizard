@@ -158,3 +158,71 @@ export async function rejectTask(input: {
 
   return rejected;
 }
+
+const plannerTerminalSourceStatuses = new Set<ProposedTask["status"]>([
+  "approved",
+  "created_in_planner",
+  "planner_sync_failed"
+]);
+
+export async function markTaskCompleted(input: {
+  taskId: string;
+  actorEmail: string;
+}): Promise<ProposedTask> {
+  const task = await store.getProposedTask(input.taskId);
+  if (!task) {
+    throw new Error("Taskul propus nu exista.");
+  }
+  if (!plannerTerminalSourceStatuses.has(task.status)) {
+    throw new Error(`Taskul nu poate fi marcat terminat din statusul ${task.status}.`);
+  }
+
+  const completed: ProposedTask = {
+    ...task,
+    status: "completed_in_planner",
+    updatedAt: new Date().toISOString()
+  };
+
+  await store.saveProposedTask(completed);
+  await audit({
+    type: "task.completed",
+    actorEmail: input.actorEmail,
+    sourceId: completed.sourceId,
+    proposedTaskId: completed.id,
+    message: "Taskul a fost marcat ca terminat.",
+    metadata: { previousStatus: task.status, plannerTaskId: task.plannerTaskId }
+  });
+
+  return completed;
+}
+
+export async function markTaskDeleted(input: {
+  taskId: string;
+  actorEmail: string;
+}): Promise<ProposedTask> {
+  const task = await store.getProposedTask(input.taskId);
+  if (!task) {
+    throw new Error("Taskul propus nu exista.");
+  }
+  if (!plannerTerminalSourceStatuses.has(task.status)) {
+    throw new Error(`Taskul nu poate fi marcat sters din statusul ${task.status}.`);
+  }
+
+  const deleted: ProposedTask = {
+    ...task,
+    status: "deleted_in_planner",
+    updatedAt: new Date().toISOString()
+  };
+
+  await store.saveProposedTask(deleted);
+  await audit({
+    type: "task.deleted",
+    actorEmail: input.actorEmail,
+    sourceId: deleted.sourceId,
+    proposedTaskId: deleted.id,
+    message: "Taskul a fost marcat ca sters din Planner.",
+    metadata: { previousStatus: task.status, plannerTaskId: task.plannerTaskId }
+  });
+
+  return deleted;
+}

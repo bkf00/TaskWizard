@@ -14,7 +14,9 @@ export type ProposedTaskStatus =
   | "approved"
   | "rejected"
   | "created_in_planner"
-  | "planner_sync_failed";
+  | "planner_sync_failed"
+  | "completed_in_planner"
+  | "deleted_in_planner";
 
 export type AuditEventType =
   | "source.received"
@@ -25,6 +27,8 @@ export type AuditEventType =
   | "task.updated"
   | "task.approved"
   | "task.rejected"
+  | "task.completed"
+  | "task.deleted"
   | "task.planner_created"
   | "task.planner_failed"
   | "graph.notification_received";

@@ -181,15 +181,23 @@ button:hover,
 }
 
 .badge.created_in_planner,
-.badge.approved {
+.badge.approved,
+.badge.completed_in_planner {
   background: #dcfae6;
   color: var(--ok);
 }
 
 .badge.rejected,
-.badge.planner_sync_failed {
+.badge.planner_sync_failed,
+.badge.deleted_in_planner {
   background: #fee4e2;
   color: var(--danger);
+}
+
+.badge.completed_in_planner,
+.badge.deleted_in_planner {
+  background: #f2f4f7;
+  color: #475467;
 }
 
 .task-meta {

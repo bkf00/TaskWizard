@@ -362,6 +362,54 @@ Pregateste lista de observatii pentru acoperis.
     assert(store.processingErrors.length === 1, "Eroarea Planner trebuie salvata.", store.processingErrors);
   });
 
+  await record("approved local task can be marked completed", async () => {
+    const storeBefore = await readStore();
+    const task = storeBefore.proposedTasks.find((item) => item.status === "planner_sync_failed");
+    assert(task, "Trebuie sa existe un task aprobat local pentru finalizare.");
+    const response = await postForm(`/tasks/${task.id}/complete`, {
+      actorEmail: "bogdan@firma.ro"
+    });
+    assert(response.status === 303, "Marcarea ca terminat ar trebui sa redirectioneze.", response.status);
+    const store = await readStore();
+    const updated = store.proposedTasks.find((item) => item.id === task.id);
+    assert(updated.status === "completed_in_planner", "Taskul trebuie sa devina completed_in_planner.", updated);
+    assert(
+      store.auditEvents.some((event) => event.type === "task.completed" && event.actorEmail === "bogdan@firma.ro"),
+      "Finalizarea trebuie auditata cu actorul real."
+    );
+  });
+
+  await record("approved local task can be marked deleted", async () => {
+    const storeBefore = await readStore();
+    const task = storeBefore.proposedTasks.find((item) => item.status === "proposed");
+    assert(task, "Trebuie sa existe un task propus pentru stergere dupa aprobare.");
+    const approveResponse = await postForm(`/tasks/${task.id}/approve`, {
+      actorEmail: "ana@firma.ro"
+    });
+    assert(approveResponse.status === 303, "Aprobarea pregatitoare ar trebui sa redirectioneze.", approveResponse.status);
+    const response = await postForm(`/tasks/${task.id}/delete`, {
+      actorEmail: "ana@firma.ro"
+    });
+    assert(response.status === 303, "Marcarea ca sters ar trebui sa redirectioneze.", response.status);
+    const store = await readStore();
+    const updated = store.proposedTasks.find((item) => item.id === task.id);
+    assert(updated.status === "deleted_in_planner", "Taskul trebuie sa devina deleted_in_planner.", updated);
+    assert(
+      store.auditEvents.some((event) => event.type === "task.deleted" && event.actorEmail === "ana@firma.ro"),
+      "Stergerea trebuie auditata cu actorul real."
+    );
+  });
+
+  await record("proposed task cannot be marked completed before approval", async () => {
+    const storeBefore = await readStore();
+    const task = storeBefore.proposedTasks.find((item) => item.status === "proposed");
+    assert(task, "Trebuie sa existe un task propus pentru blocarea finalizarii.");
+    const response = await postForm(`/tasks/${task.id}/complete`, {
+      actorEmail: "ana@firma.ro"
+    });
+    assert(response.status === 409, "Finalizarea inainte de aprobare trebuie sa intoarca 409.", response.status);
+  });
+
   await record("unknown task approval returns 404", async () => {
     const response = await fetch(`${baseUrl}/tasks/ptask_missing/approve`, { method: "POST", redirect: "manual" });
     assert(response.status === 404, "Aprobarea unui task inexistent trebuie sa intoarca 404.", response.status);
@@ -420,6 +468,8 @@ Pregateste lista de observatii pentru acoperis.
     assert(page.includes("filterTasks('all')"), "Sectiunea trebuie sa aiba filtru pentru toate taskurile.");
     assert(page.includes("filterTasks('proposed')"), "Sectiunea trebuie sa aiba filtru pentru proposed.");
     assert(page.includes("filterTasks('rejected')"), "Sectiunea trebuie sa aiba filtru pentru rejected.");
+    assert(page.includes("filterTasks('completed_in_planner')"), "Sectiunea trebuie sa aiba filtru pentru taskuri terminate.");
+    assert(page.includes("filterTasks('deleted_in_planner')"), "Sectiunea trebuie sa aiba filtru pentru taskuri sterse.");
     assert(page.includes("data-task-row"), "Sectiunea trebuie sa includa randuri filtrabile.");
   });
 

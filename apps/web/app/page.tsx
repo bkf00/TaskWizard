@@ -3,6 +3,7 @@ import { EmailSourceForm } from "./email-source-form";
 
 export const dynamic = "force-dynamic";
 const defaultActorEmail = process.env.LOCAL_ACTOR_EMAIL ?? "approver@firma.ro";
+const plannerTerminalSourceStatuses = new Set(["approved", "created_in_planner", "planner_sync_failed"]);
 
 function formatDate(value: string | null): string {
   if (!value) return "fara termen";
@@ -136,6 +137,23 @@ export default async function HomePage() {
                           </form>
                         ) : null}
                       </div>
+                      </div>
+                    ) : null}
+
+                    {plannerTerminalSourceStatuses.has(task.status) ? (
+                      <div className="task-actions">
+                        <form action={`/api/tasks/${task.id}/complete`} method="post">
+                          <input type="hidden" name="actorEmail" value={defaultActorEmail} />
+                          <button className="button-secondary" type="submit">
+                            Marcheaza terminat
+                          </button>
+                        </form>
+                        <form action={`/api/tasks/${task.id}/delete`} method="post">
+                          <input type="hidden" name="actorEmail" value={defaultActorEmail} />
+                          <button className="button-danger" type="submit">
+                            Marcheaza sters
+                          </button>
+                        </form>
                       </div>
                     ) : null}
                   </article>

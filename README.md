@@ -29,6 +29,7 @@ MVP includes:
 - triage-style local interface for import, review and task history;
 - action-item extraction into proposed tasks;
 - approval/rejection flow;
+- post-approval lifecycle: completed/deleted Planner states kept in audit;
 - controlled Planner sync path;
 - audit events;
 - processing errors;
@@ -93,6 +94,7 @@ The test runner starts an isolated server on port `3197`, uses a temporary data 
 - raw EML header/body parsing;
 - structured minute line extraction with organization assignees;
 - approval and rejection;
+- completed/deleted post-approval state transitions;
 - safe Planner failure when not configured;
 - HTML escaping;
 - long meeting dialog extraction.

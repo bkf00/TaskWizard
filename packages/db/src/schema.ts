@@ -14,7 +14,9 @@ export const proposedTaskStatus = pgEnum("proposed_task_status", [
   "approved",
   "rejected",
   "created_in_planner",
-  "planner_sync_failed"
+  "planner_sync_failed",
+  "completed_in_planner",
+  "deleted_in_planner"
 ]);
 
 export const sourceItems = pgTable(

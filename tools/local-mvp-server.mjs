@@ -15,6 +15,16 @@ const emptyStore = {
 };
 const allowedSourceTypes = new Set(["email", "teams_transcript", "manual_upload"]);
 const defaultActorEmail = process.env.LOCAL_ACTOR_EMAIL ?? "approver@firma.ro";
+const statusFilters = [
+  "proposed",
+  "planner_sync_failed",
+  "approved",
+  "created_in_planner",
+  "completed_in_planner",
+  "deleted_in_planner",
+  "rejected"
+];
+const plannerTerminalSourceStatuses = new Set(["approved", "created_in_planner", "planner_sync_failed"]);
 
 async function readStore() {
   try {
@@ -474,6 +484,66 @@ async function handleReject(req, res, taskId) {
   redirect(res);
 }
 
+async function handleComplete(req, res, taskId) {
+  const form = await parseForm(req);
+  const actorEmail = actorFromForm(form);
+  const data = await readStore();
+  const task = data.proposedTasks.find((item) => item.id === taskId);
+  if (!task) {
+    res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
+    res.end("Taskul nu exista.");
+    return;
+  }
+  if (!plannerTerminalSourceStatuses.has(task.status)) {
+    res.writeHead(409, { "Content-Type": "text/plain; charset=utf-8" });
+    res.end(`Taskul nu poate fi marcat terminat din statusul ${task.status}.`);
+    return;
+  }
+  const previousStatus = task.status;
+  task.status = "completed_in_planner";
+  task.updatedAt = new Date().toISOString();
+  audit(data, {
+    type: "task.completed",
+    actorEmail,
+    proposedTaskId: task.id,
+    sourceId: task.sourceId,
+    message: "Task marcat ca terminat.",
+    metadata: { previousStatus, plannerTaskId: task.plannerTaskId }
+  });
+  await writeStore(data);
+  redirect(res);
+}
+
+async function handleDelete(req, res, taskId) {
+  const form = await parseForm(req);
+  const actorEmail = actorFromForm(form);
+  const data = await readStore();
+  const task = data.proposedTasks.find((item) => item.id === taskId);
+  if (!task) {
+    res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
+    res.end("Taskul nu exista.");
+    return;
+  }
+  if (!plannerTerminalSourceStatuses.has(task.status)) {
+    res.writeHead(409, { "Content-Type": "text/plain; charset=utf-8" });
+    res.end(`Taskul nu poate fi marcat sters din statusul ${task.status}.`);
+    return;
+  }
+  const previousStatus = task.status;
+  task.status = "deleted_in_planner";
+  task.updatedAt = new Date().toISOString();
+  audit(data, {
+    type: "task.deleted",
+    actorEmail,
+    proposedTaskId: task.id,
+    sourceId: task.sourceId,
+    message: "Task marcat ca sters din Planner.",
+    metadata: { previousStatus, plannerTaskId: task.plannerTaskId }
+  });
+  await writeStore(data);
+  redirect(res);
+}
+
 async function renderHome(res) {
   const data = await readStore();
   const tasks = [...data.proposedTasks].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
@@ -493,8 +563,8 @@ async function renderHome(res) {
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Taskuri AI</title>
   <style>
-    :root{--bg:#f6f7f9;--surface:#fff;--surface-2:#fbfcfd;--line:#d8dee8;--text:#17202a;--muted:#657083;--accent:#12635f;--danger:#b42318;--danger-bg:#fee4e2;--ok:#067647;--ok-bg:#dcfae6}
-    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,Arial,Helvetica,sans-serif}main{max-width:1380px;margin:0 auto;padding:22px 22px 48px}h1,h2,h3,p{margin-top:0}h1{font-size:24px;line-height:1.2;margin-bottom:4px}h2{font-size:15px;margin-bottom:12px}.muted{color:var(--muted)}.app-header{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:18px}.summary{display:flex;gap:8px;flex-wrap:wrap}.metric{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:9px 12px;min-width:108px}.metric strong{display:block;font-size:20px}.workspace{display:grid;grid-template-columns:330px minmax(0,1fr) 300px;gap:16px;align-items:start}.panel{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:16px}.panel-subtle{background:var(--surface-2)}label{display:block;font-size:12px;font-weight:700;color:#344054;margin:12px 0 6px}input,select,textarea{width:100%;border:1px solid #cbd5e1;border-radius:6px;padding:9px 10px;background:#fff;color:var(--text);font:inherit}textarea{min-height:170px;resize:vertical}button{border:0;border-radius:6px;background:var(--accent);color:#fff;font-weight:700;padding:9px 12px;cursor:pointer}.button-muted{background:#eef2f6;color:#263445}.danger{background:var(--danger-bg);color:var(--danger)}.task-list{display:grid;gap:10px}.task-card{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px}.task-card[data-status="planner_sync_failed"]{border-color:#f6c7c3}.task-top{display:flex;justify-content:space-between;gap:12px}.task-title{font-weight:800;font-size:15px;line-height:1.35}.badge{display:inline-flex;align-items:center;border-radius:999px;background:#eef2f6;color:#344054;padding:4px 8px;font-size:12px;font-weight:700;white-space:nowrap}.proposed{background:#e0f2fe;color:#075985}.planner_sync_failed,.rejected{background:var(--danger-bg);color:var(--danger)}.approved,.created_in_planner{background:var(--ok-bg);color:var(--ok)}.meta{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}.evidence{border-left:3px solid #b7c4d5;background:#f8fafc;margin:10px 0;padding:9px 10px;color:#334155;font-size:13px}.source{font-size:12px;color:var(--muted);margin-top:6px}.edit{border-top:1px solid var(--line);margin-top:12px;padding-top:10px}.edit textarea{min-height:74px}.advanced summary,.edit summary{cursor:pointer;color:#344054;font-size:13px;font-weight:700}.compact{display:grid;grid-template-columns:1fr 150px;gap:8px}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.filters{display:flex;flex-wrap:wrap;gap:7px;margin:8px 0 12px}.task-table{width:100%;border-collapse:collapse;font-size:13px}.task-table th,.task-table td{border-top:1px solid var(--line);padding:8px;text-align:left;vertical-align:top}.task-table th{color:var(--muted);font-size:12px}.task-row{display:table-row}.task-row.hidden{display:none}.event{border-top:1px solid var(--line);padding:10px 0;font-size:13px}.empty{border:1px dashed var(--line);border-radius:8px;padding:20px;text-align:center;color:var(--muted);background:#fbfcfd}.review-heading{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:12px}.review-heading p{margin:0}.drawer{display:grid;gap:12px;position:sticky;top:16px}@media(max-width:1100px){.workspace{grid-template-columns:1fr}.drawer{position:static}.app-header{display:block}.summary{margin-top:12px}}@media(max-width:680px){main{padding:14px}.compact{grid-template-columns:1fr}.task-top{display:block}.badge{margin-top:8px}}
+    :root{--bg:#f6f7f9;--surface:#fff;--surface-2:#fbfcfd;--line:#d8dee8;--text:#17202a;--muted:#657083;--accent:#12635f;--danger:#b42318;--danger-bg:#fee4e2;--ok:#067647;--ok-bg:#dcfae6;--archived:#475467;--archived-bg:#f2f4f7}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,Arial,Helvetica,sans-serif}main{max-width:1380px;margin:0 auto;padding:22px 22px 48px}h1,h2,h3,p{margin-top:0}h1{font-size:24px;line-height:1.2;margin-bottom:4px}h2{font-size:15px;margin-bottom:12px}.muted{color:var(--muted)}.app-header{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:18px}.summary{display:flex;gap:8px;flex-wrap:wrap}.metric{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:9px 12px;min-width:108px}.metric strong{display:block;font-size:20px}.workspace{display:grid;grid-template-columns:330px minmax(0,1fr) 300px;gap:16px;align-items:start}.panel{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:16px}.panel-subtle{background:var(--surface-2)}label{display:block;font-size:12px;font-weight:700;color:#344054;margin:12px 0 6px}input,select,textarea{width:100%;border:1px solid #cbd5e1;border-radius:6px;padding:9px 10px;background:#fff;color:var(--text);font:inherit}textarea{min-height:170px;resize:vertical}button{border:0;border-radius:6px;background:var(--accent);color:#fff;font-weight:700;padding:9px 12px;cursor:pointer}.button-muted{background:#eef2f6;color:#263445}.danger{background:var(--danger-bg);color:var(--danger)}.task-list{display:grid;gap:10px}.task-card{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px}.task-card[data-status="planner_sync_failed"]{border-color:#f6c7c3}.task-top{display:flex;justify-content:space-between;gap:12px}.task-title{font-weight:800;font-size:15px;line-height:1.35}.badge{display:inline-flex;align-items:center;border-radius:999px;background:#eef2f6;color:#344054;padding:4px 8px;font-size:12px;font-weight:700;white-space:nowrap}.proposed{background:#e0f2fe;color:#075985}.planner_sync_failed,.rejected,.deleted_in_planner{background:var(--danger-bg);color:var(--danger)}.approved,.created_in_planner,.completed_in_planner{background:var(--ok-bg);color:var(--ok)}.deleted_in_planner,.completed_in_planner{background:var(--archived-bg);color:var(--archived)}.meta{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}.evidence{border-left:3px solid #b7c4d5;background:#f8fafc;margin:10px 0;padding:9px 10px;color:#334155;font-size:13px}.source{font-size:12px;color:var(--muted);margin-top:6px}.edit{border-top:1px solid var(--line);margin-top:12px;padding-top:10px}.edit textarea{min-height:74px}.advanced summary,.edit summary{cursor:pointer;color:#344054;font-size:13px;font-weight:700}.compact{display:grid;grid-template-columns:1fr 150px;gap:8px}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.filters{display:flex;flex-wrap:wrap;gap:7px;margin:8px 0 12px}.task-table{width:100%;border-collapse:collapse;font-size:13px}.task-table th,.task-table td{border-top:1px solid var(--line);padding:8px;text-align:left;vertical-align:top}.task-table th{color:var(--muted);font-size:12px}.task-row{display:table-row}.task-row.hidden{display:none}.event{border-top:1px solid var(--line);padding:10px 0;font-size:13px}.empty{border:1px dashed var(--line);border-radius:8px;padding:20px;text-align:center;color:var(--muted);background:#fbfcfd}.review-heading{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:12px}.review-heading p{margin:0}.drawer{display:grid;gap:12px;position:sticky;top:16px}@media(max-width:1100px){.workspace{grid-template-columns:1fr}.drawer{position:static}.app-header{display:block}.summary{margin-top:12px}}@media(max-width:680px){main{padding:14px}.compact{grid-template-columns:1fr}.task-top{display:block}.badge{margin-top:8px}}
   </style>
   <script>
     function filterTasks(status) {
@@ -587,6 +657,7 @@ async function renderHome(res) {
           </details>
           <div class="actions">
             <form method="post" action="/tasks/${task.id}/approve"><input type="hidden" name="actorEmail" value="${escapeHtml(defaultActorEmail)}" /><button>Aproba</button></form>
+            ${plannerTerminalSourceStatuses.has(task.status) ? `<form method="post" action="/tasks/${task.id}/complete"><input type="hidden" name="actorEmail" value="${escapeHtml(defaultActorEmail)}" /><button class="button-muted">Marcheaza terminat</button></form><form method="post" action="/tasks/${task.id}/delete"><input type="hidden" name="actorEmail" value="${escapeHtml(defaultActorEmail)}" /><button class="danger">Marcheaza sters</button></form>` : ""}
             ${task.status === "proposed" ? `<form method="post" action="/tasks/${task.id}/reject"><input type="hidden" name="actorEmail" value="${escapeHtml(defaultActorEmail)}" /><button class="danger">Respinge</button></form>` : ""}
           </div>
         </article>`;
@@ -598,18 +669,18 @@ async function renderHome(res) {
         <h2>Toate taskurile</h2>
     <div class="filters">
       <button type="button" onclick="filterTasks('all')">Toate (${tasks.length})</button>
-      ${["proposed", "planner_sync_failed", "rejected", "approved", "created_in_planner"]
+      ${statusFilters
         .map((status) => `<button type="button" onclick="filterTasks('${status}')">${status} (${taskStatusCounts[status] ?? 0})</button>`)
         .join("")}
     </div>
     ${
       tasks.length
         ? `<table class="task-table">
-            <thead><tr><th>Status</th><th>Titlu</th><th>Responsabil</th><th>Termen</th><th>Proiect</th></tr></thead>
+            <thead><tr><th>Status</th><th>Titlu</th><th>Responsabil</th><th>Termen</th><th>Proiect</th><th>Actiuni</th></tr></thead>
             <tbody>
               ${tasks
                 .map(
-                  (task) => `<tr class="task-row" data-task-row data-status="${escapeHtml(task.status)}"><td><span class="badge ${escapeHtml(task.status)}">${escapeHtml(task.status)}</span></td><td>${escapeHtml(task.title)}</td><td>${escapeHtml(task.assigneeName || task.assigneeEmail || "fara responsabil")}</td><td>${escapeHtml(task.dueDate || "fara termen")}</td><td>${escapeHtml(task.projectHint || "-")}</td></tr>`
+                  (task) => `<tr class="task-row" data-task-row data-status="${escapeHtml(task.status)}"><td><span class="badge ${escapeHtml(task.status)}">${escapeHtml(task.status)}</span></td><td>${escapeHtml(task.title)}</td><td>${escapeHtml(task.assigneeName || task.assigneeEmail || "fara responsabil")}</td><td>${escapeHtml(task.dueDate || "fara termen")}</td><td>${escapeHtml(task.projectHint || "-")}</td><td>${plannerTerminalSourceStatuses.has(task.status) ? `<div class="actions"><form method="post" action="/tasks/${task.id}/complete"><input type="hidden" name="actorEmail" value="${escapeHtml(defaultActorEmail)}" /><button class="button-muted">Terminat</button></form><form method="post" action="/tasks/${task.id}/delete"><input type="hidden" name="actorEmail" value="${escapeHtml(defaultActorEmail)}" /><button class="danger">Sters</button></form></div>` : "-"}</td></tr>`
                 )
                 .join("")}
             </tbody>
@@ -640,6 +711,10 @@ createServer(async (req, res) => {
     if (req.method === "POST" && update) return handleUpdate(req, res, update[1]);
     const reject = url.pathname.match(/^\/tasks\/([^/]+)\/reject$/);
     if (req.method === "POST" && reject) return handleReject(req, res, reject[1]);
+    const complete = url.pathname.match(/^\/tasks\/([^/]+)\/complete$/);
+    if (req.method === "POST" && complete) return handleComplete(req, res, complete[1]);
+    const deleteTask = url.pathname.match(/^\/tasks\/([^/]+)\/delete$/);
+    if (req.method === "POST" && deleteTask) return handleDelete(req, res, deleteTask[1]);
     res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
     res.end("Not found");
   } catch (error) {
