@@ -465,6 +465,9 @@ Pregateste lista de observatii pentru acoperis.
   await record("all tasks section exposes status filters", async () => {
     const page = await (await fetch(baseUrl)).text();
     assert(page.includes("Toate taskurile"), "Pagina trebuie sa contina sectiunea Toate taskurile.");
+    assert(page.includes("Taskuri active / aprobate"), "Pagina trebuie sa contina sectiunea pentru taskuri aprobate.");
+    assert(page.includes("Marcheaza terminat"), "Pagina trebuie sa expuna actiunea de finalizare pentru taskurile aprobate.");
+    assert(page.includes("Marcheaza sters"), "Pagina trebuie sa expuna actiunea de stergere pentru taskurile aprobate.");
     assert(page.includes("filterTasks('all')"), "Sectiunea trebuie sa aiba filtru pentru toate taskurile.");
     assert(page.includes("filterTasks('proposed')"), "Sectiunea trebuie sa aiba filtru pentru proposed.");
     assert(page.includes("filterTasks('rejected')"), "Sectiunea trebuie sa aiba filtru pentru rejected.");

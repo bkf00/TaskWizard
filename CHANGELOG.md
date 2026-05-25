@@ -45,6 +45,7 @@ Format inspirat de Keep a Changelog. Proiectul foloseste versionare pragmatica p
 - Titluri compacte pentru taskurile extrase, cu descrierea completa pastrata in interiorul taskului.
 - Detectie de termene din date explicite si cuvinte relative precum `maine`, `poimaine`, `marti`, `miercuri`.
 - Statusuri post-aprobare `completed_in_planner` si `deleted_in_planner`, cu audit si actiuni in UI.
+- Sectiune vizibila "Taskuri active / aprobate" pentru actiunile post-aprobare.
 
 ### Changed
 

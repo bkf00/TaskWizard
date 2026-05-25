@@ -555,6 +555,7 @@ async function renderHome(res) {
   const errors = [...data.processingErrors].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   const auditEvents = [...data.auditEvents].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   const reviewTasks = tasks.filter((task) => task.status === "proposed" || task.status === "planner_sync_failed");
+  const plannerActiveTasks = tasks.filter((task) => plannerTerminalSourceStatuses.has(task.status));
 
   const html = `<!doctype html>
 <html lang="ro">
@@ -662,6 +663,34 @@ async function renderHome(res) {
           </div>
         </article>`;
       }).join("") : `<div class="empty">Nu exista taskuri de verificat.</div>`}</div>
+      <div class="review-heading" style="margin-top:18px">
+        <div>
+          <h2>Taskuri active / aprobate</h2>
+          <p class="muted">Aici apar butoanele de terminare sau stergere dupa aprobare.</p>
+        </div>
+        <span class="badge created_in_planner">${plannerActiveTasks.length} active</span>
+      </div>
+      <div class="task-list">${plannerActiveTasks.length ? plannerActiveTasks.map((task) => {
+        const source = sourcesById.get(task.sourceId);
+        return `
+        <article class="task-card" data-status="${escapeHtml(task.status)}">
+          <div class="task-top">
+            <div class="task-title">${escapeHtml(task.title)}</div>
+            <span class="badge ${escapeHtml(task.status)}">${escapeHtml(task.status)}</span>
+          </div>
+          <div class="meta">
+            <span class="badge">${escapeHtml(task.assigneeName || task.assigneeEmail || "fara responsabil")}</span>
+            <span class="badge">${escapeHtml(task.dueDate || "fara termen")}</span>
+            ${task.plannerTaskId ? `<span class="badge">Planner: ${escapeHtml(task.plannerTaskId)}</span>` : ""}
+          </div>
+          <div class="evidence">${escapeHtml(task.description || task.evidence)}</div>
+          <div class="source">${escapeHtml(source?.subject ?? "sursa necunoscuta")}</div>
+          <div class="actions">
+            <form method="post" action="/tasks/${task.id}/complete"><input type="hidden" name="actorEmail" value="${escapeHtml(defaultActorEmail)}" /><button class="button-muted">Marcheaza terminat</button></form>
+            <form method="post" action="/tasks/${task.id}/delete"><input type="hidden" name="actorEmail" value="${escapeHtml(defaultActorEmail)}" /><button class="danger">Marcheaza sters</button></form>
+          </div>
+        </article>`;
+      }).join("") : `<div class="empty">Nu exista taskuri aprobate. Aproba un task propus, apoi vor aparea aici butoanele Marcheaza terminat si Marcheaza sters.</div>`}</div>
     </section>
 
     <aside class="drawer">
