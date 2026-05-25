@@ -43,13 +43,14 @@ Format inspirat de Keep a Changelog. Proiectul foloseste versionare pragmatica p
 - Interfata locala tip triage inbox: import email in stanga, review taskuri in centru, context/audit in dreapta.
 - Reprocesare pentru aceeasi sursa daca taskurile active anterioare au fost inchise.
 - Titluri compacte pentru taskurile extrase, cu descrierea completa pastrata in interiorul taskului.
+- Detectie de termene din date explicite si cuvinte relative precum `maine`, `poimaine`, `marti`, `miercuri`.
 
 ### Changed
 
 - Aprobarea locala salveaza `approvedBy` din formular, nu un placeholder hardcodat.
 - AI provider local/Ollama a fost mutat in Milestone 4 ca prioritate ulterioara.
 - Cardurile de review pun in prim-plan titlul, responsabilul, termenul si dovada; editarea completa este disponibila expandabil.
-- Testele locale cresc de la 15 la 19 cazuri.
+- Testele locale cresc de la 15 la 20 cazuri.
 
 ### Known Limitations
 

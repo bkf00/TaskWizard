@@ -33,6 +33,7 @@ Acest fisier este jurnalul de lucru al agentului. Se actualizeaza la fiecare sch
 - Am redesenat UI-ul local ca un triage inbox: import simplu, review vizual al taskurilor active, editare expandabila si panou separat pentru istoricul complet/audit.
 - Am corectat fluxul de retestare: aceeasi sursa poate fi reprocesata daca nu mai are taskuri active de review, pastrand in continuare protectia anti-duplicare cand exista propuneri active.
 - Am schimbat conventia de extractie: titlul taskului trebuie sa fie scurt si scanabil, iar actiunea completa ramane in descriere/evidence.
+- Am adaugat detectie de termene in fallback: date explicite, `azi`, `maine`, `poimaine` si zile ale saptamanii calculate relativ la data curenta.
 
 ## Regula de utilizare
 

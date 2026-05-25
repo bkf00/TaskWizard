@@ -82,6 +82,7 @@ const server = spawn(process.execPath, ["tools/local-mvp-server.mjs"], {
   env: {
     ...process.env,
     PORT: String(port),
+    LOCAL_TODAY: "2026-05-25",
     LOCAL_DATA_DIR: tempDir
   },
   stdio: ["ignore", "pipe", "pipe"]
@@ -225,6 +226,7 @@ Pregateste lista de observatii pentru acoperis.
     assert(tasks.every((task) => wordCount(task.title) <= 5), "Titlul sumarizat trebuie sa ramana scurt.", tasks);
     assert(tasks.some((task) => task.title === "Verifica arhiva proiect"), "Titlul pentru arhiva trebuie sa fie scurt si natural.", tasks);
     assert(tasks.some((task) => task.title === "Pregateste detaliu prinderi"), "Titlul pentru prinderi trebuie sa fie scurt si natural.", tasks);
+    assert(tasks.every((task) => task.dueDate === "2026-05-15"), "Data explicita din minuta trebuie extrasa ca termen.", tasks);
     assert(
       tasks.some((task) => /arhiva/i.test(task.title) || /verifica/i.test(task.title)),
       "Titlul trebuie sa sumarizeze actiunea, nu sa copieze linia bruta."
@@ -234,6 +236,29 @@ Pregateste lista de observatii pentru acoperis.
       "Descrierea trebuie sa pastreze actiunea completa din minuta.",
       tasks
     );
+  });
+
+  await record("relative date words are converted to due dates", async () => {
+    const response = await postForm("/sources/manual", {
+      type: "manual_upload",
+      subject: "Termene relative",
+      rawText: [
+        "Te rog verifica lista pana maine.",
+        "Ramane sa trimitem oferta poimaine.",
+        "Actualizeaza planul marti.",
+        "Confirma disponibilitatea miercuri."
+      ].join("\n")
+    });
+    assert(response.status === 303, "Sursa cu termene relative ar trebui procesata.", response.status);
+    const store = await readStore();
+    const source = store.sources.find((item) => item.subject === "Termene relative");
+    assert(source, "Sursa cu termene relative trebuie salvata.");
+    const tasks = store.proposedTasks.filter((task) => task.sourceId === source.id);
+    assert(tasks.length === 4, "Ar trebui create patru taskuri cu termene relative.", tasks);
+    assert(tasks.some((task) => task.description.includes("pana maine") && task.dueDate === "2026-05-26"), "Maine trebuie mapat la 2026-05-26.", tasks);
+    assert(tasks.some((task) => task.description.includes("poimaine") && task.dueDate === "2026-05-27"), "Poimaine trebuie mapat la 2026-05-27.", tasks);
+    assert(tasks.some((task) => task.description.includes("marti") && task.dueDate === "2026-05-26"), "Marti trebuie mapat la urmatoarea marti.", tasks);
+    assert(tasks.some((task) => task.description.includes("miercuri") && task.dueDate === "2026-05-27"), "Miercuri trebuie mapat la urmatoarea miercuri.", tasks);
   });
 
   await record("duplicate source is ignored idempotently", async () => {
@@ -246,8 +271,8 @@ Pregateste lista de observatii pentru acoperis.
     });
     assert(response.status === 303, "Duplicatul ar trebui sa redirectioneze.", response.status);
     const store = await readStore();
-    assert(store.sources.length === 4, "Duplicatul nu trebuie sa creeze o sursa noua.", store.sources);
-    assert(store.proposedTasks.length === 8, "Duplicatul nu trebuie sa creeze taskuri noi.", store.proposedTasks);
+    assert(store.sources.length === 5, "Duplicatul nu trebuie sa creeze o sursa noua.", store.sources);
+    assert(store.proposedTasks.length === 12, "Duplicatul nu trebuie sa creeze taskuri noi.", store.proposedTasks);
     assert(
       store.auditEvents.some((event) => event.type === "source.duplicate_ignored"),
       "Duplicatul trebuie marcat in audit."
@@ -276,7 +301,7 @@ Pregateste lista de observatii pentru acoperis.
     assert(response.status === 303, "Reprocesarea duplicatului ar trebui sa redirectioneze.", response.status);
     const store = await readStore();
     const reviewableTasks = store.proposedTasks.filter((task) => task.sourceId === source.id && task.status === "proposed");
-    assert(store.sources.length === 4, "Reprocesarea nu trebuie sa creeze o sursa noua.", store.sources);
+    assert(store.sources.length === 5, "Reprocesarea nu trebuie sa creeze o sursa noua.", store.sources);
     assert(reviewableTasks.length === 3, "Reprocesarea trebuie sa creeze taskuri noi de verificat.", reviewableTasks);
     assert(
       store.auditEvents.some((event) => event.type === "source.reprocessed"),

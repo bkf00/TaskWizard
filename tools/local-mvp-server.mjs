@@ -158,6 +158,61 @@ function compactTaskTitle(actionText) {
   return title.charAt(0).toUpperCase() + title.slice(1);
 }
 
+function isoDate(date) {
+  return date.toISOString().slice(0, 10);
+}
+
+function addDays(date, days) {
+  const next = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+  next.setUTCDate(next.getUTCDate() + days);
+  return next;
+}
+
+function referenceDate() {
+  const configured = process.env.LOCAL_TODAY;
+  if (configured && /^\d{4}-\d{2}-\d{2}$/.test(configured)) return new Date(`${configured}T00:00:00.000Z`);
+  const now = new Date();
+  return new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
+}
+
+function extractDueDate(text, baseDate = referenceDate()) {
+  const normalized = normalizeLine(text).toLowerCase();
+  const explicit = normalized.match(/\b(\d{1,2})[./-](\d{1,2})(?:[./-](\d{2,4}))?\b/);
+  if (explicit) {
+    const day = Number(explicit[1]);
+    const month = Number(explicit[2]);
+    let year = explicit[3] ? Number(explicit[3]) : baseDate.getUTCFullYear();
+    if (year < 100) year += 2000;
+    const candidate = new Date(Date.UTC(year, month - 1, day));
+    if (candidate.getUTCFullYear() === year && candidate.getUTCMonth() === month - 1 && candidate.getUTCDate() === day) {
+      return isoDate(candidate);
+    }
+  }
+
+  if (/\bazi\b/.test(normalized)) return isoDate(baseDate);
+  if (/\bpoimaine\b/.test(normalized)) return isoDate(addDays(baseDate, 2));
+  if (/\bmaine\b/.test(normalized)) return isoDate(addDays(baseDate, 1));
+
+  const weekdays = [
+    ["duminica", "duminică"],
+    ["luni"],
+    ["marti", "marți"],
+    ["miercuri"],
+    ["joi"],
+    ["vineri"],
+    ["sambata", "sâmbătă"]
+  ];
+  const today = baseDate.getUTCDay();
+  for (let target = 0; target < weekdays.length; target += 1) {
+    if (weekdays[target].some((day) => new RegExp(`\\b${day}\\b`, "i").test(normalized))) {
+      const diff = (target - today + 7) % 7 || 7;
+      return isoDate(addDays(baseDate, diff));
+    }
+  }
+
+  return null;
+}
+
 function structuredActionFromLine(line) {
   const normalized = normalizeLine(line);
   const structured = normalized.match(/^(?:(?:\d{1,2}\.\d{1,2}\.\d{4}|\d{4})\s*=\s*)?(.+?)\s+(trebuie|pregateste|pregatesc|transmite|transmit|trimite|verifica|actualizeaza|creeaza|preia|preluat|stabileste|confirma|clarifica)\b(.*)$/i);
@@ -172,7 +227,8 @@ function structuredActionFromLine(line) {
   return {
     title,
     description: normalized,
-    assigneeName: assigneeName.length <= 60 ? assigneeName : null
+    assigneeName: assigneeName.length <= 60 ? assigneeName : null,
+    dueDate: extractDueDate(normalized)
   };
 }
 
@@ -196,7 +252,7 @@ function fallbackExtract(source) {
         description: structured?.description ?? line,
         assigneeEmail: null,
         assigneeName: structured?.assigneeName ?? null,
-        dueDate: null,
+        dueDate: structured?.dueDate ?? extractDueDate(line),
         projectHint: null,
         confidence: structured ? "medium" : "low",
         evidence: line,

@@ -22,7 +22,7 @@ type ExtractedTask = z.infer<typeof ExtractedTaskSchema>;
 function buildPrompt(source: SourceItem): string {
   return JSON.stringify({
     instruction:
-      "Extrage doar actiuni explicite din text. Titlul trebuie sa fie foarte scurt, in jur de 5 cuvinte. Descrierea pastreaza actiunea completa. Nu inventa deadline-uri, responsabili sau proiecte. Daca lipseste responsabilul, foloseste null. Daca lipseste termenul, foloseste null.",
+      "Extrage doar actiuni explicite din text. Titlul trebuie sa fie foarte scurt, in jur de 5 cuvinte. Descrierea pastreaza actiunea completa. Identifica termene explicite sau relative precum azi, maine, poimaine, pana marti, miercuri raportat la data curenta. Nu inventa deadline-uri, responsabili sau proiecte. Daca lipseste responsabilul, foloseste null. Daca lipseste termenul, foloseste null.",
     outputSchema: {
       tasks: [
         {
@@ -30,7 +30,7 @@ function buildPrompt(source: SourceItem): string {
           description: "actiunea completa, string | null",
           assigneeEmail: "email | null",
           assigneeName: "nume persoana, echipa sau firma responsabila | null",
-          dueDate: "YYYY-MM-DD | null",
+          dueDate: "YYYY-MM-DD | null, inclusiv din date relative",
           projectHint: "string | null",
           confidence: "high | medium | low",
           evidence: "fragment scurt din text care justifica taskul"
@@ -93,6 +93,55 @@ async function callAzureOpenAI(source: SourceItem): Promise<ExtractedTask[]> {
 
 function fallbackExtractTasks(source: SourceItem): ExtractedTask[] {
   const normalizeLine = (line: string) => line.replace(/\s+/g, " ").replace(/^[*•-]\s*/, "").trim();
+  const isoDate = (date: Date) => date.toISOString().slice(0, 10);
+  const addDays = (date: Date, days: number) => {
+    const next = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+    next.setUTCDate(next.getUTCDate() + days);
+    return next;
+  };
+  const referenceDate = () => {
+    const configured = process.env.LOCAL_TODAY;
+    if (configured && /^\d{4}-\d{2}-\d{2}$/.test(configured)) return new Date(`${configured}T00:00:00.000Z`);
+    const now = new Date();
+    return new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
+  };
+  const extractDueDate = (text: string, baseDate = referenceDate()) => {
+    const normalized = normalizeLine(text).toLowerCase();
+    const explicit = normalized.match(/\b(\d{1,2})[./-](\d{1,2})(?:[./-](\d{2,4}))?\b/);
+    if (explicit) {
+      const day = Number(explicit[1]);
+      const month = Number(explicit[2]);
+      let year = explicit[3] ? Number(explicit[3]) : baseDate.getUTCFullYear();
+      if (year < 100) year += 2000;
+      const candidate = new Date(Date.UTC(year, month - 1, day));
+      if (candidate.getUTCFullYear() === year && candidate.getUTCMonth() === month - 1 && candidate.getUTCDate() === day) {
+        return isoDate(candidate);
+      }
+    }
+
+    if (/\bazi\b/.test(normalized)) return isoDate(baseDate);
+    if (/\bpoimaine\b/.test(normalized)) return isoDate(addDays(baseDate, 2));
+    if (/\bmaine\b/.test(normalized)) return isoDate(addDays(baseDate, 1));
+
+    const weekdays = [
+      ["duminica", "duminică"],
+      ["luni"],
+      ["marti", "marți"],
+      ["miercuri"],
+      ["joi"],
+      ["vineri"],
+      ["sambata", "sâmbătă"]
+    ];
+    const today = baseDate.getUTCDay();
+    for (let target = 0; target < weekdays.length; target += 1) {
+      if (weekdays[target].some((day) => new RegExp(`\\b${day}\\b`, "i").test(normalized))) {
+        const diff = (target - today + 7) % 7 || 7;
+        return isoDate(addDays(baseDate, diff));
+      }
+    }
+
+    return null;
+  };
   const compactTaskTitle = (actionText: string) => {
     const normalized = normalizeLine(actionText);
     const knownPatterns = [
@@ -154,7 +203,8 @@ function fallbackExtractTasks(source: SourceItem): ExtractedTask[] {
     return {
       title,
       description: normalized,
-      assigneeName: assigneeName.length <= 60 ? assigneeName : null
+      assigneeName: assigneeName.length <= 60 ? assigneeName : null,
+      dueDate: extractDueDate(normalized)
     };
   };
 
@@ -177,7 +227,7 @@ function fallbackExtractTasks(source: SourceItem): ExtractedTask[] {
       description: structured?.description ?? line,
       assigneeEmail: null,
       assigneeName: structured?.assigneeName ?? null,
-      dueDate: null,
+      dueDate: structured?.dueDate ?? extractDueDate(line),
       projectHint: null,
       confidence: structured ? "medium" : "low",
       evidence: line
