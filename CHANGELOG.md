@@ -48,6 +48,8 @@ Format inspirat de Keep a Changelog. Proiectul foloseste versionare pragmatica p
 - Sectiune vizibila "Taskuri active / aprobate" pentru actiunile post-aprobare.
 - Separare UI intre review (`proposed`) si taskuri aprobate/active, evitand dublarea dupa aprobare.
 - Test de regresie pentru emailuri haotice: headingurile de tip "Taskuri ramase" sunt ignorate, formulele politicoase nu intra in responsabil, iar titlurile rezultate sunt mai scurte si naturale.
+- Importul de email este mutat intr-un dialog deschis din butonul principal "Adauga email".
+- Istoricul "Toate taskurile" este randat ca lista compacta de carduri cu scroll intern, nu ca tabel lat.
 
 ### Changed
 
@@ -56,6 +58,7 @@ Format inspirat de Keep a Changelog. Proiectul foloseste versionare pragmatica p
 - Cardurile de review pun in prim-plan titlul, responsabilul, termenul si dovada; editarea completa este disponibila expandabil.
 - Testele locale cresc de la 15 la 25 cazuri.
 - Extractorul fallback compacteaza mai bine actiuni uzuale din emailuri dezordonate: poze sondaj, raspuns autorizatie, disponibilitate membrana, centralizator IMSAT, tabel curat, lista materiale si semnatar minute.
+- Layout-ul local trece de la 3 coloane fixe la 2 zone principale: review central si istoric lateral compact.
 
 ### Known Limitations
 

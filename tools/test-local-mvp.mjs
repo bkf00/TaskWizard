@@ -105,6 +105,8 @@ try {
     assert(response.status === 200, "GET / nu a raspuns cu 200", response.status);
     assert(html.includes("TaskWizard"), "Pagina principala nu contine brandul aplicatiei.");
     assert(html.includes("Import email"), "Pagina principala nu contine zona de import.");
+    assert(html.includes("Adauga email"), "Importul trebuie pornit dintr-un buton principal.");
+    assert(html.includes('id="import-dialog"'), "Importul trebuie sa fie intr-un dialog/modal.");
     assert(html.includes("Review taskuri"), "Pagina principala nu contine zona de review.");
     assert(html.includes("Toate taskurile"), "Pagina principala nu contine istoricul taskurilor.");
   });
@@ -498,6 +500,8 @@ Pregateste lista de observatii pentru acoperis.
     assert(page.includes("filterTasks('completed_in_planner')"), "Sectiunea trebuie sa aiba filtru pentru taskuri terminate.");
     assert(page.includes("filterTasks('deleted_in_planner')"), "Sectiunea trebuie sa aiba filtru pentru taskuri sterse.");
     assert(page.includes("data-task-row"), "Sectiunea trebuie sa includa randuri filtrabile.");
+    assert(page.includes("history-card"), "Istoricul trebuie randat compact, ca lista de carduri.");
+    assert(!page.includes("task-table"), "Istoricul nu trebuie sa revina la tabel lat cu scroll orizontal.");
   });
 
   await record("approved tasks are not duplicated in review and active sections", async () => {

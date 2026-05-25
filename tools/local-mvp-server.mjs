@@ -582,13 +582,21 @@ async function renderHome(res) {
   <title>Taskuri AI</title>
   <style>
     :root{--bg:#f6f7f9;--surface:#fff;--surface-2:#fbfcfd;--line:#d8dee8;--text:#17202a;--muted:#657083;--accent:#12635f;--danger:#b42318;--danger-bg:#fee4e2;--ok:#067647;--ok-bg:#dcfae6;--archived:#475467;--archived-bg:#f2f4f7}
-    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,Arial,Helvetica,sans-serif}main{max-width:1380px;margin:0 auto;padding:22px 22px 48px}h1,h2,h3,p{margin-top:0}h1{font-size:24px;line-height:1.2;margin-bottom:4px}h2{font-size:15px;margin-bottom:12px}.muted{color:var(--muted)}.app-header{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:18px}.summary{display:flex;gap:8px;flex-wrap:wrap}.metric{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:9px 12px;min-width:108px}.metric strong{display:block;font-size:20px}.workspace{display:grid;grid-template-columns:330px minmax(0,1fr) 300px;gap:16px;align-items:start}.panel{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:16px}.panel-subtle{background:var(--surface-2)}label{display:block;font-size:12px;font-weight:700;color:#344054;margin:12px 0 6px}input,select,textarea{width:100%;border:1px solid #cbd5e1;border-radius:6px;padding:9px 10px;background:#fff;color:var(--text);font:inherit}textarea{min-height:170px;resize:vertical}button{border:0;border-radius:6px;background:var(--accent);color:#fff;font-weight:700;padding:9px 12px;cursor:pointer}.button-muted{background:#eef2f6;color:#263445}.danger{background:var(--danger-bg);color:var(--danger)}.task-list{display:grid;gap:10px}.task-card{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px}.task-card[data-status="planner_sync_failed"]{border-color:#f6c7c3}.task-top{display:flex;justify-content:space-between;gap:12px}.task-title{font-weight:800;font-size:15px;line-height:1.35}.badge{display:inline-flex;align-items:center;border-radius:999px;background:#eef2f6;color:#344054;padding:4px 8px;font-size:12px;font-weight:700;white-space:nowrap}.proposed{background:#e0f2fe;color:#075985}.planner_sync_failed,.rejected,.deleted_in_planner{background:var(--danger-bg);color:var(--danger)}.approved,.created_in_planner,.completed_in_planner{background:var(--ok-bg);color:var(--ok)}.deleted_in_planner,.completed_in_planner{background:var(--archived-bg);color:var(--archived)}.meta{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}.evidence{border-left:3px solid #b7c4d5;background:#f8fafc;margin:10px 0;padding:9px 10px;color:#334155;font-size:13px}.source{font-size:12px;color:var(--muted);margin-top:6px}.edit{border-top:1px solid var(--line);margin-top:12px;padding-top:10px}.edit textarea{min-height:74px}.advanced summary,.edit summary{cursor:pointer;color:#344054;font-size:13px;font-weight:700}.compact{display:grid;grid-template-columns:1fr 150px;gap:8px}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.filters{display:flex;flex-wrap:wrap;gap:7px;margin:8px 0 12px}.task-table{width:100%;border-collapse:collapse;font-size:13px}.task-table th,.task-table td{border-top:1px solid var(--line);padding:8px;text-align:left;vertical-align:top}.task-table th{color:var(--muted);font-size:12px}.task-row{display:table-row}.task-row.hidden{display:none}.event{border-top:1px solid var(--line);padding:10px 0;font-size:13px}.empty{border:1px dashed var(--line);border-radius:8px;padding:20px;text-align:center;color:var(--muted);background:#fbfcfd}.review-heading{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:12px}.review-heading p{margin:0}.drawer{display:grid;gap:12px;position:sticky;top:16px}@media(max-width:1100px){.workspace{grid-template-columns:1fr}.drawer{position:static}.app-header{display:block}.summary{margin-top:12px}}@media(max-width:680px){main{padding:14px}.compact{grid-template-columns:1fr}.task-top{display:block}.badge{margin-top:8px}}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,Arial,Helvetica,sans-serif}main{max-width:1440px;margin:0 auto;padding:24px 28px 44px}h1,h2,h3,p{margin-top:0}h1{font-size:24px;line-height:1.2;margin-bottom:4px}h2{font-size:15px;margin-bottom:12px}.muted{color:var(--muted)}.app-header{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:20px;align-items:start;margin-bottom:20px}.top-actions{display:flex;justify-content:flex-end;gap:10px;margin-bottom:10px}.summary{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.metric{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:9px 12px;min-width:108px}.metric strong{display:block;font-size:20px}.workspace{display:grid;grid-template-columns:minmax(0,1fr) 390px;gap:18px;align-items:start}.panel{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:16px;min-width:0}.panel-subtle{background:var(--surface-2)}label{display:block;font-size:12px;font-weight:700;color:#344054;margin:12px 0 6px}input,select,textarea{width:100%;border:1px solid #cbd5e1;border-radius:6px;padding:9px 10px;background:#fff;color:var(--text);font:inherit}textarea{min-height:190px;resize:vertical}button{border:0;border-radius:6px;background:var(--accent);color:#fff;font-weight:700;padding:9px 12px;cursor:pointer}.button-muted{background:#eef2f6;color:#263445}.button-ghost{background:#fff;color:#263445;border:1px solid var(--line)}.danger{background:var(--danger-bg);color:var(--danger)}.task-list{display:grid;gap:10px}.review-scroll{max-height:calc(100vh - 260px);overflow:auto;padding-right:4px}.task-card{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px;min-width:0}.task-card[data-status="planner_sync_failed"]{border-color:#f6c7c3}.task-top{display:flex;justify-content:space-between;gap:12px}.task-title{font-weight:800;font-size:15px;line-height:1.35;overflow-wrap:anywhere}.badge{display:inline-flex;align-items:center;border-radius:999px;background:#eef2f6;color:#344054;padding:4px 8px;font-size:12px;font-weight:700;white-space:nowrap}.proposed{background:#e0f2fe;color:#075985}.planner_sync_failed,.rejected,.deleted_in_planner{background:var(--danger-bg);color:var(--danger)}.approved,.created_in_planner,.completed_in_planner{background:var(--ok-bg);color:var(--ok)}.deleted_in_planner,.completed_in_planner{background:var(--archived-bg);color:var(--archived)}.meta{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}.evidence{border-left:3px solid #b7c4d5;background:#f8fafc;margin:10px 0;padding:9px 10px;color:#334155;font-size:13px;overflow-wrap:anywhere}.source{font-size:12px;color:var(--muted);margin-top:6px;overflow-wrap:anywhere}.edit{border-top:1px solid var(--line);margin-top:12px;padding-top:10px}.edit textarea{min-height:74px}.advanced summary,.edit summary{cursor:pointer;color:#344054;font-size:13px;font-weight:700}.compact{display:grid;grid-template-columns:1fr 150px;gap:8px}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.filters{display:flex;gap:7px;margin:8px 0 12px;flex-wrap:wrap}.filters button{white-space:nowrap}.task-row.hidden{display:none}.history-list{display:grid;gap:8px;max-height:calc(100vh - 250px);overflow:auto;padding-right:4px}.history-card{border:1px solid var(--line);border-radius:8px;padding:10px;background:#fff;min-width:0}.history-card.hidden{display:none}.history-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}.history-title{font-weight:800;font-size:13px;line-height:1.25;overflow-wrap:anywhere}.history-meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.history-meta .badge{font-size:11px;padding:3px 7px}.history-card .actions{margin-top:8px}.event{border-top:1px solid var(--line);padding:10px 0;font-size:13px}.empty{border:1px dashed var(--line);border-radius:8px;padding:20px;text-align:center;color:var(--muted);background:#fbfcfd}.review-heading{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:12px}.review-heading p{margin:0}.drawer{display:grid;gap:12px;position:sticky;top:16px;min-width:0}dialog{border:0;border-radius:8px;padding:0;width:min(720px,calc(100vw - 32px));box-shadow:0 24px 80px rgba(15,23,42,.28)}dialog::backdrop{background:rgba(15,23,42,.45)}.modal{padding:18px}.modal-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;border-bottom:1px solid var(--line);padding-bottom:12px;margin-bottom:12px}.modal-head h2{margin-bottom:4px}.modal-actions{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-top:14px}@media(max-width:1100px){.workspace{grid-template-columns:1fr}.drawer{position:static}.history-list,.review-scroll{max-height:none}.app-header{grid-template-columns:1fr}.summary,.top-actions{justify-content:flex-start}}@media(max-width:680px){main{padding:14px}.compact{grid-template-columns:1fr}.task-top,.history-top{display:block}.badge{margin-top:8px}.modal-actions{display:block}.modal-actions button{margin-top:8px;width:100%}}
   </style>
   <script>
     function filterTasks(status) {
       document.querySelectorAll("[data-task-row]").forEach((row) => {
         row.classList.toggle("hidden", status !== "all" && row.dataset.status !== status);
       });
+    }
+    function openImportDialog() {
+      const dialog = document.querySelector("#import-dialog");
+      if (dialog && typeof dialog.showModal === "function") dialog.showModal();
+    }
+    function closeImportDialog() {
+      const dialog = document.querySelector("#import-dialog");
+      if (dialog) dialog.close();
     }
     function loadEmailFile(input) {
       const file = input.files && input.files[0];
@@ -609,36 +617,17 @@ async function renderHome(res) {
       <h1>TaskWizard</h1>
       <p class="muted">Inbox de verificare pentru taskuri extrase din emailuri si minute.</p>
     </div>
-    <div class="summary">
-      <div class="metric"><strong>${reviewTasks.length}</strong><span class="muted">de verificat</span></div>
-      <div class="metric"><strong>${tasks.length}</strong><span class="muted">total taskuri</span></div>
-      <div class="metric"><strong>${errors.length}</strong><span class="muted">erori</span></div>
+    <div>
+      <div class="top-actions"><button type="button" onclick="openImportDialog()">Adauga email</button></div>
+      <div class="summary">
+        <div class="metric"><strong>${reviewTasks.length}</strong><span class="muted">de verificat</span></div>
+        <div class="metric"><strong>${tasks.length}</strong><span class="muted">total taskuri</span></div>
+        <div class="metric"><strong>${errors.length}</strong><span class="muted">erori</span></div>
+      </div>
     </div>
   </header>
 
   <div class="workspace">
-    <aside class="panel panel-subtle">
-      <h2>Import email</h2>
-      <form method="post" action="/sources/manual">
-        <label>Procesat de</label><input name="actorEmail" type="email" value="${escapeHtml(defaultActorEmail)}" />
-        <label>Fisier .eml</label><input type="file" accept=".eml,message/rfc822,text/plain" onchange="loadEmailFile(this)" />
-        <label>Email complet / text copiat</label><textarea name="rawEmail" required placeholder="Alege fisierul .eml sau lipeste emailul complet aici."></textarea>
-        <p><button type="submit">Extrage taskuri propuse</button></p>
-      </form>
-      <details class="advanced">
-        <summary>Introducere avansata</summary>
-        <form method="post" action="/sources/manual">
-          <input type="hidden" name="actorEmail" value="${escapeHtml(defaultActorEmail)}" />
-          <label>Tip sursa</label><select name="type"><option value="manual_upload">Recap / text manual</option><option value="email">Email copiat</option><option value="teams_transcript">Transcript Teams</option></select>
-          <label>Subiect</label><input name="subject" />
-          <label>Expeditor / organizator</label><input name="fromEmail" type="email" />
-          <label>Participanti</label><input name="participants" placeholder="email1, email2" />
-          <label>Text</label><textarea name="rawText"></textarea>
-          <p><button type="submit">Proceseaza sursa avansata</button></p>
-        </form>
-      </details>
-    </aside>
-
     <section class="panel">
       <div class="review-heading">
         <div>
@@ -647,7 +636,7 @@ async function renderHome(res) {
         </div>
         <span class="badge proposed">${reviewTasks.length} active</span>
       </div>
-      <div class="task-list">${reviewTasks.length ? reviewTasks.map((task) => {
+      <div class="task-list review-scroll">${reviewTasks.length ? reviewTasks.map((task) => {
         const source = sourcesById.get(task.sourceId);
         return `
         <article class="task-card" data-status="${escapeHtml(task.status)}">
@@ -687,7 +676,7 @@ async function renderHome(res) {
         </div>
         <span class="badge created_in_planner">${plannerActiveTasks.length} active</span>
       </div>
-      <div class="task-list">${plannerActiveTasks.length ? plannerActiveTasks.map((task) => {
+      <div class="task-list review-scroll">${plannerActiveTasks.length ? plannerActiveTasks.map((task) => {
         const source = sourcesById.get(task.sourceId);
         return `
         <article class="task-card" data-status="${escapeHtml(task.status)}">
@@ -721,16 +710,24 @@ async function renderHome(res) {
     </div>
     ${
       tasks.length
-        ? `<table class="task-table">
-            <thead><tr><th>Status</th><th>Titlu</th><th>Responsabil</th><th>Termen</th><th>Proiect</th><th>Actiuni</th></tr></thead>
-            <tbody>
+        ? `<div class="history-list">
               ${tasks
                 .map(
-                  (task) => `<tr class="task-row" data-task-row data-status="${escapeHtml(task.status)}"><td><span class="badge ${escapeHtml(task.status)}">${escapeHtml(task.status)}</span></td><td>${escapeHtml(task.title)}</td><td>${escapeHtml(task.assigneeName || task.assigneeEmail || "fara responsabil")}</td><td>${escapeHtml(task.dueDate || "fara termen")}</td><td>${escapeHtml(task.projectHint || "-")}</td><td>${plannerTerminalSourceStatuses.has(task.status) ? `<div class="actions"><form method="post" action="/tasks/${task.id}/complete"><input type="hidden" name="actorEmail" value="${escapeHtml(defaultActorEmail)}" /><button class="button-muted">Terminat</button></form><form method="post" action="/tasks/${task.id}/delete"><input type="hidden" name="actorEmail" value="${escapeHtml(defaultActorEmail)}" /><button class="danger">Sters</button></form></div>` : "-"}</td></tr>`
+                  (task) => `<article class="history-card task-row" data-task-row data-status="${escapeHtml(task.status)}">
+                    <div class="history-top">
+                      <div class="history-title">${escapeHtml(task.title)}</div>
+                      <span class="badge ${escapeHtml(task.status)}">${escapeHtml(task.status)}</span>
+                    </div>
+                    <div class="history-meta">
+                      <span class="badge">${escapeHtml(task.assigneeName || task.assigneeEmail || "fara responsabil")}</span>
+                      <span class="badge">${escapeHtml(task.dueDate || "fara termen")}</span>
+                      ${task.projectHint ? `<span class="badge">${escapeHtml(task.projectHint)}</span>` : ""}
+                    </div>
+                    ${plannerTerminalSourceStatuses.has(task.status) ? `<div class="actions"><form method="post" action="/tasks/${task.id}/complete"><input type="hidden" name="actorEmail" value="${escapeHtml(defaultActorEmail)}" /><button class="button-muted">Terminat</button></form><form method="post" action="/tasks/${task.id}/delete"><input type="hidden" name="actorEmail" value="${escapeHtml(defaultActorEmail)}" /><button class="danger">Sters</button></form></div>` : ""}
+                  </article>`
                 )
                 .join("")}
-            </tbody>
-          </table>`
+          </div>`
         : `<p class="muted">Nu exista taskuri inca.</p>`
     }
       </section>
@@ -738,6 +735,38 @@ async function renderHome(res) {
       <section class="panel"><h2>Audit recent</h2>${auditEvents.length ? auditEvents.slice(0,6).map((event) => `<div class="event"><strong>${escapeHtml(event.type)}</strong><br><span class="muted">${escapeHtml(event.message)}</span></div>`).join("") : `<p class="muted">Nu exista evenimente.</p>`}</section>
     </aside>
   </div>
+  <dialog id="import-dialog">
+    <div class="modal">
+      <div class="modal-head">
+        <div>
+          <h2>Import email</h2>
+          <p class="muted">Lipeste emailul complet sau incarca fisierul .eml.</p>
+        </div>
+        <button class="button-ghost" type="button" onclick="closeImportDialog()">Inchide</button>
+      </div>
+      <form method="post" action="/sources/manual">
+        <label>Procesat de</label><input name="actorEmail" type="email" value="${escapeHtml(defaultActorEmail)}" />
+        <label>Fisier .eml</label><input type="file" accept=".eml,message/rfc822,text/plain" onchange="loadEmailFile(this)" />
+        <label>Email complet / text copiat</label><textarea name="rawEmail" required placeholder="Alege fisierul .eml sau lipeste emailul complet aici."></textarea>
+        <div class="modal-actions">
+          <button type="submit">Extrage taskuri propuse</button>
+          <button class="button-ghost" type="button" onclick="closeImportDialog()">Renunta</button>
+        </div>
+      </form>
+      <details class="advanced">
+        <summary>Introducere avansata</summary>
+        <form method="post" action="/sources/manual">
+          <input type="hidden" name="actorEmail" value="${escapeHtml(defaultActorEmail)}" />
+          <label>Tip sursa</label><select name="type"><option value="manual_upload">Recap / text manual</option><option value="email">Email copiat</option><option value="teams_transcript">Transcript Teams</option></select>
+          <label>Subiect</label><input name="subject" />
+          <label>Expeditor / organizator</label><input name="fromEmail" type="email" />
+          <label>Participanti</label><input name="participants" placeholder="email1, email2" />
+          <label>Text</label><textarea name="rawText"></textarea>
+          <p><button type="submit">Proceseaza sursa avansata</button></p>
+        </form>
+      </details>
+    </div>
+  </dialog>
 </main>
 </body>
 </html>`;
