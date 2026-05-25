@@ -6,6 +6,9 @@ on:
     branches:
       - main
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   local-mvp-tests:
     name: Local MVP tests
@@ -35,7 +38,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version-file: .node-version
-          cache: npm
 
       - name: Install dependencies
         run: npm install
@@ -45,4 +47,3 @@ jobs:
 
       - name: Build
         run: npm run build
-
