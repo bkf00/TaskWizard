@@ -145,12 +145,20 @@ function fallbackExtractTasks(source: SourceItem): ExtractedTask[] {
   const compactTaskTitle = (actionText: string) => {
     const normalized = normalizeLine(actionText);
     const knownPatterns = [
+      { pattern: /\bpoze\w*\b.*\bsondaj/i, title: "Transmite poze sondaj" },
+      { pattern: /\bdraft\w*\b.*\braspuns\b.*\bautorizatie/i, title: "Pregateste raspuns autorizatie" },
+      { pattern: /\bdisponibilitatea\b.*\bmembranei\b/i, title: "Confirma disponibilitate membrana" },
       { pattern: /\braspuns\b.*\bsondaj/i, title: "Transmite raspuns sondaj" },
+      { pattern: /\blista\s+material\w*/i, title: "Trimite lista materiale" },
       { pattern: /\bmaterialele\b.*\bsondaj/i, title: "Transmite disponibilitate materiale" },
       { pattern: /\bdetali\w*\s+(?:de|pentru)\s+prinderi/i, title: "Pregateste detaliu prinderi" },
-      { pattern: /\bacord\s+tripartit/i, title: "Transmite acord tripartit" },
+      { pattern: /\bclarific\w*\b.*\bacord\w*\s+tripartit/i, title: "Clarifica acord tripartit" },
+      { pattern: /\bacord\w*\s+tripartit/i, title: "Transmite acord tripartit" },
       { pattern: /\bdraft\s+de\s+procedura/i, title: "Transmite draft procedura" },
-      { pattern: /\barhiva\b.*\bverifica/i, title: "Verifica arhiva proiect" }
+      { pattern: /\barhiva\b.*\bverifica/i, title: "Verifica arhiva proiect" },
+      { pattern: /\bcentralizator\w*\s+IMSAT/i, title: "Actualizeaza centralizator IMSAT" },
+      { pattern: /\bvarianta\s+curata\b.*\btabel/i, title: "Transmite tabel curat client" },
+      { pattern: /\bpersoana\b.*\bsemneaza/i, title: "Confirma semnatar minute" }
     ];
     const known = knownPatterns.find((item) => item.pattern.test(normalized));
     if (known) return known.title;
@@ -162,17 +170,24 @@ function fallbackExtractTasks(source: SourceItem): ExtractedTask[] {
       "catre",
       "cu",
       "de",
+      "dimineata",
       "din",
       "in",
       "la",
+      "maine",
+      "marti",
+      "miercuri",
       "pe",
       "pentru",
+      "poimaine",
       "privind",
       "pt",
+      "pana",
       "respectiv",
       "sa",
       "se",
       "si",
+      "termenul",
       "un",
       "unei",
       "unui",
@@ -180,7 +195,7 @@ function fallbackExtractTasks(source: SourceItem): ExtractedTask[] {
       "vor"
     ]);
     const cleaned = normalized
-      .replace(/^(te rog|va rog|ramane sa|de facut)\s+/i, "")
+      .replace(/^(te rog|va rog|ramane sa|de facut|trebuie sa|trebuie)\s+/i, "")
       .replace(/[.,;:]+$/g, "");
     const words = cleaned
       .split(/\s+/)
@@ -196,7 +211,7 @@ function fallbackExtractTasks(source: SourceItem): ExtractedTask[] {
     const structured = normalized.match(/^(?:(?:\d{1,2}\.\d{1,2}\.\d{4}|\d{4})\s*=\s*)?(.+?)\s+(trebuie|pregateste|pregatesc|transmite|transmit|trimite|verifica|actualizeaza|creeaza|preia|preluat|stabileste|confirma|clarifica)\b(.*)$/i);
     if (!structured) return null;
 
-    const assigneeName = structured[1].trim().replace(/\s+a$/i, "");
+    const assigneeName = structured[1].trim().replace(/\s+(?:a|te rog|va rog)$/i, "");
     if (/^(te rog|ramane sa|de facut)$/i.test(assigneeName)) return null;
 
     const title = compactTaskTitle(`${structured[2].trim()} ${structured[3].trim()}`.trim());
@@ -216,6 +231,8 @@ function fallbackExtractTasks(source: SourceItem): ExtractedTask[] {
 
   const candidates = lines
     .filter((line) => !/^daca sunt elemente pe care le-am omis/i.test(line))
+    .filter((line) => !/^(taskuri|actiuni|acțiuni|de facut|de făcut)\b/i.test(line))
+    .filter((line) => !/:\s*$/.test(line))
     .filter((line) =>
       /\b(trebuie|de facut|rog|te rog|ramane|verifica|trimite|transmite|pregateste|pregatesc|actualizeaza|creeaza|preia|preluat|stabileste|confirma|clarifica)\b/i.test(line)
     );

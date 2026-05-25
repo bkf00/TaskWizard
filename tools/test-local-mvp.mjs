@@ -261,6 +261,30 @@ Pregateste lista de observatii pentru acoperis.
     assert(tasks.some((task) => task.description.includes("miercuri") && task.dueDate === "2026-05-27"), "Miercuri trebuie mapat la urmatoarea miercuri.", tasks);
   });
 
+  await record("chaotic action headings are ignored and polite assignees are cleaned", async () => {
+    const response = await postForm("/sources/manual", {
+      type: "email",
+      subject: "Email haotic cu heading",
+      rawText: [
+        "Taskuri ramase / posibil de facut:",
+        "Bogdan te rog verifica lista de PV-uri lipsa pana maine dimineata.",
+        "Sika confirma miercuri disponibilitatea membranei si termenul de livrare estimat.",
+        "DSS trebuie sa clarifice cu financiarul daca acordul tripartit poate fi semnat pana marti."
+      ].join("\n")
+    });
+    assert(response.status === 303, "Emailul haotic ar trebui procesat.", response.status);
+    const store = await readStore();
+    const source = store.sources.find((item) => item.subject === "Email haotic cu heading");
+    assert(source, "Sursa haotica trebuie salvata.");
+    const tasks = store.proposedTasks.filter((task) => task.sourceId === source.id);
+    assert(tasks.length === 3, "Headingul de taskuri nu trebuie sa devina task.", tasks);
+    assert(tasks.some((task) => task.assigneeName === "Bogdan"), "Formula 'te rog' nu trebuie sa ramana in responsabil.", tasks);
+    assert(tasks.some((task) => task.title === "Verifica lista PV-uri lipsa"), "Titlul trebuie curatat de termenul relativ.", tasks);
+    assert(tasks.some((task) => task.title === "Clarifica acord tripartit"), "Titlul pentru acordul tripartit trebuie curatat.", tasks);
+    assert(tasks.some((task) => task.title === "Confirma disponibilitate membrana"), "Titlul pentru membrana trebuie naturalizat.", tasks);
+    assert(tasks.some((task) => task.dueDate === "2026-05-26"), "Termenul 'maine' trebuie pastrat ca data.", tasks);
+  });
+
   await record("duplicate source is ignored idempotently", async () => {
     const response = await postForm("/sources/manual", {
       type: "email",
@@ -271,8 +295,8 @@ Pregateste lista de observatii pentru acoperis.
     });
     assert(response.status === 303, "Duplicatul ar trebui sa redirectioneze.", response.status);
     const store = await readStore();
-    assert(store.sources.length === 5, "Duplicatul nu trebuie sa creeze o sursa noua.", store.sources);
-    assert(store.proposedTasks.length === 12, "Duplicatul nu trebuie sa creeze taskuri noi.", store.proposedTasks);
+    assert(store.sources.length === 6, "Duplicatul nu trebuie sa creeze o sursa noua.", store.sources);
+    assert(store.proposedTasks.length === 15, "Duplicatul nu trebuie sa creeze taskuri noi.", store.proposedTasks);
     assert(
       store.auditEvents.some((event) => event.type === "source.duplicate_ignored"),
       "Duplicatul trebuie marcat in audit."
@@ -301,7 +325,7 @@ Pregateste lista de observatii pentru acoperis.
     assert(response.status === 303, "Reprocesarea duplicatului ar trebui sa redirectioneze.", response.status);
     const store = await readStore();
     const reviewableTasks = store.proposedTasks.filter((task) => task.sourceId === source.id && task.status === "proposed");
-    assert(store.sources.length === 5, "Reprocesarea nu trebuie sa creeze o sursa noua.", store.sources);
+    assert(store.sources.length === 6, "Reprocesarea nu trebuie sa creeze o sursa noua.", store.sources);
     assert(reviewableTasks.length === 3, "Reprocesarea trebuie sa creeze taskuri noi de verificat.", reviewableTasks);
     assert(
       store.auditEvents.some((event) => event.type === "source.reprocessed"),
