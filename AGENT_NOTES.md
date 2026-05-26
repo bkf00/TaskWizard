@@ -40,6 +40,7 @@ Acest fisier este jurnalul de lucru al agentului. Se actualizeaza la fiecare sch
 - Am resetat storage-ul local si am retestat cu 4 emailuri haotice generate local: 14 taskuri propuse, 0 erori, responsabili curatati si titluri mai scurte.
 - Am extins testele locale la 25 cazuri, inclusiv headinguri haotice, responsabili cu formule politicoase si titluri compacte pentru emailuri reale dezordonate.
 - Am simplificat UI-ul local: importul este un dialog deschis din buton, iar istoricul taskurilor este un panou compact cu scroll intern, pentru a evita tabelul lat si derularea greoaie.
+- Am largit layout-ul local pentru ecrane wide, reducand spatiul lateral nefolosit fara sa reintroduc scroll orizontal.
 
 ## Regula de utilizare
 

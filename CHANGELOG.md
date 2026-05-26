@@ -59,6 +59,7 @@ Format inspirat de Keep a Changelog. Proiectul foloseste versionare pragmatica p
 - Testele locale cresc de la 15 la 25 cazuri.
 - Extractorul fallback compacteaza mai bine actiuni uzuale din emailuri dezordonate: poze sondaj, raspuns autorizatie, disponibilitate membrana, centralizator IMSAT, tabel curat, lista materiale si semnatar minute.
 - Layout-ul local trece de la 3 coloane fixe la 2 zone principale: review central si istoric lateral compact.
+- Layout-ul local foloseste mai bine ecranele late: containerul principal se extinde pana la 1760px, cu istoric lateral flexibil.
 
 ### Known Limitations
 
