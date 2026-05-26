@@ -41,7 +41,7 @@ Acest fisier este jurnalul de lucru al agentului. Se actualizeaza la fiecare sch
 - Am extins testele locale la 25 cazuri, inclusiv headinguri haotice, responsabili cu formule politicoase si titluri compacte pentru emailuri reale dezordonate.
 - Am simplificat UI-ul local: importul este un dialog deschis din buton, iar istoricul taskurilor este un panou compact cu scroll intern, pentru a evita tabelul lat si derularea greoaie.
 - Am largit layout-ul local pentru ecrane wide, reducand spatiul lateral nefolosit fara sa reintroduc scroll orizontal.
-- Am redenumit experienta locala in TaskMage si am adaugat favicon/header mark cu palarie de vrajitor si checklist, ca gluma discreta de produs.
+- Am redenumit experienta locala in TaskMage si am adaugat favicon/header mark PNG transparent cu palarie de vrajitor si checklist, ca gluma discreta de produs.
 
 ## Regula de utilizare
 
