@@ -165,7 +165,7 @@ try {
     assert(store.sources.length === 2, "Ar trebui sa existe doua surse dupa ingestie.", store.sources.length);
     assert(store.proposedTasks.length === 3, "Ar trebui create trei taskuri propuse.", store.proposedTasks);
     assert(store.proposedTasks.every((task) => task.status === "proposed"), "Taskurile noi trebuie sa fie proposed.");
-    assert(store.proposedTasks.every((task) => task.confidence === "low"), "Fallback extractor marcheaza confidence low.");
+    assert(store.proposedTasks.every((task) => task.confidence === "low"), "Taskurile fara responsabil si termen raman low confidence.");
     assert(store.proposedTasks.every((task) => wordCount(task.title) <= 5), "Titlurile trebuie sa fie scurte.", store.proposedTasks);
     assert(
       store.proposedTasks.some((task) => task.description === "Te rog verifica PV-ul pentru lucrarea X."),
@@ -229,6 +229,7 @@ Pregateste lista de observatii pentru acoperis.
     assert(tasks.some((task) => task.assigneeName === "RST"), "RST trebuie extras ca responsabil.", tasks);
     assert(tasks.some((task) => task.assigneeName === "AVT"), "AVT trebuie extras ca responsabil.", tasks);
     assert(tasks.every((task) => !task.title.startsWith("2026 =")), "Titlul nu trebuie sa inceapa cu resturi de data.", tasks);
+    assert(tasks.every((task) => task.confidence === "high"), "Liniile cu responsabil si termen explicit trebuie sa fie high confidence.", tasks);
     assert(tasks.every((task) => wordCount(task.title) <= 5), "Titlul sumarizat trebuie sa ramana scurt.", tasks);
     assert(tasks.some((task) => task.title === "Verifica arhiva proiect"), "Titlul pentru arhiva trebuie sa fie scurt si natural.", tasks);
     assert(tasks.some((task) => task.title === "Pregateste detaliu prinderi"), "Titlul pentru prinderi trebuie sa fie scurt si natural.", tasks);
@@ -289,6 +290,11 @@ Pregateste lista de observatii pentru acoperis.
     assert(tasks.some((task) => task.title === "Clarifica acord tripartit"), "Titlul pentru acordul tripartit trebuie curatat.", tasks);
     assert(tasks.some((task) => task.title === "Confirma disponibilitate membrana"), "Titlul pentru membrana trebuie naturalizat.", tasks);
     assert(tasks.some((task) => task.dueDate === "2026-05-26"), "Termenul 'maine' trebuie pastrat ca data.", tasks);
+    assert(
+      tasks.every((task) => task.confidence === "high"),
+      "Taskurile cu responsabil clar si termen relativ trebuie sa fie high confidence.",
+      tasks
+    );
   });
 
   await record("duplicate source is ignored idempotently", async () => {

@@ -46,6 +46,7 @@ Acest fisier este jurnalul de lucru al agentului. Se actualizeaza la fiecare sch
 - Am finalizat ultimul punct din Milestone 1: persistenta este separata prin contractul `TaskWizardRepository`, iar JSON local este doar prima implementare.
 - Am schimbat comportamentul local pentru Planner neconfigurat: aprobarile raman `approved` si nu mai creeaza erori repetitive `planner_sync`.
 - Am rafinat zona de categorii din istoricul taskurilor: statusurile interne raman in cod, dar UI-ul afiseaza etichete profesionale si contoare usor de scanat.
+- Am imbunatatit criteriul de confidence: un task este considerat mai sigur cand are actiune, responsabil, termen si titlu compact; asta apropie scorul de verificarea umana.
 
 ## Regula de utilizare
 

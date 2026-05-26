@@ -262,6 +262,18 @@ function structuredActionFromLine(line) {
   };
 }
 
+function assessConfidence({ structured, assigneeName, dueDate, title }) {
+  let score = 1;
+  if (structured) score += 2;
+  if (assigneeName) score += 2;
+  if (dueDate) score += 1;
+  if (title && title.split(/\s+/).filter(Boolean).length <= 5) score += 1;
+
+  if (score >= 5) return "high";
+  if (score >= 3) return "medium";
+  return "low";
+}
+
 function fallbackExtract(source) {
   return source.rawText
     .split(/\r?\n/)
@@ -277,16 +289,19 @@ function fallbackExtract(source) {
     .slice(0, 5)
     .map((line) => {
       const structured = structuredActionFromLine(line);
+      const title = structured?.title ?? compactTaskTitle(line);
+      const dueDate = structured?.dueDate ?? extractDueDate(line);
+      const assigneeName = structured?.assigneeName ?? null;
       return {
         id: id("ptask"),
         sourceId: source.id,
-        title: structured?.title ?? compactTaskTitle(line),
+        title,
         description: structured?.description ?? line,
         assigneeEmail: null,
-        assigneeName: structured?.assigneeName ?? null,
-        dueDate: structured?.dueDate ?? extractDueDate(line),
+        assigneeName,
+        dueDate,
         projectHint: null,
-        confidence: structured ? "medium" : "low",
+        confidence: assessConfidence({ structured: Boolean(structured), assigneeName, dueDate, title }),
         evidence: line,
         status: "proposed",
         approvedBy: null,

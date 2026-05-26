@@ -92,7 +92,8 @@ async function callAzureOpenAI(source: SourceItem): Promise<ExtractedTask[]> {
 }
 
 function fallbackExtractTasks(source: SourceItem): ExtractedTask[] {
-  const normalizeLine = (line: string) => line.replace(/\s+/g, " ").replace(/^[*•-]\s*/, "").trim();
+  const normalizeLine = (line: string) => line.replace(/\s+/g, " ").replace(/^[*\u2022-]\s*/, "").trim();
+  const normalizeSearchText = (text: string) => text.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
   const isoDate = (date: Date) => date.toISOString().slice(0, 10);
   const addDays = (date: Date, days: number) => {
     const next = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
@@ -106,7 +107,7 @@ function fallbackExtractTasks(source: SourceItem): ExtractedTask[] {
     return new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
   };
   const extractDueDate = (text: string, baseDate = referenceDate()) => {
-    const normalized = normalizeLine(text).toLowerCase();
+    const normalized = normalizeSearchText(normalizeLine(text)).toLowerCase();
     const explicit = normalized.match(/\b(\d{1,2})[./-](\d{1,2})(?:[./-](\d{2,4}))?\b/);
     if (explicit) {
       const day = Number(explicit[1]);
@@ -123,15 +124,7 @@ function fallbackExtractTasks(source: SourceItem): ExtractedTask[] {
     if (/\bpoimaine\b/.test(normalized)) return isoDate(addDays(baseDate, 2));
     if (/\bmaine\b/.test(normalized)) return isoDate(addDays(baseDate, 1));
 
-    const weekdays = [
-      ["duminica", "duminică"],
-      ["luni"],
-      ["marti", "marți"],
-      ["miercuri"],
-      ["joi"],
-      ["vineri"],
-      ["sambata", "sâmbătă"]
-    ];
+    const weekdays = [["duminica"], ["luni"], ["marti"], ["miercuri"], ["joi"], ["vineri"], ["sambata"]];
     const today = baseDate.getUTCDay();
     for (let target = 0; target < weekdays.length; target += 1) {
       if (weekdays[target].some((day) => new RegExp(`\\b${day}\\b`, "i").test(normalized))) {
@@ -143,7 +136,7 @@ function fallbackExtractTasks(source: SourceItem): ExtractedTask[] {
     return null;
   };
   const compactTaskTitle = (actionText: string) => {
-    const normalized = normalizeLine(actionText);
+    const normalized = normalizeSearchText(normalizeLine(actionText));
     const knownPatterns = [
       { pattern: /\bpoze\w*\b.*\bsondaj/i, title: "Transmite poze sondaj" },
       { pattern: /\bdraft\w*\b.*\braspuns\b.*\bautorizatie/i, title: "Pregateste raspuns autorizatie" },
@@ -164,35 +157,7 @@ function fallbackExtractTasks(source: SourceItem): ExtractedTask[] {
     if (known) return known.title;
 
     const fillerWords = new Set([
-      "a",
-      "ale",
-      "al",
-      "catre",
-      "cu",
-      "de",
-      "dimineata",
-      "din",
-      "in",
-      "la",
-      "maine",
-      "marti",
-      "miercuri",
-      "pe",
-      "pentru",
-      "poimaine",
-      "privind",
-      "pt",
-      "pana",
-      "respectiv",
-      "sa",
-      "se",
-      "si",
-      "termenul",
-      "un",
-      "unei",
-      "unui",
-      "va",
-      "vor"
+      "a", "ale", "al", "catre", "cu", "de", "dimineata", "din", "in", "la", "maine", "marti", "miercuri", "pe", "pentru", "poimaine", "privind", "pt", "pana", "respectiv", "sa", "se", "si", "termenul", "un", "unei", "unui", "va", "vor"
     ]);
     const cleaned = normalized
       .replace(/^(te rog|va rog|ramane sa|de facut|trebuie sa|trebuie)\s+/i, "")
@@ -222,6 +187,22 @@ function fallbackExtractTasks(source: SourceItem): ExtractedTask[] {
       dueDate: extractDueDate(normalized)
     };
   };
+  const assessConfidence = (input: {
+    structured: boolean;
+    assigneeName: string | null;
+    dueDate: string | null;
+    title: string;
+  }): "high" | "medium" | "low" => {
+    let score = 1;
+    if (input.structured) score += 2;
+    if (input.assigneeName) score += 2;
+    if (input.dueDate) score += 1;
+    if (input.title.split(/\s+/).filter(Boolean).length <= 5) score += 1;
+
+    if (score >= 5) return "high";
+    if (score >= 3) return "medium";
+    return "low";
+  };
 
   const lines = source.rawText
     .split(/\r?\n/)
@@ -231,22 +212,25 @@ function fallbackExtractTasks(source: SourceItem): ExtractedTask[] {
 
   const candidates = lines
     .filter((line) => !/^daca sunt elemente pe care le-am omis/i.test(line))
-    .filter((line) => !/^(taskuri|actiuni|acțiuni|de facut|de făcut)\b/i.test(line))
+    .filter((line) => !/^(taskuri|actiuni|de facut)\b/i.test(normalizeSearchText(line)))
     .filter((line) => !/:\s*$/.test(line))
     .filter((line) =>
-      /\b(trebuie|de facut|rog|te rog|ramane|verifica|trimite|transmite|pregateste|pregatesc|actualizeaza|creeaza|preia|preluat|stabileste|confirma|clarifica)\b/i.test(line)
+      /\b(trebuie|de facut|rog|te rog|ramane|verifica|trimite|transmite|pregateste|pregatesc|actualizeaza|creeaza|preia|preluat|stabileste|confirma|clarifica)\b/i.test(normalizeSearchText(line))
     );
 
   return candidates.slice(0, 5).map((line) => {
     const structured = structuredActionFromLine(line);
+    const title = structured?.title ?? compactTaskTitle(line);
+    const dueDate = structured?.dueDate ?? extractDueDate(line);
+    const assigneeName = structured?.assigneeName ?? null;
     return {
-      title: structured?.title ?? compactTaskTitle(line),
+      title,
       description: structured?.description ?? line,
       assigneeEmail: null,
-      assigneeName: structured?.assigneeName ?? null,
-      dueDate: structured?.dueDate ?? extractDueDate(line),
+      assigneeName,
+      dueDate,
       projectHint: null,
-      confidence: structured ? "medium" : "low",
+      confidence: assessConfidence({ structured: Boolean(structured), assigneeName, dueDate, title }),
       evidence: line
     };
   });

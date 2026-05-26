@@ -67,6 +67,7 @@ Format inspirat de Keep a Changelog. Proiectul foloseste versionare pragmatica p
 - Storage-ul JSON local implementeaza contractul comun de repository, pastrand API-ul existent `store`.
 - Aprobarea fara Planner configurat ramane `approved` local; `planner_sync_failed` este rezervat pentru esecuri cand integrarea Planner este configurata.
 - Filtrele din "Toate taskurile" folosesc etichete profesionale in romana si contoare separate, in locul statusurilor tehnice brute.
+- Confidence-ul fallback este calculat din semnale concrete: actiune detectata, responsabil, termen si titlu compact; taskurile complete pot ajunge `high`, iar cele vagi raman `low`.
 
 ### Known Limitations
 
