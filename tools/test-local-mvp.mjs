@@ -103,7 +103,10 @@ try {
     const response = await fetch(baseUrl);
     const html = await response.text();
     assert(response.status === 200, "GET / nu a raspuns cu 200", response.status);
-    assert(html.includes("TaskWizard"), "Pagina principala nu contine brandul aplicatiei.");
+    assert(html.includes("TaskMage"), "Pagina principala nu contine brandul aplicatiei.");
+    assert(html.includes("taskuri vrajite"), "Titlul tabului trebuie sa fie personalizat.");
+    assert(html.includes("data:image/svg+xml"), "Pagina trebuie sa expuna faviconul SVG.");
+    assert(html.includes("brand-mark"), "Headerul trebuie sa includa marca vizuala.");
     assert(html.includes("Import email"), "Pagina principala nu contine zona de import.");
     assert(html.includes("Adauga email"), "Importul trebuie pornit dintr-un buton principal.");
     assert(html.includes('id="import-dialog"'), "Importul trebuie sa fie intr-un dialog/modal.");
