@@ -14,6 +14,7 @@ Aplicatia are un schelet functional pentru MVP:
 - aprobare/respingere task;
 - incercare de creare task in Planner dupa aprobare;
 - audit local;
+- contract `TaskWizardRepository` pentru separarea persistentei de implementarea JSON locala;
 - lista de erori;
 - webhook Graph de baza pentru validare si audit notificari;
 - schema PostgreSQL/Drizzle pentru baza de date finala;
@@ -48,7 +49,7 @@ Aceasta alegere este intentionata pentru a putea testa fluxul fara Azure/Postgre
 ## Ce NU este inca complet
 
 - Autentificare Entra ID activa in UI.
-- Repository PostgreSQL in loc de JSON local.
+- Implementare PostgreSQL concreta pentru contractul `TaskWizardRepository`.
 - Subscription Graph pentru folder Outlook creat automat.
 - Citire reala emailuri/transcripturi din Graph.
 - UI de editare completa a taskului inainte de aprobare.
@@ -63,6 +64,6 @@ Aceasta alegere este intentionata pentru a putea testa fluxul fara Azure/Postgre
 3. Testam fluxul manual cu fallback AI.
 4. Adaugam editare task in UI.
 5. Adaugam Entra ID auth.
-6. Mutam storage-ul pe PostgreSQL.
+6. Implementam repository-ul PostgreSQL peste contractul existent.
 7. Integram Graph pentru folder Outlook.
 8. Integram Planner si testam cu un plan real.

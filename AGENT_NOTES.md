@@ -43,6 +43,7 @@ Acest fisier este jurnalul de lucru al agentului. Se actualizeaza la fiecare sch
 - Am largit layout-ul local pentru ecrane wide, reducand spatiul lateral nefolosit fara sa reintroduc scroll orizontal.
 - Am pastrat numele experientei locale ca TaskWizard si am adaugat favicon/header mark PNG transparent, pastrand tonul profesional al produsului.
 - Am decupat mai strans faviconul PNG pentru ca iconita sa para mai mare in tab, in limitele browserului.
+- Am finalizat ultimul punct din Milestone 1: persistenta este separata prin contractul `TaskWizardRepository`, iar JSON local este doar prima implementare.
 
 ## Regula de utilizare
 

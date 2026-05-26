@@ -28,6 +28,7 @@
 ## Date
 
 - `packages/storage/src/local-store.ts` - storage local JSON.
+- `packages/storage/src/repository.ts` - contractul de persistenta pentru JSON local si PostgreSQL viitor.
 - `packages/db/src/schema.ts` - schema PostgreSQL/Drizzle.
 
 ## Audit si erori
@@ -38,4 +39,3 @@
 ## Workers
 
 - `workers/subscription-renewal-worker/src/index.ts` - reinnoire subscriptions Graph.
-
