@@ -2,6 +2,7 @@ import { newId } from "./ids";
 import type { ProposedTask } from "./types";
 import { audit } from "@repo/audit/audit";
 import { createPlannerTask, isPlannerConfigured } from "@repo/graph/planner";
+import { lookupEntraUserByEmail } from "@repo/graph/users";
 import { store } from "@repo/storage/local-store";
 
 export async function approveTask(input: {
@@ -40,9 +41,14 @@ export async function approveTask(input: {
   }
 
   try {
+    const assigneeEmail = approved.assigneeEmail || (approved.assigneeName?.includes("@") ? approved.assigneeName : null);
+    const userLookup = assigneeEmail ? await lookupEntraUserByEmail(assigneeEmail) : null;
+    const assigneeAadId = userLookup?.status === "found" ? userLookup.id : null;
+
     const plannerTask = await createPlannerTask({
       title: approved.title,
       description: approved.description,
+      assigneeAadId,
       dueDate: approved.dueDate
     });
 
@@ -59,7 +65,12 @@ export async function approveTask(input: {
       sourceId: synced.sourceId,
       proposedTaskId: synced.id,
       message: "Taskul a fost creat in Planner.",
-      metadata: { plannerTaskId: plannerTask.id }
+      metadata: {
+        plannerTaskId: plannerTask.id,
+        assigneeEmail,
+        assigneeAadId,
+        userLookupStatus: userLookup?.status ?? "not_requested"
+      }
     });
     return synced;
   } catch (error) {

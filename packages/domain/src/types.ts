@@ -31,7 +31,12 @@ export type AuditEventType =
   | "task.deleted"
   | "task.planner_created"
   | "task.planner_failed"
-  | "graph.notification_received";
+  | "graph.notification_received"
+  | "graph.lifecycle_received"
+  | "graph.subscription_created"
+  | "outlook.sync_started"
+  | "outlook.sync_completed"
+  | "outlook.sync_failed";
 
 export type SourceItem = {
   id: string;

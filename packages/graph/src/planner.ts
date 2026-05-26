@@ -1,13 +1,8 @@
-import { getGraphAppToken } from "./auth";
+import { graphRequest } from "./client";
+import { getGraphCredentialConfig, getPlannerConfig } from "./config";
 
 export function isPlannerConfigured(): boolean {
-  return Boolean(
-    process.env.PLANNER_PLAN_ID &&
-      process.env.PLANNER_BUCKET_ID &&
-      process.env.GRAPH_TENANT_ID &&
-      process.env.GRAPH_CLIENT_ID &&
-      process.env.GRAPH_CLIENT_SECRET
-  );
+  return Boolean(getPlannerConfig() && getGraphCredentialConfig());
 }
 
 export async function createPlannerTask(input: {
@@ -16,14 +11,14 @@ export async function createPlannerTask(input: {
   assigneeAadId?: string | null;
   dueDate?: string | null;
 }): Promise<{ id: string }> {
-  const planId = process.env.PLANNER_PLAN_ID;
-  const bucketId = process.env.PLANNER_BUCKET_ID;
+  const plannerConfig = getPlannerConfig();
+  const planId = plannerConfig?.plannerPlanId;
+  const bucketId = plannerConfig?.plannerBucketId;
 
   if (!isPlannerConfigured() || !planId || !bucketId) {
     throw new Error("Planner plan/bucket are not configured.");
   }
 
-  const accessToken = await getGraphAppToken();
   const assignments = input.assigneeAadId
     ? {
         [input.assigneeAadId]: {
@@ -33,38 +28,28 @@ export async function createPlannerTask(input: {
       }
     : {};
 
-  const response = await fetch("https://graph.microsoft.com/v1.0/planner/tasks", {
+  const taskBody = {
+    planId,
+    bucketId,
+    title: input.title,
+    ...(input.dueDate ? { dueDateTime: `${input.dueDate}T17:00:00Z` } : {}),
+    assignments
+  };
+
+  const task = await graphRequest<{ id: string }>("/planner/tasks", {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      planId,
-      bucketId,
-      title: input.title,
-      dueDateTime: input.dueDate,
-      assignments
-    })
+    body: taskBody
   });
 
-  if (!response.ok) {
-    throw new Error(`Planner task creation failed: ${response.status} ${await response.text()}`);
-  }
-
-  const task = await response.json();
-
   if (input.description) {
-    await fetch(`https://graph.microsoft.com/v1.0/planner/tasks/${task.id}/details`, {
+    await graphRequest(`/planner/tasks/${task.id}/details`, {
       method: "PATCH",
       headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
         "If-Match": "*"
       },
-      body: JSON.stringify({
+      body: {
         description: input.description
-      })
+      }
     });
   }
 
