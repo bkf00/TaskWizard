@@ -50,7 +50,7 @@ Format inspirat de Keep a Changelog. Proiectul foloseste versionare pragmatica p
 - Test de regresie pentru emailuri haotice: headingurile de tip "Taskuri ramase" sunt ignorate, formulele politicoase nu intra in responsabil, iar titlurile rezultate sunt mai scurte si naturale.
 - Importul de email este mutat intr-un dialog deschis din butonul principal "Adauga email".
 - Istoricul "Toate taskurile" este randat ca lista compacta de carduri cu scroll intern, nu ca tabel lat.
-- Pagina locala se numeste acum TaskMage, cu favicon PNG transparent si o marca vizuala mai mare cu palarie de vrajitor plus checklist.
+- Pagina locala pastreaza numele TaskWizard, cu favicon PNG transparent si o marca vizuala mai mare cu palarie de vrajitor plus checklist.
 
 ### Changed
 
@@ -61,6 +61,7 @@ Format inspirat de Keep a Changelog. Proiectul foloseste versionare pragmatica p
 - Extractorul fallback compacteaza mai bine actiuni uzuale din emailuri dezordonate: poze sondaj, raspuns autorizatie, disponibilitate membrana, centralizator IMSAT, tabel curat, lista materiale si semnatar minute.
 - Layout-ul local trece de la 3 coloane fixe la 2 zone principale: review central si istoric lateral compact.
 - Layout-ul local foloseste mai bine ecranele late: containerul principal se extinde pana la 1760px, cu istoric lateral flexibil.
+- Faviconul PNG este decupat mai strans, astfel incat iconita sa ocupe mai mult spatiu in tab.
 
 ### Known Limitations
 

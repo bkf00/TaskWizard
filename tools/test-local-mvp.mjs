@@ -103,10 +103,10 @@ try {
     const response = await fetch(baseUrl);
     const html = await response.text();
     assert(response.status === 200, "GET / nu a raspuns cu 200", response.status);
-    assert(html.includes("TaskMage"), "Pagina principala nu contine brandul aplicatiei.");
+    assert(html.includes("TaskWizard"), "Pagina principala nu contine brandul aplicatiei.");
     assert(html.includes("taskuri vrajite"), "Titlul tabului trebuie sa fie personalizat.");
     assert(html.includes('type="image/png"'), "Pagina trebuie sa expuna faviconul PNG.");
-    assert(html.includes("/assets/taskmage-hat.png"), "Pagina trebuie sa foloseasca assetul PNG TaskMage.");
+    assert(html.includes("/assets/taskwizard-hat.png"), "Pagina trebuie sa foloseasca assetul PNG TaskWizard.");
     assert(html.includes("brand-mark"), "Headerul trebuie sa includa marca vizuala.");
     assert(html.includes("Import email"), "Pagina principala nu contine zona de import.");
     assert(html.includes("Adauga email"), "Importul trebuie pornit dintr-un buton principal.");
