@@ -529,6 +529,27 @@ Pregateste lista de observatii pentru acoperis.
     assert(page.includes("Taskuri active / aprobate"), "Sectiunea activa trebuie sa existe.");
   });
 
+  await record("Microsoft 365 integration wiring is present", async () => {
+    const graphFiles = await Promise.all([
+      readFile(path.join(projectRoot, "packages/graph/src/outlook.ts"), "utf8"),
+      readFile(path.join(projectRoot, "packages/graph/src/users.ts"), "utf8"),
+      readFile(path.join(projectRoot, "packages/graph/src/subscriptions.ts"), "utf8"),
+      readFile(path.join(projectRoot, "packages/domain/src/m365.ts"), "utf8"),
+      readFile(path.join(projectRoot, "apps/web/app/api/graph/webhook/route.ts"), "utf8"),
+      readFile(path.join(projectRoot, "docs/microsoft-365-setup.md"), "utf8"),
+      readFile(path.join(projectRoot, ".env.example"), "utf8")
+    ]);
+    const joined = graphFiles.join("\n");
+    assert(joined.includes("listOutlookFolderMessages"), "Trebuie sa existe citire Outlook folder.");
+    assert(joined.includes("@odata.nextLink"), "Citirea Outlook trebuie sa gestioneze pagination.");
+    assert(joined.includes("lookupEntraUserByEmail"), "Trebuie sa existe mapping email -> Entra user ID.");
+    assert(joined.includes("createOutlookFolderSubscription"), "Trebuie sa existe creare subscription Outlook.");
+    assert(joined.includes("validationToken"), "Webhook-ul trebuie sa raspunda la validationToken.");
+    assert(joined.includes("GRAPH_WEBHOOK_CLIENT_STATE"), "Webhook-ul trebuie sa valideze clientState.");
+    assert(joined.includes("OUTLOOK_FOLDER_ID"), "Documentatia/env trebuie sa ceara folder Outlook configurabil.");
+    assert(joined.includes("PLANNER_PLAN_ID") && joined.includes("PLANNER_BUCKET_ID"), "Planner plan/bucket trebuie configurabile.");
+  });
+
   await record("long meeting dialog extracts multiple operational tasks", async () => {
     const longDialog = `
 Bogdan: Hai sa trecem prin sedinta de azi pentru proiectul de evidenta PV-uri.

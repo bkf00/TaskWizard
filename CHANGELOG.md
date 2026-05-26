@@ -68,10 +68,11 @@ Format inspirat de Keep a Changelog. Proiectul foloseste versionare pragmatica p
 - Aprobarea fara Planner configurat ramane `approved` local; `planner_sync_failed` este rezervat pentru esecuri cand integrarea Planner este configurata.
 - Filtrele din "Toate taskurile" folosesc etichete profesionale in romana si contoare separate, in locul statusurilor tehnice brute.
 - Confidence-ul fallback este calculat din semnale concrete: actiune detectata, responsabil, termen si titlu compact; taskurile complete pot ajunge `high`, iar cele vagi raman `low`.
+- Milestone 2 Microsoft 365: Entra ID sign-in, Graph client cu retry, Outlook folder sync, Graph subscriptions/webhook, Planner task creation cu descriere si Entra user lookup pentru assignment.
 
 ### Known Limitations
 
 - `npm`/`pnpm` nu este disponibil in PATH pe masina curenta.
 - Varianta Next.js nu a fost inca build-uita local.
-- Graph/Planner nu sunt inca conectate la un tenant real.
+- Graph/Planner sunt implementate la nivel de client si endpoint, dar nu au fost validate inca pe tenant real.
 - Storage-ul activ pentru MVP local este JSON, nu PostgreSQL.

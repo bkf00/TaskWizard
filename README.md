@@ -14,6 +14,7 @@ This repository contains:
 - a Next.js/TypeScript application skeleton;
 - domain modules for ingestion, AI extraction, approval, audit and Planner sync;
 - Microsoft Graph clients for auth, Planner and subscriptions;
+- Microsoft 365 integration modules for Entra ID auth, Outlook folder sync, Graph subscriptions, Planner creation and Entra user lookup;
 - PostgreSQL/Drizzle schema for production;
 - behavioral tests for the local MVP;
 - architecture docs, ADRs, security policy and GitHub workflow templates.
@@ -98,11 +99,12 @@ The test runner starts an isolated server on port `3197`, uses a temporary data 
 - local approval without noisy Planner errors when Planner is not configured;
 - HTML escaping;
 - long meeting dialog extraction.
+- Microsoft 365 integration wiring for Outlook, Graph subscriptions, Planner and Entra lookup.
 
 Latest local result:
 
 ```text
-18 passed
+26 passed
 0 failed
 ```
 
@@ -136,6 +138,11 @@ npm run build
 ```
 
 Create `.env.local` from `.env.example`.
+
+Microsoft 365 setup:
+
+- app registration and permissions: [docs/microsoft-365-setup.md](docs/microsoft-365-setup.md);
+- required env vars: `ENTRA_ID_TENANT_ID`, `ENTRA_ID_CLIENT_ID`, `ENTRA_ID_CLIENT_SECRET`, `OUTLOOK_USER_ID`, `OUTLOOK_FOLDER_ID`, `GRAPH_WEBHOOK_NOTIFICATION_URL`, `GRAPH_WEBHOOK_CLIENT_STATE`, `PLANNER_PLAN_ID`, `PLANNER_BUCKET_ID`.
 
 ## Documentation Map
 

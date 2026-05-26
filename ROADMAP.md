@@ -22,12 +22,14 @@
 
 ## Milestone 2 - Microsoft 365 integration
 
-- [ ] Entra ID auth.
-- [ ] Configurare Graph app registration.
-- [ ] Citire folder Outlook dedicat.
-- [ ] Creare subscriptions Graph.
-- [ ] Creare taskuri Planner intr-un plan de test.
-- [ ] Mapping email -> Entra user ID.
+- [x] Entra ID auth.
+- [x] Configurare Graph app registration.
+- [x] Citire folder Outlook dedicat.
+- [x] Creare subscriptions Graph.
+- [x] Creare taskuri Planner intr-un plan de test.
+- [x] Mapping email -> Entra user ID.
+- [ ] Validare cu tenant real si folder Outlook real.
+- [ ] Hardening productie: certificate/Key Vault si Application Access Policy pentru mailbox.
 
 ## Milestone 3 - Production foundation
 
