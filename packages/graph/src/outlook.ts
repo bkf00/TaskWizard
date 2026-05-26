@@ -81,7 +81,7 @@ export async function listOutlookFolderMessages(input: ListOutlookFolderMessages
 
   while (nextUrl && page < maxPages) {
     page += 1;
-    const response = await graphRequest<OutlookMessageCollection>(nextUrl);
+    const response: OutlookMessageCollection = await graphRequest<OutlookMessageCollection>(nextUrl);
     messages.push(...(response.value ?? []));
     nextUrl = response["@odata.nextLink"];
   }
