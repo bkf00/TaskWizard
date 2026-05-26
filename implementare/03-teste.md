@@ -18,7 +18,7 @@ node .\tools\test-local-mvp.mjs
 - Sursa duplicata este ignorata idempotent.
 - Task propus poate fi editat inainte de aprobare.
 - Editarea invalida este respinsa.
-- Aprobare fara Planner configurat esueaza controlat in `planner_sync_failed`.
+- Aprobare fara Planner configurat ramane `approved` local si nu polueaza lista de erori.
 - Aprobare pentru task inexistent intoarce `404`.
 - Respingerea schimba statusul in `rejected`.
 - Respingerea repetata a unui task respins intoarce `409`.
@@ -45,7 +45,7 @@ Rezultat:
 0 failed
 6 surse create in test
 14 taskuri propuse
-1 eroare controlata de Planner neconfigurat
+0 erori pentru Planner neconfigurat in local mode
 16 evenimente audit
 ```
 

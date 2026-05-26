@@ -95,7 +95,7 @@ The test runner starts an isolated server on port `3197`, uses a temporary data 
 - structured minute line extraction with organization assignees;
 - approval and rejection;
 - completed/deleted post-approval state transitions;
-- safe Planner failure when not configured;
+- local approval without noisy Planner errors when Planner is not configured;
 - HTML escaping;
 - long meeting dialog extraction.
 

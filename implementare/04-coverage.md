@@ -18,7 +18,7 @@ Acest coverage este comportamental, nu coverage instrumentat de linii de cod. Mo
 | Idempotenta | Duplicat ignorat | `duplicate source is ignored idempotently` |
 | Editare task | `proposed` ramane editabil inainte de aprobare | `proposed task can be edited before approval` |
 | Validare editare | Titlu prea scurt respins | `invalid task edit is rejected` |
-| Aprobare | Fara Planner configurat esueaza controlat | `approval without Planner config fails safely` |
+| Aprobare | Fara Planner configurat ramane aprobat local | `approval without Planner config remains approved locally` |
 | Task inexistent | Returneaza `404` | `unknown task approval returns 404` |
 | Respingere | `proposed` -> `rejected` | `reject changes only proposed tasks to rejected` |
 | Tranzitii invalide | Respinge repetare cu `409` | `rejected tasks cannot be rejected twice` |

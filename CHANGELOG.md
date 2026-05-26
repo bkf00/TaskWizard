@@ -52,6 +52,7 @@ Format inspirat de Keep a Changelog. Proiectul foloseste versionare pragmatica p
 - Istoricul "Toate taskurile" este randat ca lista compacta de carduri cu scroll intern, nu ca tabel lat.
 - Pagina locala pastreaza numele TaskWizard, cu favicon PNG transparent si o marca vizuala mai mare.
 - Contract `TaskWizardRepository` pentru migrarea controlata de la JSON local la PostgreSQL.
+- Detectie explicita pentru configurarea Planner, astfel incat local mode sa nu creeze erori repetitive cand Planner nu este activat.
 
 ### Changed
 
@@ -64,6 +65,7 @@ Format inspirat de Keep a Changelog. Proiectul foloseste versionare pragmatica p
 - Layout-ul local foloseste mai bine ecranele late: containerul principal se extinde pana la 1760px, cu istoric lateral flexibil.
 - Faviconul PNG este decupat mai strans, astfel incat iconita sa ocupe mai mult spatiu in tab.
 - Storage-ul JSON local implementeaza contractul comun de repository, pastrand API-ul existent `store`.
+- Aprobarea fara Planner configurat ramane `approved` local; `planner_sync_failed` este rezervat pentru esecuri cand integrarea Planner este configurata.
 
 ### Known Limitations
 

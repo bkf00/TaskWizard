@@ -31,7 +31,7 @@ Deschide `http://localhost:3000`.
 Copy-Item .env.example .env.local
 ```
 
-Pentru test local fara Azure OpenAI si fara Planner, poti lasa credentialele goale. Aplicatia va folosi extractorul fallback si va marca sincronizarea Planner ca eroare configurabila.
+Pentru test local fara Azure OpenAI si fara Planner, poti lasa credentialele goale. Aplicatia va folosi extractorul fallback si va pastra taskurile aprobate local, fara sa creeze erori repetitive de configurare Planner.
 
 ## 4. Porneste aplicatia
 
@@ -59,6 +59,6 @@ Rezultat asteptat:
 
 - apar 1-3 taskuri propuse;
 - status initial `proposed`;
-- la aprobare, daca Planner nu este configurat, taskul devine `planner_sync_failed`;
+- la aprobare, daca Planner nu este configurat, taskul ramane `approved` local si nu creeaza eroare repetata;
 - eroarea apare in zona "Erori procesare";
 - auditul se completeaza.

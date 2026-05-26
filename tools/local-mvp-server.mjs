@@ -424,22 +424,11 @@ async function handleApprove(req, res, taskId) {
     res.end(`Taskul nu poate fi aprobat din statusul ${task.status}.`);
     return;
   }
-  task.status = process.env.PLANNER_PLAN_ID ? "approved" : "planner_sync_failed";
+  task.status = "approved";
   task.approvedBy = actorEmail;
   task.approvedAt = new Date().toISOString();
   task.updatedAt = new Date().toISOString();
   audit(data, { type: "task.approved", actorEmail, proposedTaskId: task.id, sourceId: task.sourceId, message: "Task aprobat." });
-  if (task.status === "planner_sync_failed") {
-    data.processingErrors.push({
-      id: id("perr"),
-      sourceId: task.sourceId,
-      proposedTaskId: task.id,
-      stage: "planner_sync",
-      message: "Planner nu este configurat in .env. Taskul ramane aprobat local.",
-      retryable: true,
-      createdAt: new Date().toISOString()
-    });
-  }
   await writeStore(data);
   redirect(res);
 }

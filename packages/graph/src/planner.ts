@@ -1,5 +1,15 @@
 import { getGraphAppToken } from "./auth";
 
+export function isPlannerConfigured(): boolean {
+  return Boolean(
+    process.env.PLANNER_PLAN_ID &&
+      process.env.PLANNER_BUCKET_ID &&
+      process.env.GRAPH_TENANT_ID &&
+      process.env.GRAPH_CLIENT_ID &&
+      process.env.GRAPH_CLIENT_SECRET
+  );
+}
+
 export async function createPlannerTask(input: {
   title: string;
   description?: string | null;
@@ -9,7 +19,7 @@ export async function createPlannerTask(input: {
   const planId = process.env.PLANNER_PLAN_ID;
   const bucketId = process.env.PLANNER_BUCKET_ID;
 
-  if (!planId || !bucketId) {
+  if (!isPlannerConfigured() || !planId || !bucketId) {
     throw new Error("Planner plan/bucket are not configured.");
   }
 
@@ -60,4 +70,3 @@ export async function createPlannerTask(input: {
 
   return { id: task.id };
 }
-

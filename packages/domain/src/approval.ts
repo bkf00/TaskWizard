@@ -1,7 +1,7 @@
 import { newId } from "./ids";
 import type { ProposedTask } from "./types";
 import { audit } from "@repo/audit/audit";
-import { createPlannerTask } from "@repo/graph/planner";
+import { createPlannerTask, isPlannerConfigured } from "@repo/graph/planner";
 import { store } from "@repo/storage/local-store";
 
 export async function approveTask(input: {
@@ -34,6 +34,10 @@ export async function approveTask(input: {
     proposedTaskId: approved.id,
     message: "Taskul a fost aprobat."
   });
+
+  if (!isPlannerConfigured()) {
+    return approved;
+  }
 
   try {
     const plannerTask = await createPlannerTask({

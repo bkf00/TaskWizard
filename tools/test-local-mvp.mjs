@@ -377,7 +377,7 @@ Pregateste lista de observatii pentru acoperis.
     assert(response.status === 400, "Titlul prea scurt trebuie respins cu 400.", response.status);
   });
 
-  await record("approval without Planner config fails safely", async () => {
+  await record("approval without Planner config remains approved locally", async () => {
     const storeBefore = await readStore();
     const task = storeBefore.proposedTasks.find((item) => item.status === "proposed");
     assert(task, "Trebuie sa existe un task propus pentru aprobare.");
@@ -387,14 +387,14 @@ Pregateste lista de observatii pentru acoperis.
     assert(response.status === 303, "Aprobarea ar trebui sa redirectioneze.", response.status);
     const store = await readStore();
     const updated = store.proposedTasks.find((item) => item.id === task.id);
-    assert(updated.status === "planner_sync_failed", "Fara Planner configurat, statusul trebuie sa fie planner_sync_failed.", updated);
+    assert(updated.status === "approved", "Fara Planner configurat, taskul trebuie sa ramana aprobat local.", updated);
     assert(updated.approvedBy === "bogdan@firma.ro", "Aprobarea trebuie sa salveze actorul real.", updated);
-    assert(store.processingErrors.length === 1, "Eroarea Planner trebuie salvata.", store.processingErrors);
+    assert(store.processingErrors.length === 0, "Planner neconfigurat nu trebuie sa polueze lista de erori.", store.processingErrors);
   });
 
   await record("approved local task can be marked completed", async () => {
     const storeBefore = await readStore();
-    const task = storeBefore.proposedTasks.find((item) => item.status === "planner_sync_failed");
+    const task = storeBefore.proposedTasks.find((item) => item.status === "approved");
     assert(task, "Trebuie sa existe un task aprobat local pentru finalizare.");
     const response = await postForm(`/tasks/${task.id}/complete`, {
       actorEmail: "bogdan@firma.ro"
