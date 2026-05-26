@@ -66,6 +66,7 @@ Format inspirat de Keep a Changelog. Proiectul foloseste versionare pragmatica p
 - Faviconul PNG este decupat mai strans, astfel incat iconita sa ocupe mai mult spatiu in tab.
 - Storage-ul JSON local implementeaza contractul comun de repository, pastrand API-ul existent `store`.
 - Aprobarea fara Planner configurat ramane `approved` local; `planner_sync_failed` este rezervat pentru esecuri cand integrarea Planner este configurata.
+- Filtrele din "Toate taskurile" folosesc etichete profesionale in romana si contoare separate, in locul statusurilor tehnice brute.
 
 ### Known Limitations
 

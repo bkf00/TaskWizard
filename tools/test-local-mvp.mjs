@@ -251,7 +251,7 @@ Pregateste lista de observatii pentru acoperis.
       rawText: [
         "Te rog verifica lista pana maine.",
         "Ramane sa trimitem oferta poimaine.",
-        "Actualizeaza planul marti.",
+        "Actualizeaza planul mar\u021bi.",
         "Confirma disponibilitatea miercuri."
       ].join("\n")
     });
@@ -263,7 +263,7 @@ Pregateste lista de observatii pentru acoperis.
     assert(tasks.length === 4, "Ar trebui create patru taskuri cu termene relative.", tasks);
     assert(tasks.some((task) => task.description.includes("pana maine") && task.dueDate === "2026-05-26"), "Maine trebuie mapat la 2026-05-26.", tasks);
     assert(tasks.some((task) => task.description.includes("poimaine") && task.dueDate === "2026-05-27"), "Poimaine trebuie mapat la 2026-05-27.", tasks);
-    assert(tasks.some((task) => task.description.includes("marti") && task.dueDate === "2026-05-26"), "Marti trebuie mapat la urmatoarea marti.", tasks);
+    assert(tasks.some((task) => task.title === "Actualizeaza planul" && task.dueDate === "2026-05-26"), "Marti cu diacritica trebuie mapat la urmatoarea marti.", tasks);
     assert(tasks.some((task) => task.description.includes("miercuri") && task.dueDate === "2026-05-27"), "Miercuri trebuie mapat la urmatoarea miercuri.", tasks);
   });
 
@@ -272,7 +272,7 @@ Pregateste lista de observatii pentru acoperis.
       type: "email",
       subject: "Email haotic cu heading",
       rawText: [
-        "Taskuri ramase / posibil de facut:",
+        "Ac\u021biuni ramase / posibil de f\u0103cut:",
         "Bogdan te rog verifica lista de PV-uri lipsa pana maine dimineata.",
         "Sika confirma miercuri disponibilitatea membranei si termenul de livrare estimat.",
         "DSS trebuie sa clarifice cu financiarul daca acordul tripartit poate fi semnat pana marti."
@@ -503,6 +503,14 @@ Pregateste lista de observatii pentru acoperis.
     assert(page.includes("filterTasks('rejected')"), "Sectiunea trebuie sa aiba filtru pentru rejected.");
     assert(page.includes("filterTasks('completed_in_planner')"), "Sectiunea trebuie sa aiba filtru pentru taskuri terminate.");
     assert(page.includes("filterTasks('deleted_in_planner')"), "Sectiunea trebuie sa aiba filtru pentru taskuri sterse.");
+    assert(page.includes("filter-button active"), "Filtrul curent trebuie evidentiat vizual.");
+    assert(page.includes("De verificat"), "Statusul proposed trebuie afisat ca eticheta umana.");
+    assert(page.includes("Aprobate"), "Statusul approved trebuie afisat ca eticheta umana.");
+    assert(page.includes("Sincronizare"), "Statusul planner_sync_failed trebuie afisat ca eticheta umana.");
+    assert(page.includes("In Planner"), "Statusul created_in_planner trebuie afisat ca eticheta umana.");
+    assert(page.includes("Terminate"), "Statusul completed_in_planner trebuie afisat ca eticheta umana.");
+    assert(page.includes("Sterse"), "Statusul deleted_in_planner trebuie afisat ca eticheta umana.");
+    assert(page.includes("Respinse"), "Statusul rejected trebuie afisat ca eticheta umana.");
     assert(page.includes("data-task-row"), "Sectiunea trebuie sa includa randuri filtrabile.");
     assert(page.includes("history-card"), "Istoricul trebuie randat compact, ca lista de carduri.");
     assert(!page.includes("task-table"), "Istoricul nu trebuie sa revina la tabel lat cu scroll orizontal.");

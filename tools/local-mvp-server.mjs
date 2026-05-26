@@ -17,13 +17,13 @@ const emptyStore = {
 const allowedSourceTypes = new Set(["email", "teams_transcript", "manual_upload"]);
 const defaultActorEmail = process.env.LOCAL_ACTOR_EMAIL ?? "approver@firma.ro";
 const statusFilters = [
-  "proposed",
-  "planner_sync_failed",
-  "approved",
-  "created_in_planner",
-  "completed_in_planner",
-  "deleted_in_planner",
-  "rejected"
+  { value: "proposed", label: "De verificat" },
+  { value: "approved", label: "Aprobate" },
+  { value: "planner_sync_failed", label: "Sincronizare" },
+  { value: "created_in_planner", label: "In Planner" },
+  { value: "completed_in_planner", label: "Terminate" },
+  { value: "deleted_in_planner", label: "Sterse" },
+  { value: "rejected", label: "Respinse" }
 ];
 const plannerTerminalSourceStatuses = new Set(["approved", "created_in_planner", "planner_sync_failed"]);
 
@@ -116,11 +116,15 @@ function parseEmailPaste(rawEmail, actorEmail) {
 }
 
 function normalizeLine(line) {
-  return line.replace(/\s+/g, " ").replace(/^[*•-]\s*/, "").trim();
+  return line.replace(/\s+/g, " ").replace(/^[*\u2022-]\s*/, "").trim();
+}
+
+function normalizeSearchText(text) {
+  return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 }
 
 function compactTaskTitle(actionText) {
-  const normalized = normalizeLine(actionText);
+  const normalized = normalizeSearchText(normalizeLine(actionText));
   const knownPatterns = [
     { pattern: /\bpoze\w*\b.*\bsondaj/i, title: "Transmite poze sondaj" },
     { pattern: /\bdraft\w*\b.*\braspuns\b.*\bautorizatie/i, title: "Pregateste raspuns autorizatie" },
@@ -202,7 +206,7 @@ function referenceDate() {
 }
 
 function extractDueDate(text, baseDate = referenceDate()) {
-  const normalized = normalizeLine(text).toLowerCase();
+  const normalized = normalizeSearchText(normalizeLine(text)).toLowerCase();
   const explicit = normalized.match(/\b(\d{1,2})[./-](\d{1,2})(?:[./-](\d{2,4}))?\b/);
   if (explicit) {
     const day = Number(explicit[1]);
@@ -220,13 +224,13 @@ function extractDueDate(text, baseDate = referenceDate()) {
   if (/\bmaine\b/.test(normalized)) return isoDate(addDays(baseDate, 1));
 
   const weekdays = [
-    ["duminica", "duminică"],
+    ["duminica"],
     ["luni"],
-    ["marti", "marți"],
+    ["marti"],
     ["miercuri"],
     ["joi"],
     ["vineri"],
-    ["sambata", "sâmbătă"]
+    ["sambata"]
   ];
   const today = baseDate.getUTCDay();
   for (let target = 0; target < weekdays.length; target += 1) {
@@ -265,7 +269,7 @@ function fallbackExtract(source) {
     .map(normalizeLine)
     .filter(Boolean)
     .filter((line) => !/^daca sunt elemente pe care le-am omis/i.test(line))
-    .filter((line) => !/^(taskuri|actiuni|acțiuni|de facut|de făcut)\b/i.test(line))
+    .filter((line) => !/^(taskuri|actiuni|de facut)\b/i.test(normalizeSearchText(line)))
     .filter((line) => !/:\s*$/.test(line))
     .filter((line) =>
       /\b(trebuie|de facut|rog|te rog|ramane|verifica|trimite|transmite|pregateste|pregatesc|actualizeaza|creeaza|preia|preluat|stabileste|confirma|clarifica)\b/i.test(line)
@@ -575,10 +579,13 @@ async function renderHome(res) {
   <link rel="icon" type="image/png" href="/assets/taskwizard-hat.png" />
   <style>
     :root{--bg:#f6f7f9;--surface:#fff;--surface-2:#fbfcfd;--line:#d8dee8;--text:#17202a;--muted:#657083;--accent:#12635f;--danger:#b42318;--danger-bg:#fee4e2;--ok:#067647;--ok-bg:#dcfae6;--archived:#475467;--archived-bg:#f2f4f7}
-    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,Arial,Helvetica,sans-serif}main{width:min(100% - 48px,1760px);margin:0 auto;padding:24px 0 44px}h1,h2,h3,p{margin-top:0}h1{font-size:24px;line-height:1.2;margin-bottom:4px}h2{font-size:15px;margin-bottom:12px}.muted{color:var(--muted)}.app-header{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:20px;align-items:start;margin-bottom:20px}.brand{display:flex;gap:14px;align-items:flex-start}.brand-mark{width:88px;height:88px;object-fit:contain;flex:0 0 88px}.top-actions{display:flex;justify-content:flex-end;gap:10px;margin-bottom:10px}.summary{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.metric{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:9px 12px;min-width:108px}.metric strong{display:block;font-size:20px}.workspace{display:grid;grid-template-columns:minmax(0,1fr) minmax(390px,440px);gap:18px;align-items:start}.panel{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:16px;min-width:0}.panel-subtle{background:var(--surface-2)}label{display:block;font-size:12px;font-weight:700;color:#344054;margin:12px 0 6px}input,select,textarea{width:100%;border:1px solid #cbd5e1;border-radius:6px;padding:9px 10px;background:#fff;color:var(--text);font:inherit}textarea{min-height:190px;resize:vertical}button{border:0;border-radius:6px;background:var(--accent);color:#fff;font-weight:700;padding:9px 12px;cursor:pointer}.button-muted{background:#eef2f6;color:#263445}.button-ghost{background:#fff;color:#263445;border:1px solid var(--line)}.danger{background:var(--danger-bg);color:var(--danger)}.task-list{display:grid;gap:10px}.review-scroll{max-height:calc(100vh - 260px);overflow:auto;padding-right:4px}.task-card{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px;min-width:0}.task-card[data-status="planner_sync_failed"]{border-color:#f6c7c3}.task-top{display:flex;justify-content:space-between;gap:12px}.task-title{font-weight:800;font-size:15px;line-height:1.35;overflow-wrap:anywhere}.badge{display:inline-flex;align-items:center;border-radius:999px;background:#eef2f6;color:#344054;padding:4px 8px;font-size:12px;font-weight:700;white-space:nowrap}.proposed{background:#e0f2fe;color:#075985}.planner_sync_failed,.rejected,.deleted_in_planner{background:var(--danger-bg);color:var(--danger)}.approved,.created_in_planner,.completed_in_planner{background:var(--ok-bg);color:var(--ok)}.deleted_in_planner,.completed_in_planner{background:var(--archived-bg);color:var(--archived)}.meta{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}.evidence{border-left:3px solid #b7c4d5;background:#f8fafc;margin:10px 0;padding:9px 10px;color:#334155;font-size:13px;overflow-wrap:anywhere}.source{font-size:12px;color:var(--muted);margin-top:6px;overflow-wrap:anywhere}.edit{border-top:1px solid var(--line);margin-top:12px;padding-top:10px}.edit textarea{min-height:74px}.advanced summary,.edit summary{cursor:pointer;color:#344054;font-size:13px;font-weight:700}.compact{display:grid;grid-template-columns:1fr 150px;gap:8px}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.filters{display:flex;gap:7px;margin:8px 0 12px;flex-wrap:wrap}.filters button{white-space:nowrap}.task-row.hidden{display:none}.history-list{display:grid;gap:8px;max-height:calc(100vh - 250px);overflow:auto;padding-right:4px}.history-card{border:1px solid var(--line);border-radius:8px;padding:10px;background:#fff;min-width:0}.history-card.hidden{display:none}.history-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}.history-title{font-weight:800;font-size:13px;line-height:1.25;overflow-wrap:anywhere}.history-meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.history-meta .badge{font-size:11px;padding:3px 7px}.history-card .actions{margin-top:8px}.event{border-top:1px solid var(--line);padding:10px 0;font-size:13px}.empty{border:1px dashed var(--line);border-radius:8px;padding:20px;text-align:center;color:var(--muted);background:#fbfcfd}.review-heading{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:12px}.review-heading p{margin:0}.drawer{display:grid;gap:12px;position:sticky;top:16px;min-width:0}dialog{border:0;border-radius:8px;padding:0;width:min(720px,calc(100vw - 32px));box-shadow:0 24px 80px rgba(15,23,42,.28)}dialog::backdrop{background:rgba(15,23,42,.45)}.modal{padding:18px}.modal-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;border-bottom:1px solid var(--line);padding-bottom:12px;margin-bottom:12px}.modal-head h2{margin-bottom:4px}.modal-actions{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-top:14px}@media(max-width:1100px){main{width:min(100% - 28px,1760px)}.workspace{grid-template-columns:1fr}.drawer{position:static}.history-list,.review-scroll{max-height:none}.app-header{grid-template-columns:1fr}.summary,.top-actions{justify-content:flex-start}}@media(max-width:680px){main{width:100%;padding:14px}.brand-mark{width:64px;height:64px;flex-basis:64px}.compact{grid-template-columns:1fr}.task-top,.history-top{display:block}.badge{margin-top:8px}.modal-actions{display:block}.modal-actions button{margin-top:8px;width:100%}}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,Arial,Helvetica,sans-serif}main{width:min(100% - 48px,1760px);margin:0 auto;padding:24px 0 44px}h1,h2,h3,p{margin-top:0}h1{font-size:24px;line-height:1.2;margin-bottom:4px}h2{font-size:15px;margin-bottom:12px}.muted{color:var(--muted)}.app-header{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:20px;align-items:start;margin-bottom:20px}.brand{display:flex;gap:14px;align-items:flex-start}.brand-mark{width:88px;height:88px;object-fit:contain;flex:0 0 88px}.top-actions{display:flex;justify-content:flex-end;gap:10px;margin-bottom:10px}.summary{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.metric{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:9px 12px;min-width:108px}.metric strong{display:block;font-size:20px}.workspace{display:grid;grid-template-columns:minmax(0,1fr) minmax(390px,440px);gap:18px;align-items:start}.panel{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:16px;min-width:0}.panel-subtle{background:var(--surface-2)}label{display:block;font-size:12px;font-weight:700;color:#344054;margin:12px 0 6px}input,select,textarea{width:100%;border:1px solid #cbd5e1;border-radius:6px;padding:9px 10px;background:#fff;color:var(--text);font:inherit}textarea{min-height:190px;resize:vertical}button{border:0;border-radius:6px;background:var(--accent);color:#fff;font-weight:700;padding:9px 12px;cursor:pointer}.button-muted{background:#eef2f6;color:#263445}.button-ghost{background:#fff;color:#263445;border:1px solid var(--line)}.danger{background:var(--danger-bg);color:var(--danger)}.task-list{display:grid;gap:10px}.review-scroll{max-height:calc(100vh - 260px);overflow:auto;padding-right:4px}.task-card{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px;min-width:0}.task-card[data-status="planner_sync_failed"]{border-color:#f6c7c3}.task-top{display:flex;justify-content:space-between;gap:12px}.task-title{font-weight:800;font-size:15px;line-height:1.35;overflow-wrap:anywhere}.badge{display:inline-flex;align-items:center;border-radius:999px;background:#eef2f6;color:#344054;padding:4px 8px;font-size:12px;font-weight:700;white-space:nowrap}.proposed{background:#e0f2fe;color:#075985}.planner_sync_failed,.rejected,.deleted_in_planner{background:var(--danger-bg);color:var(--danger)}.approved,.created_in_planner,.completed_in_planner{background:var(--ok-bg);color:var(--ok)}.deleted_in_planner,.completed_in_planner{background:var(--archived-bg);color:var(--archived)}.meta{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}.evidence{border-left:3px solid #b7c4d5;background:#f8fafc;margin:10px 0;padding:9px 10px;color:#334155;font-size:13px;overflow-wrap:anywhere}.source{font-size:12px;color:var(--muted);margin-top:6px;overflow-wrap:anywhere}.edit{border-top:1px solid var(--line);margin-top:12px;padding-top:10px}.edit textarea{min-height:74px}.advanced summary,.edit summary{cursor:pointer;color:#344054;font-size:13px;font-weight:700}.compact{display:grid;grid-template-columns:1fr 150px;gap:8px}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.filters{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:10px 0 14px}.filter-button{display:flex;align-items:center;justify-content:space-between;gap:8px;border:1px solid var(--line);background:#fff;color:#344054;padding:8px 10px;text-align:left}.filter-button.active{background:var(--accent);border-color:var(--accent);color:#fff}.filter-button .count{border-radius:999px;background:#eef2f6;color:#344054;min-width:28px;padding:2px 7px;text-align:center;font-size:12px}.filter-button.active .count{background:rgba(255,255,255,.18);color:#fff}.task-row.hidden{display:none}.history-list{display:grid;gap:8px;max-height:calc(100vh - 250px);overflow:auto;padding-right:4px}.history-card{border:1px solid var(--line);border-radius:8px;padding:10px;background:#fff;min-width:0}.history-card.hidden{display:none}.history-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}.history-title{font-weight:800;font-size:13px;line-height:1.25;overflow-wrap:anywhere}.history-meta{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.history-meta .badge{font-size:11px;padding:3px 7px}.history-card .actions{margin-top:8px}.event{border-top:1px solid var(--line);padding:10px 0;font-size:13px}.empty{border:1px dashed var(--line);border-radius:8px;padding:20px;text-align:center;color:var(--muted);background:#fbfcfd}.review-heading{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:12px}.review-heading p{margin:0}.drawer{display:grid;gap:12px;position:sticky;top:16px;min-width:0}dialog{border:0;border-radius:8px;padding:0;width:min(720px,calc(100vw - 32px));box-shadow:0 24px 80px rgba(15,23,42,.28)}dialog::backdrop{background:rgba(15,23,42,.45)}.modal{padding:18px}.modal-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;border-bottom:1px solid var(--line);padding-bottom:12px;margin-bottom:12px}.modal-head h2{margin-bottom:4px}.modal-actions{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-top:14px}@media(max-width:1100px){main{width:min(100% - 28px,1760px)}.workspace{grid-template-columns:1fr}.drawer{position:static}.history-list,.review-scroll{max-height:none}.app-header{grid-template-columns:1fr}.summary,.top-actions{justify-content:flex-start}}@media(max-width:680px){main{width:100%;padding:14px}.brand-mark{width:64px;height:64px;flex-basis:64px}.compact{grid-template-columns:1fr}.task-top,.history-top{display:block}.badge{margin-top:8px}.filters{grid-template-columns:1fr}.modal-actions{display:block}.modal-actions button{margin-top:8px;width:100%}}
   </style>
   <script>
     function filterTasks(status) {
+      document.querySelectorAll("[data-filter-button]").forEach((button) => {
+        button.classList.toggle("active", button.dataset.filterButton === status);
+      });
       document.querySelectorAll("[data-task-row]").forEach((row) => {
         row.classList.toggle("hidden", status !== "all" && row.dataset.status !== status);
       });
@@ -698,10 +705,10 @@ async function renderHome(res) {
     <aside class="drawer">
       <section class="panel">
         <h2>Toate taskurile</h2>
-    <div class="filters">
-      <button type="button" onclick="filterTasks('all')">Toate (${tasks.length})</button>
+    <div class="filters" aria-label="Filtre taskuri">
+      <button class="filter-button active" type="button" data-filter-button="all" onclick="filterTasks('all')"><span>Toate</span><span class="count">${tasks.length}</span></button>
       ${statusFilters
-        .map((status) => `<button type="button" onclick="filterTasks('${status}')">${status} (${taskStatusCounts[status] ?? 0})</button>`)
+        .map((filter) => `<button class="filter-button" type="button" data-filter-button="${filter.value}" onclick="filterTasks('${filter.value}')"><span>${filter.label}</span><span class="count">${taskStatusCounts[filter.value] ?? 0}</span></button>`)
         .join("")}
     </div>
     ${
