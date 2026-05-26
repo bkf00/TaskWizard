@@ -50,7 +50,7 @@ Format inspirat de Keep a Changelog. Proiectul foloseste versionare pragmatica p
 - Test de regresie pentru emailuri haotice: headingurile de tip "Taskuri ramase" sunt ignorate, formulele politicoase nu intra in responsabil, iar titlurile rezultate sunt mai scurte si naturale.
 - Importul de email este mutat intr-un dialog deschis din butonul principal "Adauga email".
 - Istoricul "Toate taskurile" este randat ca lista compacta de carduri cu scroll intern, nu ca tabel lat.
-- Pagina locala pastreaza numele TaskWizard, cu favicon PNG transparent si o marca vizuala mai mare cu palarie de vrajitor plus checklist.
+- Pagina locala pastreaza numele TaskWizard, cu favicon PNG transparent si o marca vizuala mai mare.
 
 ### Changed
 

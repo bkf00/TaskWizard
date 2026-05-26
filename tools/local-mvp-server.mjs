@@ -582,7 +582,7 @@ async function renderHome(res) {
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>${appName} - taskuri vrajite</title>
+  <title>${appName}</title>
   <link rel="icon" type="image/png" href="/assets/taskwizard-hat.png" />
   <style>
     :root{--bg:#f6f7f9;--surface:#fff;--surface-2:#fbfcfd;--line:#d8dee8;--text:#17202a;--muted:#657083;--accent:#12635f;--danger:#b42318;--danger-bg:#fee4e2;--ok:#067647;--ok-bg:#dcfae6;--archived:#475467;--archived-bg:#f2f4f7}
@@ -618,10 +618,10 @@ async function renderHome(res) {
 <main>
   <header class="app-header">
     <div class="brand">
-      <img class="brand-mark" src="/assets/taskwizard-hat.png" alt="Palarie de vrajitor cu checklist" />
+      <img class="brand-mark" src="/assets/taskwizard-hat.png" alt="TaskWizard" />
       <div>
         <h1>${appName}</h1>
-        <p class="muted">Inbox de verificare pentru taskuri extrase din emailuri si minute. Acum cu palarie pentru taskurile care dispar misterios.</p>
+        <p class="muted">Inbox de verificare pentru taskuri extrase din emailuri si minute.</p>
       </div>
     </div>
     <div>
