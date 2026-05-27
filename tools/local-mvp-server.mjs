@@ -302,6 +302,7 @@ function fallbackExtract(source) {
         dueDate,
         projectHint: null,
         confidence: assessConfidence({ structured: Boolean(structured), assigneeName, dueDate, title }),
+        priority: "normal",
         evidence: line,
         status: "proposed",
         approvedBy: null,
@@ -501,6 +502,7 @@ async function handleApprove(req, res, taskId) {
     return;
   }
   task.status = "approved";
+  task.priority = form.priority === "high" ? "high" : task.priority ?? "normal";
   task.approvedBy = actorEmail;
   task.approvedAt = new Date().toISOString();
   task.updatedAt = new Date().toISOString();
@@ -538,6 +540,7 @@ async function handleUpdate(req, res, taskId) {
   task.assigneeName = String(form.assigneeName || "").trim() || null;
   task.dueDate = String(form.dueDate || "").trim() || null;
   task.projectHint = String(form.projectHint || "").trim() || null;
+  task.priority = form.priority === "high" ? "high" : task.priority ?? "normal";
   task.updatedAt = new Date().toISOString();
 
   audit(data, { type: "task.updated", actorEmail, proposedTaskId: task.id, sourceId: task.sourceId, message: "Task editat." });
@@ -722,6 +725,7 @@ async function renderHome(res) {
           <div class="meta">
             <span class="badge">${escapeHtml(task.assigneeName || task.assigneeEmail || "fara responsabil")}</span>
             <span class="badge">${escapeHtml(task.dueDate || "fara termen")}</span>
+            ${task.priority === "high" ? `<span class="badge high-priority">prioritar</span>` : ""}
             <span class="badge">confidence: ${escapeHtml(task.confidence)}</span>
           </div>
           <div class="evidence">${escapeHtml(task.evidence)}</div>
@@ -739,6 +743,7 @@ async function renderHome(res) {
           </details>
           <div class="actions">
             <form method="post" action="/tasks/${task.id}/approve"><input type="hidden" name="actorEmail" value="${escapeHtml(defaultActorEmail)}" /><button>Aproba</button></form>
+            <form method="post" action="/tasks/${task.id}/approve"><input type="hidden" name="actorEmail" value="${escapeHtml(defaultActorEmail)}" /><input type="hidden" name="priority" value="high" /><button class="button-priority">Aproba prioritar</button></form>
             ${plannerTerminalSourceStatuses.has(task.status) ? `<form method="post" action="/tasks/${task.id}/complete"><input type="hidden" name="actorEmail" value="${escapeHtml(defaultActorEmail)}" /><button class="button-muted">Marcheaza terminat</button></form><form method="post" action="/tasks/${task.id}/delete"><input type="hidden" name="actorEmail" value="${escapeHtml(defaultActorEmail)}" /><button class="danger">Marcheaza sters</button></form>` : ""}
             ${task.status === "proposed" ? `<form method="post" action="/tasks/${task.id}/reject"><input type="hidden" name="actorEmail" value="${escapeHtml(defaultActorEmail)}" /><button class="danger">Respinge</button></form>` : ""}
           </div>

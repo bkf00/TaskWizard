@@ -8,6 +8,7 @@ export type SourceStatus =
   | "ignored_duplicate";
 
 export type TaskConfidence = "high" | "medium" | "low";
+export type TaskPriority = "normal" | "high";
 
 export type ProposedTaskStatus =
   | "proposed"
@@ -64,6 +65,7 @@ export type ProposedTask = {
   dueDate: string | null;
   projectHint: string | null;
   confidence: TaskConfidence;
+  priority: TaskPriority;
   evidence: string;
   status: ProposedTaskStatus;
   approvedBy: string | null;

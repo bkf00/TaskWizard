@@ -62,6 +62,7 @@ export function TaskHistoryPanel({ tasks, actorEmail }: { tasks: ProposedTask[];
               <div className="history-meta">
                 <span className="badge">{task.assigneeName ?? task.assigneeEmail ?? "fara responsabil"}</span>
                 <span className="badge">{formatDate(task.dueDate)}</span>
+                {task.priority === "high" ? <span className="badge high-priority">prioritar</span> : null}
               </div>
               {task.status === "approved" || task.status === "created_in_planner" || task.status === "planner_sync_failed" ? (
                 <div className="actions">

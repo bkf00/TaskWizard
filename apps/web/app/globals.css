@@ -166,6 +166,22 @@ button:hover {
   background: var(--accent-dark);
 }
 
+.button-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 700;
+  padding: 9px 12px;
+  text-decoration: none;
+}
+
+.button-link:hover {
+  background: var(--accent-dark);
+}
+
 .button-muted {
   background: #eef2f6;
   color: #263445;
@@ -188,6 +204,14 @@ button:hover {
 
 .danger:hover {
   background: #fecdca;
+}
+
+.button-priority {
+  background: #b54708;
+}
+
+.button-priority:hover {
+  background: #93370d;
 }
 
 .task-list {
@@ -261,6 +285,11 @@ button:hover {
 .completed_in_planner {
   background: var(--archived-bg);
   color: var(--archived);
+}
+
+.high-priority {
+  background: #fffaeb;
+  color: #b54708;
 }
 
 .meta {
@@ -465,6 +494,151 @@ button:hover {
   min-width: 0;
 }
 
+.compact-header {
+  margin-bottom: 14px;
+}
+
+.task-board-shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(340px, 420px);
+  gap: 18px;
+  align-items: start;
+}
+
+.task-board-main {
+  min-height: calc(100vh - 160px);
+}
+
+.task-board-toolbar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.task-board-toolbar p {
+  margin: 0;
+}
+
+.board-controls {
+  display: grid;
+  grid-template-columns: 160px 140px;
+  gap: 8px;
+}
+
+.assignee-filter {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  margin-bottom: 12px;
+}
+
+.assignee-filter .filter-button {
+  flex: 0 0 auto;
+}
+
+.task-board-list {
+  display: grid;
+  gap: 10px;
+  max-height: calc(100vh - 278px);
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.board-card .evidence {
+  margin-bottom: 0;
+}
+
+.assignee-group {
+  display: grid;
+  gap: 8px;
+}
+
+.assignee-group h3 {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: #344054;
+}
+
+.task-board-side {
+  display: grid;
+  gap: 12px;
+  position: sticky;
+  top: 16px;
+}
+
+.side-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.side-metrics div {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px;
+  background: var(--surface-2);
+}
+
+.side-metrics strong,
+.side-metrics span {
+  display: block;
+}
+
+.side-metrics strong {
+  font-size: 20px;
+}
+
+.side-metrics span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.calendar-panel {
+  min-height: 360px;
+}
+
+.calendar-list {
+  display: grid;
+  gap: 10px;
+  max-height: calc(100vh - 330px);
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.calendar-day {
+  border-left: 3px solid #b7c4d5;
+  padding-left: 10px;
+}
+
+.calendar-date {
+  font-weight: 800;
+  font-size: 13px;
+  margin-bottom: 6px;
+}
+
+.calendar-items {
+  display: grid;
+  gap: 5px;
+}
+
+.calendar-item {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 7px 8px;
+  background: #fff;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.calendar-item.priority {
+  border-color: #fedf89;
+  background: #fffaeb;
+  color: #93370d;
+}
+
 dialog {
   border: 0;
   border-radius: 8px;
@@ -512,12 +686,22 @@ dialog::backdrop {
     grid-template-columns: 1fr;
   }
 
+  .task-board-shell {
+    grid-template-columns: 1fr;
+  }
+
   .drawer {
     position: static;
   }
 
+  .task-board-side {
+    position: static;
+  }
+
   .history-list,
-  .review-scroll {
+  .review-scroll,
+  .task-board-list,
+  .calendar-list {
     max-height: none;
   }
 
@@ -545,6 +729,19 @@ dialog::backdrop {
 
   .compact,
   .filters {
+    grid-template-columns: 1fr;
+  }
+
+  .task-board-toolbar,
+  .board-controls {
+    display: block;
+  }
+
+  .board-controls select + select {
+    margin-top: 8px;
+  }
+
+  .side-metrics {
     grid-template-columns: 1fr;
   }
 

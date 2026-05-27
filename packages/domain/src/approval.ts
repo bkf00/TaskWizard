@@ -8,7 +8,7 @@ import { store } from "@repo/storage/local-store";
 export async function approveTask(input: {
   taskId: string;
   actorEmail: string;
-  patch?: Partial<Pick<ProposedTask, "title" | "description" | "assigneeEmail" | "dueDate" | "projectHint">>;
+  patch?: Partial<Pick<ProposedTask, "title" | "description" | "assigneeEmail" | "dueDate" | "projectHint" | "priority">>;
 }): Promise<ProposedTask> {
   const task = await store.getProposedTask(input.taskId);
   if (!task) {

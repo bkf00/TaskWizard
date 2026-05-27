@@ -43,6 +43,9 @@ export default async function HomePage() {
         </div>
         <div>
           <div className="top-actions">
+            <a className="button-link" href="/tasks">
+              View taskuri
+            </a>
             <EmailSourceForm defaultActorEmail={actor.email} authenticated={actor.authenticated} />
           </div>
           <div className="summary">
@@ -85,6 +88,7 @@ export default async function HomePage() {
                   <div className="meta">
                     <span className="badge">{task.assigneeName ?? task.assigneeEmail ?? "fara responsabil"}</span>
                     <span className="badge">{formatDate(task.dueDate)}</span>
+                    {task.priority === "high" ? <span className="badge high-priority">prioritar</span> : null}
                     <span className="badge">confidence: {task.confidence}</span>
                   </div>
                   <div className="evidence">{task.evidence}</div>
@@ -126,6 +130,13 @@ export default async function HomePage() {
                     <form action={`/api/tasks/${task.id}/approve`} method="post">
                       <input type="hidden" name="actorEmail" value={actor.email} />
                       <button type="submit">Aproba</button>
+                    </form>
+                    <form action={`/api/tasks/${task.id}/approve`} method="post">
+                      <input type="hidden" name="actorEmail" value={actor.email} />
+                      <input type="hidden" name="priority" value="high" />
+                      <button className="button-priority" type="submit">
+                        Aproba prioritar
+                      </button>
                     </form>
                     <form action={`/api/tasks/${task.id}/reject`} method="post">
                       <input type="hidden" name="actorEmail" value={actor.email} />

@@ -9,6 +9,7 @@ export const sourceStatus = pgEnum("source_status", [
   "ignored_duplicate"
 ]);
 export const taskConfidence = pgEnum("task_confidence", ["high", "medium", "low"]);
+export const taskPriority = pgEnum("task_priority", ["normal", "high"]);
 export const proposedTaskStatus = pgEnum("proposed_task_status", [
   "proposed",
   "approved",
@@ -52,6 +53,7 @@ export const proposedTasks = pgTable("proposed_tasks", {
   dueDate: text("due_date"),
   projectHint: text("project_hint"),
   confidence: taskConfidence("confidence").notNull(),
+  priority: taskPriority("priority").notNull().default("normal"),
   evidence: text("evidence").notNull(),
   status: proposedTaskStatus("status").notNull(),
   approvedBy: text("approved_by"),

@@ -250,6 +250,7 @@ export async function extractProposedTasks(source: SourceItem): Promise<Proposed
     dueDate: task.dueDate,
     projectHint: task.projectHint,
     confidence: task.confidence,
+    priority: "normal",
     evidence: task.evidence,
     status: "proposed",
     approvedBy: null,

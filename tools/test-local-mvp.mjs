@@ -116,11 +116,13 @@ try {
   });
 
   await record("Next.js app uses the organized TaskWizard dashboard", async () => {
-    const [pageSource, formSource, liveRefreshSource, historySource, cssSource, versionRouteSource] = await Promise.all([
+    const [pageSource, formSource, liveRefreshSource, historySource, taskBoardSource, tasksPageSource, cssSource, versionRouteSource] = await Promise.all([
       readFile(path.join(projectRoot, "apps/web/app/page.tsx"), "utf8"),
       readFile(path.join(projectRoot, "apps/web/app/email-source-form.tsx"), "utf8"),
       readFile(path.join(projectRoot, "apps/web/app/live-dashboard-refresh.tsx"), "utf8"),
       readFile(path.join(projectRoot, "apps/web/app/task-history-panel.tsx"), "utf8"),
+      readFile(path.join(projectRoot, "apps/web/app/tasks/task-board.tsx"), "utf8"),
+      readFile(path.join(projectRoot, "apps/web/app/tasks/page.tsx"), "utf8"),
       readFile(path.join(projectRoot, "apps/web/app/globals.css"), "utf8"),
       readFile(path.join(projectRoot, "apps/web/app/api/state/version/route.ts"), "utf8")
     ]);
@@ -129,6 +131,8 @@ try {
     assert(pageSource.includes("workspace"), "UI-ul Next trebuie sa foloseasca layoutul nou pe zone.");
     assert(pageSource.includes("TaskHistoryPanel"), "Istoricul compact trebuie randat prin componenta dedicata.");
     assert(pageSource.includes("LiveDashboardRefresh"), "Dashboardul trebuie sa primeasca refresh cand alt user schimba taskuri.");
+    assert(pageSource.includes("Aproba prioritar"), "Review-ul trebuie sa permita aprobare cu prioritate.");
+    assert(pageSource.includes("href=\"/tasks\""), "Review-ul trebuie sa lege view-ul dedicat de taskuri.");
     assert(formSource.includes("id=\"import-dialog\""), "Importul emailurilor trebuie sa ramana intr-un dialog.");
     assert(formSource.includes("Adauga email"), "Importul trebuie pornit din butonul principal.");
     assert(liveRefreshSource.includes("router.refresh()"), "Refresh-ul live trebuie sa actualizeze view-ul fara reload manual.");
@@ -140,6 +144,11 @@ try {
     assert(cssSource.includes(".sync-banner"), "UI-ul trebuie sa anunte cand exista refresh amanat.");
     assert(liveRefreshSource.includes("/api/state/version"), "Refresh-ul live trebuie sa citeasca o versiune mica de stare.");
     assert(versionRouteSource.includes("Cache-Control"), "Endpointul de versiune nu trebuie cache-uit.");
+    assert(tasksPageSource.includes("TaskBoard"), "Ruta /tasks trebuie sa randeze view-ul dedicat taskurilor.");
+    assert(taskBoardSource.includes("Sortare taskuri"), "View-ul taskurilor trebuie sa aiba sortare.");
+    assert(taskBoardSource.includes("Filtre responsabili"), "View-ul taskurilor trebuie sa aiba filtre dinamice pe responsabili.");
+    assert(taskBoardSource.includes("Calendar"), "View-ul taskurilor trebuie sa includa o vedere calendaristica.");
+    assert(taskBoardSource.includes("priorityRank"), "View-ul taskurilor trebuie sa poata ordona dupa prioritate.");
   });
 
   await record("empty input is rejected", async () => {
@@ -435,13 +444,15 @@ Pregateste lista de observatii pentru acoperis.
     const task = storeBefore.proposedTasks.find((item) => item.status === "proposed");
     assert(task, "Trebuie sa existe un task propus pentru aprobare.");
     const response = await postForm(`/tasks/${task.id}/approve`, {
-      actorEmail: "bogdan@example.com"
+      actorEmail: "bogdan@example.com",
+      priority: "high"
     });
     assert(response.status === 303, "Aprobarea ar trebui sa redirectioneze.", response.status);
     const store = await readStore();
     const updated = store.proposedTasks.find((item) => item.id === task.id);
     assert(updated.status === "approved", "Fara Planner configurat, taskul trebuie sa ramana aprobat local.", updated);
     assert(updated.approvedBy === "bogdan@example.com", "Aprobarea trebuie sa salveze actorul real.", updated);
+    assert(updated.priority === "high", "Aprobarea cu prioritate trebuie sa marcheze taskul ca prioritar.", updated);
     assert(store.processingErrors.length === 0, "Planner neconfigurat nu trebuie sa polueze lista de erori.", store.processingErrors);
   });
 

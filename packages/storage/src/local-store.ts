@@ -18,7 +18,14 @@ export class JsonFileTaskWizardRepository implements TaskWizardRepository {
   private async readStore(): Promise<StoreSnapshot> {
     try {
       const raw = await readFile(this.filePath, "utf8");
-      return { ...emptyStoreSnapshot, ...JSON.parse(raw) };
+      const parsed = { ...emptyStoreSnapshot, ...JSON.parse(raw) } as StoreSnapshot;
+      return {
+        ...parsed,
+        proposedTasks: parsed.proposedTasks.map((task) => ({
+          ...task,
+          priority: task.priority ?? "normal"
+        }))
+      };
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code === "ENOENT") {
         return structuredClone(emptyStoreSnapshot);

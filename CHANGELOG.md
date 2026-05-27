@@ -74,6 +74,8 @@ Format inspirat de Keep a Changelog. Proiectul foloseste versionare pragmatica p
 - Testele locale includ acum o regresie statica pentru layoutul Next.js, ca aplicatia sa nu revina accidental la interfata veche.
 - Dashboardul Next.js verifica periodic versiunea starii si face refresh automat cand alt utilizator aproba, respinge, editeaza, termina sau sterge taskuri.
 - Ingestia blocheaza taskurile 100% identice cand au acelasi titlu, acelasi termen si acelasi responsabil; duplicatele sunt marcate in audit ca `task.duplicate_ignored`.
+- A fost adaugat view-ul `/tasks` pentru urmarirea taskurilor dupa termen, prioritate si responsabil, cu filtre dinamice si mini-calendar lateral.
+- Review-ul permite acum `Aproba prioritar`, marcand taskul cu prioritate ridicata inainte de sincronizare/urmarire.
 
 ### Known Limitations
 
