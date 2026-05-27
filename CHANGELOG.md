@@ -76,6 +76,7 @@ Format inspirat de Keep a Changelog. Proiectul foloseste versionare pragmatica p
 - Ingestia blocheaza taskurile 100% identice cand au acelasi titlu, acelasi termen si acelasi responsabil; duplicatele sunt marcate in audit ca `task.duplicate_ignored`.
 - A fost adaugat view-ul `/tasks` pentru urmarirea taskurilor dupa termen, prioritate si responsabil, cu filtre dinamice si mini-calendar lateral.
 - Review-ul permite acum `Aproba prioritar`, marcand taskul cu prioritate ridicata inainte de sincronizare/urmarire.
+- Filtrele de responsabili din `/tasks` sunt separate pe doua randuri: angajati interni si alti responsabili, cu curatare pentru taguri poluate de date/numere.
 
 ### Known Limitations
 

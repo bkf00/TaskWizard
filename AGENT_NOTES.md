@@ -54,6 +54,7 @@ Acest fisier este jurnalul de lucru al agentului. Se actualizeaza la fiecare sch
 - Am adaugat refresh live prin polling de versiune pentru dashboardul Next.js. Alegerea e intentionat simpla pentru o echipa mica: ceilalti utilizatori vad actiunile pe taskuri fara refresh manual, iar formularele deschise nu sunt intrerupte.
 - Am adaugat safeguard de deduplicare pentru taskuri identice. Cheia este stricta si cere titlu, termen si responsabil; taskurile fara termen sau responsabil explicit nu sunt blocate doar pentru ca au titlu asemanator.
 - Am separat experienta de review de experienta operationala: `/` ramane inbox de aprobare, iar `/tasks` devine view pentru planificare pe termen, prioritate si responsabil, cu mini-calendar lateral.
+- Am separat filtrele din `/tasks` in doua randuri: angajati interni cunoscuti si alti responsabili. Asta pregateste viitorul pas de asignare reala catre useri fara sa amestecam firmele sau fragmentele extrase gresit cu oamenii interni.
 
 ## Regula de utilizare
 

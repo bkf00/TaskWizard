@@ -7,9 +7,40 @@ type SortMode = "dueDate" | "priority" | "assignee";
 type ScopeMode = "active" | "all";
 
 const activeStatuses = new Set<ProposedTask["status"]>(["approved", "created_in_planner", "planner_sync_failed", "proposed"]);
+const internalEmployees = ["Tudor", "Florin", "Bogdan", "Sebastian", "Valentin", "Sonia"];
+
+function normalizeText(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+}
+
+function cleanAssigneeLabel(value: string): string {
+  const cleaned = value
+    .replace(/\b\d{1,2}[./-]\d{1,2}(?:[./-]\d{2,4})?\b/g, " ")
+    .replace(/\b20\d{2}\b/g, " ")
+    .replace(/^[\s=:#,-]*\d+\s+/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  return cleaned || "fara responsabil";
+}
 
 function assigneeLabel(task: ProposedTask): string {
-  return task.assigneeName ?? task.assigneeEmail ?? "fara responsabil";
+  return cleanAssigneeLabel(task.assigneeName ?? task.assigneeEmail ?? "fara responsabil");
+}
+
+function employeeForTask(task: ProposedTask): string | null {
+  const raw = normalizeText(`${task.assigneeName ?? ""} ${task.assigneeEmail ?? ""}`);
+  return internalEmployees.find((employee) => new RegExp(`\\b${normalizeText(employee)}\\b`, "i").test(raw)) ?? null;
+}
+
+function taskMatchesAssigneeFilter(task: ProposedTask, filter: string): boolean {
+  if (filter === "all") return true;
+  if (filter.startsWith("employee:")) return employeeForTask(task) === filter.slice("employee:".length);
+  if (filter.startsWith("other:")) return !employeeForTask(task) && assigneeLabel(task) === filter.slice("other:".length);
+  return true;
 }
 
 function formatDate(value: string | null): string {
@@ -39,34 +70,47 @@ function calendarDays(tasks: ProposedTask[]) {
 }
 
 export function TaskBoard({ tasks, actorEmail }: { tasks: ProposedTask[]; actorEmail: string }) {
-  const [assignee, setAssignee] = useState("all");
+  const [assigneeFilter, setAssigneeFilter] = useState("all");
   const [sortMode, setSortMode] = useState<SortMode>("dueDate");
   const [scope, setScope] = useState<ScopeMode>("active");
-
-  const assignees = useMemo(() => {
-    return [...new Set(tasks.map(assigneeLabel))].sort((a, b) => a.localeCompare(b, "ro"));
-  }, [tasks]);
 
   const scopedTasks = useMemo(() => {
     return tasks.filter((task) => (scope === "all" ? true : activeStatuses.has(task.status)));
   }, [scope, tasks]);
 
+  const employeeFilters = useMemo(() => {
+    return internalEmployees.map((name) => ({
+      name,
+      count: scopedTasks.filter((task) => employeeForTask(task) === name).length
+    }));
+  }, [scopedTasks]);
+
+  const otherAssignees = useMemo(() => {
+    return [...new Set(scopedTasks.filter((task) => !employeeForTask(task)).map(assigneeLabel))]
+      .sort((a, b) => a.localeCompare(b, "ro"))
+      .map((name) => ({
+        name,
+        count: scopedTasks.filter((task) => !employeeForTask(task) && assigneeLabel(task) === name).length
+      }));
+  }, [scopedTasks]);
+
   const visibleTasks = useMemo(() => {
     return scopedTasks
-      .filter((task) => (assignee === "all" ? true : assigneeLabel(task) === assignee))
+      .filter((task) => taskMatchesAssigneeFilter(task, assigneeFilter))
       .sort((a, b) => {
         if (sortMode === "priority") return priorityRank(a) - priorityRank(b) || dueSortValue(a) - dueSortValue(b);
         if (sortMode === "assignee") return assigneeLabel(a).localeCompare(assigneeLabel(b), "ro") || dueSortValue(a) - dueSortValue(b);
         return dueSortValue(a) - dueSortValue(b) || priorityRank(a) - priorityRank(b);
       });
-  }, [assignee, scopedTasks, sortMode]);
+  }, [assigneeFilter, scopedTasks, sortMode]);
 
   const groupedByAssignee = useMemo(() => {
+    const assignees = [...new Set(visibleTasks.map(assigneeLabel))].sort((a, b) => a.localeCompare(b, "ro"));
     return assignees.map((name) => ({
       name,
       tasks: visibleTasks.filter((task) => assigneeLabel(task) === name)
     })).filter((group) => group.tasks.length > 0);
-  }, [assignees, visibleTasks]);
+  }, [visibleTasks]);
 
   const calendar = useMemo(() => calendarDays(visibleTasks), [visibleTasks]);
   const highPriorityCount = visibleTasks.filter((task) => task.priority === "high").length;
@@ -94,21 +138,43 @@ export function TaskBoard({ tasks, actorEmail }: { tasks: ProposedTask[]; actorE
         </div>
 
         <div className="assignee-filter" aria-label="Filtre responsabili">
-          <button className={assignee === "all" ? "filter-button active" : "filter-button"} type="button" onClick={() => setAssignee("all")}>
-            <span>Toti</span>
-            <span className="count">{scopedTasks.length}</span>
-          </button>
-          {assignees.map((name) => (
-            <button
-              className={assignee === name ? "filter-button active" : "filter-button"}
-              key={name}
-              type="button"
-              onClick={() => setAssignee(name)}
-            >
-              <span>{name}</span>
-              <span className="count">{scopedTasks.filter((task) => assigneeLabel(task) === name).length}</span>
+          <div className="assignee-filter-row employee-row">
+            <span className="filter-row-label">Angajati</span>
+            <button className={assigneeFilter === "all" ? "filter-button active" : "filter-button"} type="button" onClick={() => setAssigneeFilter("all")}>
+              <span>Toti</span>
+              <span className="count">{scopedTasks.length}</span>
             </button>
-          ))}
+            {employeeFilters.map((item) => (
+              <button
+                className={assigneeFilter === `employee:${item.name}` ? "filter-button active" : "filter-button"}
+                disabled={item.count === 0}
+                key={item.name}
+                type="button"
+                onClick={() => setAssigneeFilter(`employee:${item.name}`)}
+              >
+                <span>{item.name}</span>
+                <span className="count">{item.count}</span>
+              </button>
+            ))}
+          </div>
+          <div className="assignee-filter-row other-row">
+            <span className="filter-row-label">Altii</span>
+            {otherAssignees.length === 0 ? (
+              <span className="muted empty-filter-note">Nu exista alti responsabili in filtrul curent.</span>
+            ) : (
+              otherAssignees.map((item) => (
+                <button
+                  className={assigneeFilter === `other:${item.name}` ? "filter-button active" : "filter-button"}
+                  key={item.name}
+                  type="button"
+                  onClick={() => setAssigneeFilter(`other:${item.name}`)}
+                >
+                  <span>{item.name}</span>
+                  <span className="count">{item.count}</span>
+                </button>
+              ))
+            )}
+          </div>
         </div>
 
         <div className="task-board-list">

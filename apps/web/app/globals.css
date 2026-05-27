@@ -528,15 +528,43 @@ button:hover {
 }
 
 .assignee-filter {
-  display: flex;
+  display: grid;
   gap: 8px;
-  overflow-x: auto;
   padding-bottom: 8px;
   margin-bottom: 12px;
 }
 
+.assignee-filter-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.filter-row-label {
+  flex: 0 0 78px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
 .assignee-filter .filter-button {
   flex: 0 0 auto;
+}
+
+.assignee-filter .filter-button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.assignee-filter .filter-button:disabled:hover {
+  background: #fff;
+}
+
+.empty-filter-note {
+  font-size: 13px;
 }
 
 .task-board-list {

@@ -147,6 +147,10 @@ try {
     assert(tasksPageSource.includes("TaskBoard"), "Ruta /tasks trebuie sa randeze view-ul dedicat taskurilor.");
     assert(taskBoardSource.includes("Sortare taskuri"), "View-ul taskurilor trebuie sa aiba sortare.");
     assert(taskBoardSource.includes("Filtre responsabili"), "View-ul taskurilor trebuie sa aiba filtre dinamice pe responsabili.");
+    assert(taskBoardSource.includes("internalEmployees"), "View-ul taskurilor trebuie sa separe angajatii interni de restul tagurilor.");
+    assert(taskBoardSource.includes("Tudor") && taskBoardSource.includes("Sonia"), "Randul de angajati trebuie sa contina numele interne cunoscute.");
+    assert(taskBoardSource.includes("cleanAssigneeLabel"), "Responsabilii extrasi cu fragmente de data trebuie curatati in view.");
+    assert(taskBoardSource.includes("Altii"), "View-ul trebuie sa aiba rand separat pentru firme, echipe sau taguri externe.");
     assert(taskBoardSource.includes("Calendar"), "View-ul taskurilor trebuie sa includa o vedere calendaristica.");
     assert(taskBoardSource.includes("priorityRank"), "View-ul taskurilor trebuie sa poata ordona dupa prioritate.");
   });
