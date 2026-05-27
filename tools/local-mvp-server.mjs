@@ -15,7 +15,7 @@ const emptyStore = {
   processingErrors: []
 };
 const allowedSourceTypes = new Set(["email", "teams_transcript", "manual_upload"]);
-const defaultActorEmail = process.env.LOCAL_ACTOR_EMAIL ?? "approver@firma.ro";
+const defaultActorEmail = process.env.LOCAL_ACTOR_EMAIL ?? "approver@example.com";
 const statusFilters = [
   { value: "proposed", label: "De verificat" },
   { value: "approved", label: "Aprobate" },

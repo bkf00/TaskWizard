@@ -9,7 +9,7 @@ export async function POST(
 ) {
   const { taskId } = await context.params;
   const form = await req.formData();
-  const actorEmail = String(form.get("actorEmail") ?? "approver@firma.ro");
+  const actorEmail = String(form.get("actorEmail") ?? "approver@example.com");
 
   await markTaskCompleted({ taskId, actorEmail });
 

@@ -142,7 +142,7 @@ try {
       type: "manual_upload",
       subject: "Informare generala",
       rawText: "Am discutat stadiul proiectului. Nu exista actiuni clare pentru moment.",
-      fromEmail: "test@firma.ro"
+      fromEmail: "test@example.com"
     });
     assert(response.status === 303, "Ingestia fara taskuri ar trebui sa redirectioneze.", response.status);
     const store = await readStore();
@@ -157,8 +157,8 @@ try {
       subject: "PV Lucrare X",
       rawText:
         "Te rog verifica PV-ul pentru lucrarea X. Ramane sa trimitem documentatia catre client. Pregateste lista de observatii pentru sedinta urmatoare.",
-      fromEmail: "manager@firma.ro",
-      participants: "bogdan@firma.ro, coleg@firma.ro"
+      fromEmail: "manager@example.com",
+      participants: "bogdan@example.com, coleg@example.com"
     });
     assert(response.status === 303, "Ingestia valida ar trebui sa redirectioneze.", response.status);
     const store = await readStore();
@@ -175,9 +175,9 @@ try {
   });
 
   await record("raw EML paste extracts headers and plain text body", async () => {
-    const rawEmail = `From: Tudor Timofti <tudor.timofti@rst-services.ro>
-To: Daniel Florian <daniel.florian@dssmith.com>
-CC: Bogdan Cojocaru <bogdan.cojocaru@rst-services.ro>
+    const rawEmail = `From: Tudor Timofti <tudor.timofti@example.com>
+To: Daniel Florian <daniel.florian@example.com>
+CC: Alex Example <alex.example@example.com>
 Subject: DSSPG - Proj. Reabilitare Acoperis Hala - minuta 15.05.2026
 Content-Type: multipart/alternative; boundary="_test"
 
@@ -194,7 +194,7 @@ Pregateste lista de observatii pentru acoperis.
 --_test--`;
 
     const response = await postForm("/sources/manual", {
-      actorEmail: "bogdan.cojocaru@rst-services.ro",
+      actorEmail: "alex.example@example.com",
       rawEmail
     });
     assert(response.status === 303, "Emailul .eml lipit ar trebui procesat.", response.status);
@@ -202,9 +202,9 @@ Pregateste lista de observatii pentru acoperis.
     const source = store.sources.find((item) => item.subject.includes("Reabilitare Acoperis"));
     assert(source, "Subiectul trebuie extras din headerul EML.");
     assert(source.type === "email", "Sursa .eml trebuie marcata ca email.", source);
-    assert(source.fromEmail === "tudor.timofti@rst-services.ro", "Expeditorul trebuie extras.", source);
-    assert(source.participants.includes("daniel.florian@dssmith.com"), "To trebuie extras in participanti.", source);
-    assert(source.participants.includes("bogdan.cojocaru@rst-services.ro"), "CC/actor trebuie inclus in participanti.", source);
+    assert(source.fromEmail === "tudor.timofti@example.com", "Expeditorul trebuie extras.", source);
+    assert(source.participants.includes("daniel.florian@example.com"), "To trebuie extras in participanti.", source);
+    assert(source.participants.includes("alex.example@example.com"), "CC/actor trebuie inclus in participanti.", source);
     assert(source.rawText.includes("Te rog verifica minuta intalnirii."), "Corpul text/plain trebuie extras.", source.rawText);
     const tasks = store.proposedTasks.filter((task) => task.sourceId === source.id);
     assert(tasks.length === 3, "Emailul .eml ar trebui sa creeze trei taskuri.", tasks);
@@ -303,7 +303,7 @@ Pregateste lista de observatii pentru acoperis.
       subject: "PV Lucrare X",
       rawText:
         "Te rog verifica PV-ul pentru lucrarea X. Ramane sa trimitem documentatia catre client. Pregateste lista de observatii pentru sedinta urmatoare.",
-      fromEmail: "manager@firma.ro"
+      fromEmail: "manager@example.com"
     });
     assert(response.status === 303, "Duplicatul ar trebui sa redirectioneze.", response.status);
     const store = await readStore();
@@ -323,7 +323,7 @@ Pregateste lista de observatii pentru acoperis.
     assert(sourceTasks.length === 3, "Sursa trebuie sa aiba trei taskuri active inainte de inchidere.", sourceTasks);
 
     for (const task of sourceTasks) {
-      const rejectResponse = await postForm(`/tasks/${task.id}/reject`, { actorEmail: "ana@firma.ro" });
+      const rejectResponse = await postForm(`/tasks/${task.id}/reject`, { actorEmail: "ana@example.com" });
       assert(rejectResponse.status === 303, "Respingerile pregatitoare ar trebui sa redirectioneze.", rejectResponse.status);
     }
 
@@ -332,7 +332,7 @@ Pregateste lista de observatii pentru acoperis.
       subject: "PV Lucrare X",
       rawText:
         "Te rog verifica PV-ul pentru lucrarea X. Ramane sa trimitem documentatia catre client. Pregateste lista de observatii pentru sedinta urmatoare.",
-      fromEmail: "manager@firma.ro"
+      fromEmail: "manager@example.com"
     });
     assert(response.status === 303, "Reprocesarea duplicatului ar trebui sa redirectioneze.", response.status);
     const store = await readStore();
@@ -350,10 +350,10 @@ Pregateste lista de observatii pentru acoperis.
     const task = storeBefore.proposedTasks.find((item) => item.status === "proposed");
     assert(task, "Trebuie sa existe un task propus pentru editare.");
     const response = await postForm(`/tasks/${task.id}/update`, {
-      actorEmail: "ana@firma.ro",
+      actorEmail: "ana@example.com",
       title: "Trimite centralizatorul PV actualizat",
       description: "Descriere editata manual inainte de aprobare.",
-      assigneeEmail: "ana@firma.ro",
+      assigneeEmail: "ana@example.com",
       dueDate: "2026-05-25",
       projectHint: "PV-uri"
     });
@@ -362,12 +362,12 @@ Pregateste lista de observatii pentru acoperis.
     const updated = store.proposedTasks.find((item) => item.id === task.id);
     assert(updated.title === "Trimite centralizatorul PV actualizat", "Titlul editat trebuie salvat.", updated);
     assert(updated.description === "Descriere editata manual inainte de aprobare.", "Descrierea editata trebuie salvata.", updated);
-    assert(updated.assigneeEmail === "ana@firma.ro", "Responsabilul editat trebuie salvat.", updated);
+    assert(updated.assigneeEmail === "ana@example.com", "Responsabilul editat trebuie salvat.", updated);
     assert(updated.dueDate === "2026-05-25", "Termenul editat trebuie salvat.", updated);
     assert(updated.projectHint === "PV-uri", "Proiectul editat trebuie salvat.", updated);
     assert(updated.status === "proposed", "Editarea nu trebuie sa aprobe taskul.", updated);
     assert(
-      store.auditEvents.some((event) => event.type === "task.updated" && event.actorEmail === "ana@firma.ro"),
+      store.auditEvents.some((event) => event.type === "task.updated" && event.actorEmail === "ana@example.com"),
       "Editarea trebuie auditata cu actorul real."
     );
   });
@@ -388,13 +388,13 @@ Pregateste lista de observatii pentru acoperis.
     const task = storeBefore.proposedTasks.find((item) => item.status === "proposed");
     assert(task, "Trebuie sa existe un task propus pentru aprobare.");
     const response = await postForm(`/tasks/${task.id}/approve`, {
-      actorEmail: "bogdan@firma.ro"
+      actorEmail: "bogdan@example.com"
     });
     assert(response.status === 303, "Aprobarea ar trebui sa redirectioneze.", response.status);
     const store = await readStore();
     const updated = store.proposedTasks.find((item) => item.id === task.id);
     assert(updated.status === "approved", "Fara Planner configurat, taskul trebuie sa ramana aprobat local.", updated);
-    assert(updated.approvedBy === "bogdan@firma.ro", "Aprobarea trebuie sa salveze actorul real.", updated);
+    assert(updated.approvedBy === "bogdan@example.com", "Aprobarea trebuie sa salveze actorul real.", updated);
     assert(store.processingErrors.length === 0, "Planner neconfigurat nu trebuie sa polueze lista de erori.", store.processingErrors);
   });
 
@@ -403,14 +403,14 @@ Pregateste lista de observatii pentru acoperis.
     const task = storeBefore.proposedTasks.find((item) => item.status === "approved");
     assert(task, "Trebuie sa existe un task aprobat local pentru finalizare.");
     const response = await postForm(`/tasks/${task.id}/complete`, {
-      actorEmail: "bogdan@firma.ro"
+      actorEmail: "bogdan@example.com"
     });
     assert(response.status === 303, "Marcarea ca terminat ar trebui sa redirectioneze.", response.status);
     const store = await readStore();
     const updated = store.proposedTasks.find((item) => item.id === task.id);
     assert(updated.status === "completed_in_planner", "Taskul trebuie sa devina completed_in_planner.", updated);
     assert(
-      store.auditEvents.some((event) => event.type === "task.completed" && event.actorEmail === "bogdan@firma.ro"),
+      store.auditEvents.some((event) => event.type === "task.completed" && event.actorEmail === "bogdan@example.com"),
       "Finalizarea trebuie auditata cu actorul real."
     );
   });
@@ -420,18 +420,18 @@ Pregateste lista de observatii pentru acoperis.
     const task = storeBefore.proposedTasks.find((item) => item.status === "proposed");
     assert(task, "Trebuie sa existe un task propus pentru stergere dupa aprobare.");
     const approveResponse = await postForm(`/tasks/${task.id}/approve`, {
-      actorEmail: "ana@firma.ro"
+      actorEmail: "ana@example.com"
     });
     assert(approveResponse.status === 303, "Aprobarea pregatitoare ar trebui sa redirectioneze.", approveResponse.status);
     const response = await postForm(`/tasks/${task.id}/delete`, {
-      actorEmail: "ana@firma.ro"
+      actorEmail: "ana@example.com"
     });
     assert(response.status === 303, "Marcarea ca sters ar trebui sa redirectioneze.", response.status);
     const store = await readStore();
     const updated = store.proposedTasks.find((item) => item.id === task.id);
     assert(updated.status === "deleted_in_planner", "Taskul trebuie sa devina deleted_in_planner.", updated);
     assert(
-      store.auditEvents.some((event) => event.type === "task.deleted" && event.actorEmail === "ana@firma.ro"),
+      store.auditEvents.some((event) => event.type === "task.deleted" && event.actorEmail === "ana@example.com"),
       "Stergerea trebuie auditata cu actorul real."
     );
   });
@@ -441,7 +441,7 @@ Pregateste lista de observatii pentru acoperis.
     const task = storeBefore.proposedTasks.find((item) => item.status === "proposed");
     assert(task, "Trebuie sa existe un task propus pentru blocarea finalizarii.");
     const response = await postForm(`/tasks/${task.id}/complete`, {
-      actorEmail: "ana@firma.ro"
+      actorEmail: "ana@example.com"
     });
     assert(response.status === 409, "Finalizarea inainte de aprobare trebuie sa intoarca 409.", response.status);
   });
@@ -456,14 +456,14 @@ Pregateste lista de observatii pentru acoperis.
     const task = storeBefore.proposedTasks.find((item) => item.status === "proposed");
     assert(task, "Trebuie sa existe un task propus pentru respingere.");
     const response = await postForm(`/tasks/${task.id}/reject`, {
-      actorEmail: "mihai@firma.ro"
+      actorEmail: "mihai@example.com"
     });
     assert(response.status === 303, "Respingerea ar trebui sa redirectioneze.", response.status);
     const store = await readStore();
     const updated = store.proposedTasks.find((item) => item.id === task.id);
     assert(updated.status === "rejected", "Taskul trebuie sa devina rejected.", updated);
     assert(
-      store.auditEvents.some((event) => event.type === "task.rejected" && event.actorEmail === "mihai@firma.ro"),
+      store.auditEvents.some((event) => event.type === "task.rejected" && event.actorEmail === "mihai@example.com"),
       "Respingerea trebuie auditata cu actorul real."
     );
   });
@@ -569,7 +569,7 @@ Ana: Mai trebuie sa confirmam cine aproba taskurile propuse de AI.
       type: "teams_transcript",
       subject: "Dialog lung sedinta PV-uri",
       rawText: longDialog,
-      participants: "bogdan@firma.ro, ana@firma.ro, mihai@firma.ro"
+      participants: "bogdan@example.com, ana@example.com, mihai@example.com"
     });
     assert(response.status === 303, "Dialogul lung ar trebui acceptat.", response.status);
     const store = await readStore();

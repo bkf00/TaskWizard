@@ -59,7 +59,7 @@ Nota de securitate: pentru productie, limiteaza mailbox-ul la un folder dedicat 
 Configureaza un mailbox si un folder explicit pentru emailurile care pot fi procesate de TaskWizard.
 
 ```env
-OUTLOOK_USER_ID=automation-mailbox@firma.ro
+OUTLOOK_USER_ID=automation-mailbox@example.com
 OUTLOOK_FOLDER_ID=<mailFolder-id>
 ```
 

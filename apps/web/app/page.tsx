@@ -2,7 +2,7 @@ import { store } from "@repo/storage/local-store";
 import { EmailSourceForm } from "./email-source-form";
 
 export const dynamic = "force-dynamic";
-const defaultActorEmail = process.env.LOCAL_ACTOR_EMAIL ?? "approver@firma.ro";
+const defaultActorEmail = process.env.LOCAL_ACTOR_EMAIL ?? "approver@example.com";
 const plannerTerminalSourceStatuses = new Set(["approved", "created_in_planner", "planner_sync_failed"]);
 
 function formatDate(value: string | null): string {

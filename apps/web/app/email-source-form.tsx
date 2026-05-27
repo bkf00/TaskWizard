@@ -54,10 +54,10 @@ export function EmailSourceForm({ defaultActorEmail }: { defaultActorEmail: stri
           <input id="subject" name="subject" placeholder="Ex: Sedinta PV lucrare X" />
 
           <label htmlFor="fromEmail">Expeditor / organizator</label>
-          <input id="fromEmail" name="fromEmail" type="email" placeholder="optional@firma.ro" />
+          <input id="fromEmail" name="fromEmail" type="email" placeholder="optional@example.com" />
 
           <label htmlFor="participants">Participanti</label>
-          <input id="participants" name="participants" placeholder="email1@firma.ro, email2@firma.ro" />
+          <input id="participants" name="participants" placeholder="email1@example.com, email2@example.com" />
 
           <label htmlFor="rawText">Text email / recap / transcript</label>
           <textarea id="rawText" name="rawText" />
@@ -72,4 +72,3 @@ export function EmailSourceForm({ defaultActorEmail }: { defaultActorEmail: stri
     </>
   );
 }
-
