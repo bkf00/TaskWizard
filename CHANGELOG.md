@@ -77,6 +77,7 @@ Format inspirat de Keep a Changelog. Proiectul foloseste versionare pragmatica p
 - A fost adaugat view-ul `/tasks` pentru urmarirea taskurilor dupa termen, prioritate si responsabil, cu filtre dinamice si mini-calendar lateral.
 - Review-ul permite acum `Aproba prioritar`, marcand taskul cu prioritate ridicata inainte de sincronizare/urmarire.
 - Filtrele de responsabili din `/tasks` sunt separate pe doua randuri: angajati interni si alti responsabili, cu curatare pentru taguri poluate de date/numere.
+- Tagurile de responsabili din `/tasks` sunt ordonate descrescator dupa numarul de taskuri, cu sortare alfabetica doar la egalitate.
 
 ### Known Limitations
 

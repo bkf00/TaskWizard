@@ -43,6 +43,10 @@ function taskMatchesAssigneeFilter(task: ProposedTask, filter: string): boolean 
   return true;
 }
 
+function sortFilterTags<T extends { name: string; count: number }>(items: T[]): T[] {
+  return [...items].sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, "ro"));
+}
+
 function formatDate(value: string | null): string {
   if (!value) return "fara termen";
   return new Intl.DateTimeFormat("ro-RO", { dateStyle: "medium" }).format(new Date(value));
@@ -79,19 +83,18 @@ export function TaskBoard({ tasks, actorEmail }: { tasks: ProposedTask[]; actorE
   }, [scope, tasks]);
 
   const employeeFilters = useMemo(() => {
-    return internalEmployees.map((name) => ({
+    return sortFilterTags(internalEmployees.map((name) => ({
       name,
       count: scopedTasks.filter((task) => employeeForTask(task) === name).length
-    }));
+    })));
   }, [scopedTasks]);
 
   const otherAssignees = useMemo(() => {
-    return [...new Set(scopedTasks.filter((task) => !employeeForTask(task)).map(assigneeLabel))]
-      .sort((a, b) => a.localeCompare(b, "ro"))
+    return sortFilterTags([...new Set(scopedTasks.filter((task) => !employeeForTask(task)).map(assigneeLabel))]
       .map((name) => ({
         name,
         count: scopedTasks.filter((task) => !employeeForTask(task) && assigneeLabel(task) === name).length
-      }));
+      })));
   }, [scopedTasks]);
 
   const visibleTasks = useMemo(() => {
