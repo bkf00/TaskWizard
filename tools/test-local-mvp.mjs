@@ -342,6 +342,26 @@ Pregateste lista de observatii pentru acoperis.
     );
   });
 
+  await record("identical task identity is blocked across different sources", async () => {
+    const before = await readStore();
+    const response = await postForm("/sources/manual", {
+      type: "email",
+      subject: "Follow-up operational cu task duplicat",
+      rawText: "Bogdan te rog verifica lista de PV-uri lipsa pana maine dimineata."
+    });
+    assert(response.status === 303, "Sursa noua cu task duplicat ar trebui procesata.", response.status);
+    const store = await readStore();
+    const source = store.sources.find((item) => item.subject === "Follow-up operational cu task duplicat");
+    assert(source, "Sursa noua trebuie salvata chiar daca taskul extras e duplicat.");
+    const sourceTasks = store.proposedTasks.filter((task) => task.sourceId === source.id);
+    assert(sourceTasks.length === 0, "Taskul cu acelasi titlu, termen si responsabil nu trebuie duplicat.", sourceTasks);
+    assert(store.proposedTasks.length === before.proposedTasks.length, "Numarul total de taskuri nu trebuie sa creasca.", store.proposedTasks);
+    assert(
+      store.auditEvents.some((event) => event.type === "task.duplicate_ignored" && event.sourceId === source.id),
+      "Taskul duplicat trebuie marcat in audit."
+    );
+  });
+
   await record("duplicate source can be reprocessed after all review tasks are closed", async () => {
     const storeBefore = await readStore();
     const source = storeBefore.sources.find((item) => item.subject === "PV Lucrare X");
@@ -364,8 +384,8 @@ Pregateste lista de observatii pentru acoperis.
     assert(response.status === 303, "Reprocesarea duplicatului ar trebui sa redirectioneze.", response.status);
     const store = await readStore();
     const reviewableTasks = store.proposedTasks.filter((task) => task.sourceId === source.id && task.status === "proposed");
-    assert(store.sources.length === 6, "Reprocesarea nu trebuie sa creeze o sursa noua.", store.sources);
-    assert(reviewableTasks.length === 3, "Reprocesarea trebuie sa creeze taskuri noi de verificat.", reviewableTasks);
+    assert(store.sources.length === 7, "Reprocesarea nu trebuie sa creeze o sursa noua.", store.sources);
+    assert(reviewableTasks.length === 3, "Reprocesarea taskurilor fara responsabil/termen explicit ramane permisa.", reviewableTasks);
     assert(
       store.auditEvents.some((event) => event.type === "source.reprocessed"),
       "Reprocesarea trebuie marcata in audit."

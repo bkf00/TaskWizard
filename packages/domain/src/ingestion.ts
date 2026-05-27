@@ -3,6 +3,7 @@ import { addDays, hashSource, newId } from "./ids";
 import { audit } from "@repo/audit/audit";
 import { extractProposedTasks } from "@repo/ai/extract-tasks";
 import { store } from "@repo/storage/local-store";
+import { removeDuplicateTaskIdentities } from "./task-identity";
 
 export async function ingestManualSource(input: {
   type: SourceType;
@@ -66,20 +67,32 @@ export async function ingestManualSource(input: {
     });
 
     const proposedTasks = await extractProposedTasks(source);
-    await store.saveProposedTasks(proposedTasks);
+    const existingTasks = await store.listProposedTasks();
+    const { uniqueTasks, duplicateCount } = removeDuplicateTaskIdentities(proposedTasks, existingTasks);
+    await store.saveProposedTasks(uniqueTasks);
 
     source.status = "processed";
     await store.saveSource(source);
+
+    if (duplicateCount > 0) {
+      await audit({
+        type: "task.duplicate_ignored",
+        actorEmail: input.actorEmail,
+        sourceId: source.id,
+        message: `${duplicateCount} taskuri identice au fost ignorate.`,
+        metadata: { duplicateTaskCount: duplicateCount }
+      });
+    }
 
     await audit({
       type: "source.extraction_completed",
       actorEmail: input.actorEmail,
       sourceId: source.id,
       message: "Extractia AI s-a finalizat.",
-      metadata: { proposedTaskCount: proposedTasks.length }
+      metadata: { proposedTaskCount: uniqueTasks.length, duplicateTaskCount: duplicateCount }
     });
 
-    return { source, createdTaskCount: proposedTasks.length, duplicate: false };
+    return { source, createdTaskCount: uniqueTasks.length, duplicate: false };
   } catch (error) {
     source.status = "failed";
     source.errorMessage = error instanceof Error ? error.message : "Unknown extraction error";
@@ -103,4 +116,3 @@ export async function ingestManualSource(input: {
     throw error;
   }
 }
-

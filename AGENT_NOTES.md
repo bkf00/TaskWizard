@@ -52,6 +52,7 @@ Acest fisier este jurnalul de lucru al agentului. Se actualizeaza la fiecare sch
 - Am aliniat UI-ul Next.js cu interfata TaskWizard organizata folosita in runnerul local: import prin modal, review central, taskuri active separate si istoric compact cu filtre profesionale.
 - Am adaugat test de regresie pentru layoutul Next.js, deoarece pagina veche poate reaparea usor cand lucram separat pe runnerul local si pe aplicatia web.
 - Am adaugat refresh live prin polling de versiune pentru dashboardul Next.js. Alegerea e intentionat simpla pentru o echipa mica: ceilalti utilizatori vad actiunile pe taskuri fara refresh manual, iar formularele deschise nu sunt intrerupte.
+- Am adaugat safeguard de deduplicare pentru taskuri identice. Cheia este stricta si cere titlu, termen si responsabil; taskurile fara termen sau responsabil explicit nu sunt blocate doar pentru ca au titlu asemanator.
 
 ## Regula de utilizare
 

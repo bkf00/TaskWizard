@@ -73,6 +73,7 @@ Format inspirat de Keep a Changelog. Proiectul foloseste versionare pragmatica p
 - UI-ul Next.js a fost aliniat cu dashboardul TaskWizard organizat: header profesional, import email in modal, review central, taskuri active separate si istoric compact in dreapta.
 - Testele locale includ acum o regresie statica pentru layoutul Next.js, ca aplicatia sa nu revina accidental la interfata veche.
 - Dashboardul Next.js verifica periodic versiunea starii si face refresh automat cand alt utilizator aproba, respinge, editeaza, termina sau sterge taskuri.
+- Ingestia blocheaza taskurile 100% identice cand au acelasi titlu, acelasi termen si acelasi responsabil; duplicatele sunt marcate in audit ca `task.duplicate_ignored`.
 
 ### Known Limitations
 

@@ -25,6 +25,7 @@ export type AuditEventType =
   | "source.extraction_completed"
   | "source.extraction_failed"
   | "task.updated"
+  | "task.duplicate_ignored"
   | "task.approved"
   | "task.rejected"
   | "task.completed"

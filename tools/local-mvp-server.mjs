@@ -342,6 +342,45 @@ function redirect(res) {
   res.end();
 }
 
+function normalizeTaskIdentityPart(value) {
+  return String(value ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
+}
+
+function taskIdentityKey(task) {
+  const title = normalizeTaskIdentityPart(task.title);
+  const dueDate = normalizeTaskIdentityPart(task.dueDate);
+  const assignee = normalizeTaskIdentityPart(task.assigneeEmail) || normalizeTaskIdentityPart(task.assigneeName);
+  if (!title || !dueDate || !assignee) return null;
+  return [title, dueDate, assignee].join("|");
+}
+
+function removeDuplicateTaskIdentities(candidates, existingTasks) {
+  const seen = new Set(existingTasks.map(taskIdentityKey).filter(Boolean));
+  const uniqueTasks = [];
+  let duplicateCount = 0;
+
+  for (const candidate of candidates) {
+    const key = taskIdentityKey(candidate);
+    if (!key) {
+      uniqueTasks.push(candidate);
+      continue;
+    }
+    if (seen.has(key)) {
+      duplicateCount += 1;
+      continue;
+    }
+    seen.add(key);
+    uniqueTasks.push(candidate);
+  }
+
+  return { uniqueTasks, duplicateCount };
+}
+
 async function handleIngest(req, res) {
   const form = await parseForm(req);
   const actorEmail = actorFromForm(form);
@@ -371,12 +410,21 @@ async function handleIngest(req, res) {
     const hasReviewableTasks = existingTasks.some((task) => task.status === "proposed" || task.status === "planner_sync_failed");
     if (!hasReviewableTasks) {
       const tasks = fallbackExtract(existing);
-      data.proposedTasks.push(...tasks);
+      const { uniqueTasks, duplicateCount } = removeDuplicateTaskIdentities(tasks, data.proposedTasks);
+      data.proposedTasks.push(...uniqueTasks);
+      if (duplicateCount > 0) {
+        audit(data, {
+          type: "task.duplicate_ignored",
+          actorEmail,
+          sourceId: existing.id,
+          message: `${duplicateCount} taskuri identice au fost ignorate.`
+        });
+      }
       audit(data, {
         type: "source.reprocessed",
         actorEmail,
         sourceId: existing.id,
-        message: `Sursa duplicata a fost reprocesata si au fost propuse ${tasks.length} taskuri.`
+        message: `Sursa duplicata a fost reprocesata si au fost propuse ${uniqueTasks.length} taskuri.`
       });
       await writeStore(data);
       redirect(res);
@@ -417,12 +465,21 @@ async function handleIngest(req, res) {
   data.sources.push(source);
   audit(data, { type: "source.received", actorEmail, sourceId: source.id, message: "Sursa a fost primita." });
   const tasks = fallbackExtract(source);
-  data.proposedTasks.push(...tasks);
+  const { uniqueTasks, duplicateCount } = removeDuplicateTaskIdentities(tasks, data.proposedTasks);
+  data.proposedTasks.push(...uniqueTasks);
+  if (duplicateCount > 0) {
+    audit(data, {
+      type: "task.duplicate_ignored",
+      actorEmail,
+      sourceId: source.id,
+      message: `${duplicateCount} taskuri identice au fost ignorate.`
+    });
+  }
   audit(data, {
     type: "source.extraction_completed",
     actorEmail,
     sourceId: source.id,
-    message: `Au fost propuse ${tasks.length} taskuri.`
+    message: `Au fost propuse ${uniqueTasks.length} taskuri.`
   });
   await writeStore(data);
   redirect(res);

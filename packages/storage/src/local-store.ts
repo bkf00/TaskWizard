@@ -1,6 +1,7 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import type { AuditEvent, ProcessingError, ProposedTask, SourceItem } from "@repo/domain/types";
+import { taskIdentityKey } from "@repo/domain/task-identity";
 import { emptyStoreSnapshot, type StoreSnapshot, type TaskWizardRepository } from "./repository";
 
 function dataDir(): string {
@@ -61,11 +62,24 @@ export class JsonFileTaskWizardRepository implements TaskWizardRepository {
 
   async saveProposedTasks(tasks: ProposedTask[]): Promise<void> {
     const data = await this.readStore();
+    const seenIdentities = new Set(data.proposedTasks.map(taskIdentityKey).filter((key): key is string => Boolean(key)));
+
     for (const task of tasks) {
       const index = data.proposedTasks.findIndex((item) => item.id === task.id);
       if (index >= 0) {
+        const previousIdentity = taskIdentityKey(data.proposedTasks[index]);
+        if (previousIdentity) seenIdentities.delete(previousIdentity);
         data.proposedTasks[index] = task;
+        const nextIdentity = taskIdentityKey(task);
+        if (nextIdentity) seenIdentities.add(nextIdentity);
       } else {
+        const identity = taskIdentityKey(task);
+        if (!identity) {
+          data.proposedTasks.push(task);
+          continue;
+        }
+        if (seenIdentities.has(identity)) continue;
+        seenIdentities.add(identity);
         data.proposedTasks.push(task);
       }
     }
