@@ -155,6 +155,8 @@ try {
     assert(taskBoardSource.includes("b.count - a.count"), "Tagurile cu mai multe taskuri trebuie sa apara primele.");
     assert(taskBoardSource.includes("Calendar"), "View-ul taskurilor trebuie sa includa o vedere calendaristica.");
     assert(taskBoardSource.includes("priorityRank"), "View-ul taskurilor trebuie sa poata ordona dupa prioritate.");
+    assert(taskBoardSource.includes("actionableStatuses"), "View-ul /tasks trebuie sa includa doar taskuri actionabile.");
+    assert(taskBoardSource.includes("\"proposed\"") && taskBoardSource.includes("\"approved\""), "View-ul /tasks trebuie sa includa taskuri aprobate si in asteptare.");
   });
 
   await record("empty input is rejected", async () => {

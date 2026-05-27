@@ -4,9 +4,8 @@ import type { ProposedTask } from "@repo/domain/types";
 import { useMemo, useState } from "react";
 
 type SortMode = "dueDate" | "priority" | "assignee";
-type ScopeMode = "active" | "all";
 
-const activeStatuses = new Set<ProposedTask["status"]>(["approved", "created_in_planner", "planner_sync_failed", "proposed"]);
+const actionableStatuses = new Set<ProposedTask["status"]>(["proposed", "approved", "created_in_planner", "planner_sync_failed"]);
 const internalEmployees = ["Tudor", "Florin", "Bogdan", "Sebastian", "Valentin", "Sonia"];
 
 function normalizeText(value: string): string {
@@ -76,11 +75,10 @@ function calendarDays(tasks: ProposedTask[]) {
 export function TaskBoard({ tasks, actorEmail }: { tasks: ProposedTask[]; actorEmail: string }) {
   const [assigneeFilter, setAssigneeFilter] = useState("all");
   const [sortMode, setSortMode] = useState<SortMode>("dueDate");
-  const [scope, setScope] = useState<ScopeMode>("active");
 
   const scopedTasks = useMemo(() => {
-    return tasks.filter((task) => (scope === "all" ? true : activeStatuses.has(task.status)));
-  }, [scope, tasks]);
+    return tasks.filter((task) => actionableStatuses.has(task.status));
+  }, [tasks]);
 
   const employeeFilters = useMemo(() => {
     return sortFilterTags(internalEmployees.map((name) => ({
@@ -125,13 +123,9 @@ export function TaskBoard({ tasks, actorEmail }: { tasks: ProposedTask[]; actorE
         <div className="task-board-toolbar">
           <div>
             <h2>View taskuri</h2>
-            <p className="muted">Sorteaza dupa termen, prioritate sau responsabil.</p>
+            <p className="muted">Taskuri active, aprobate sau in asteptare de aprobare.</p>
           </div>
           <div className="board-controls">
-            <select aria-label="Scope taskuri" value={scope} onChange={(event) => setScope(event.target.value as ScopeMode)}>
-              <option value="active">Active + de verificat</option>
-              <option value="all">Toate taskurile</option>
-            </select>
             <select aria-label="Sortare taskuri" value={sortMode} onChange={(event) => setSortMode(event.target.value as SortMode)}>
               <option value="dueDate">Termen</option>
               <option value="priority">Prioritate</option>
