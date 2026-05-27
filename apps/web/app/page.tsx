@@ -1,8 +1,8 @@
 import { store } from "@repo/storage/local-store";
+import { getCurrentActor } from "../auth-actor";
 import { EmailSourceForm } from "./email-source-form";
 
 export const dynamic = "force-dynamic";
-const defaultActorEmail = process.env.LOCAL_ACTOR_EMAIL ?? "approver@example.com";
 const plannerTerminalSourceStatuses = new Set(["approved", "created_in_planner", "planner_sync_failed"]);
 
 function formatDate(value: string | null): string {
@@ -11,7 +11,8 @@ function formatDate(value: string | null): string {
 }
 
 export default async function HomePage() {
-  const [sources, tasks, errors, auditEvents] = await Promise.all([
+  const [actor, sources, tasks, errors, auditEvents] = await Promise.all([
+    getCurrentActor(),
     store.listSources(),
     store.listProposedTasks(),
     store.listProcessingErrors(),
@@ -35,13 +36,18 @@ export default async function HomePage() {
           <strong>{proposedCount}</strong> taskuri in asteptare
           <br />
           <span className="muted">{sources.length} surse procesate</span>
+          <br />
+          <span className="muted">
+            Actor: {actor.name ? `${actor.name} / ` : ""}
+            {actor.email}
+          </span>
         </div>
       </div>
 
       <div className="grid">
         <section className="panel">
           <h2>Proceseaza email</h2>
-          <EmailSourceForm defaultActorEmail={defaultActorEmail} />
+          <EmailSourceForm defaultActorEmail={actor.email} authenticated={actor.authenticated} />
         </section>
 
         <section className="stack">
@@ -80,14 +86,7 @@ export default async function HomePage() {
                     {task.status === "proposed" ? (
                       <div>
                         <form action={`/api/tasks/${task.id}/update`} method="post" className="edit-form">
-                          <label htmlFor={`actor-${task.id}`}>Actor</label>
-                          <input
-                            id={`actor-${task.id}`}
-                            name="actorEmail"
-                            type="email"
-                            defaultValue={defaultActorEmail}
-                            required
-                          />
+                          <input type="hidden" name="actorEmail" value={actor.email} />
 
                           <label htmlFor={`title-${task.id}`}>Titlu</label>
                           <input id={`title-${task.id}`} name="title" defaultValue={task.title} required />
@@ -127,12 +126,12 @@ export default async function HomePage() {
 
                         <div className="task-actions">
                         <form action={`/api/tasks/${task.id}/approve`} method="post">
-                          <input type="hidden" name="actorEmail" value={defaultActorEmail} />
+                          <input type="hidden" name="actorEmail" value={actor.email} />
                           <button type="submit">Aproba</button>
                         </form>
                         {task.status === "proposed" ? (
                           <form action={`/api/tasks/${task.id}/reject`} method="post">
-                            <input type="hidden" name="actorEmail" value={defaultActorEmail} />
+                            <input type="hidden" name="actorEmail" value={actor.email} />
                             <button className="button-danger" type="submit">
                               Respinge
                             </button>
@@ -168,13 +167,13 @@ export default async function HomePage() {
                     </div>
                     <div className="task-actions">
                       <form action={`/api/tasks/${task.id}/complete`} method="post">
-                        <input type="hidden" name="actorEmail" value={defaultActorEmail} />
+                        <input type="hidden" name="actorEmail" value={actor.email} />
                         <button className="button-secondary" type="submit">
                           Marcheaza terminat
                         </button>
                       </form>
                       <form action={`/api/tasks/${task.id}/delete`} method="post">
-                        <input type="hidden" name="actorEmail" value={defaultActorEmail} />
+                        <input type="hidden" name="actorEmail" value={actor.email} />
                         <button className="button-danger" type="submit">
                           Marcheaza sters
                         </button>

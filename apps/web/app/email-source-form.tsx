@@ -1,11 +1,20 @@
 "use client";
 
-export function EmailSourceForm({ defaultActorEmail }: { defaultActorEmail: string }) {
+export function EmailSourceForm({
+  defaultActorEmail,
+  authenticated
+}: {
+  defaultActorEmail: string;
+  authenticated: boolean;
+}) {
   return (
     <>
       <form action="/api/sources/manual" method="post">
-        <label htmlFor="actorEmail">Procesat de</label>
-        <input id="actorEmail" name="actorEmail" type="email" defaultValue={defaultActorEmail} />
+        <input id="actorEmail" name="actorEmail" type="hidden" value={defaultActorEmail} />
+        <p className="muted">
+          Procesat de {defaultActorEmail}
+          {authenticated ? "" : " (fallback local)"}
+        </p>
 
         <label htmlFor="emailFile">Fisier .eml</label>
         <input

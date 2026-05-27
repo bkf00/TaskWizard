@@ -69,6 +69,7 @@ Format inspirat de Keep a Changelog. Proiectul foloseste versionare pragmatica p
 - Filtrele din "Toate taskurile" folosesc etichete profesionale in romana si contoare separate, in locul statusurilor tehnice brute.
 - Confidence-ul fallback este calculat din semnale concrete: actiune detectata, responsabil, termen si titlu compact; taskurile complete pot ajunge `high`, iar cele vagi raman `low`.
 - Milestone 2 Microsoft 365: Entra ID sign-in, Graph client cu retry, Outlook folder sync, Graph subscriptions/webhook, Planner task creation cu descriere si Entra user lookup pentru assignment.
+- Aplicatia web foloseste sesiunea Entra ID pentru actorul de audit/aprobare, cu fallback local doar cand nu exista sesiune.
 
 ### Known Limitations
 

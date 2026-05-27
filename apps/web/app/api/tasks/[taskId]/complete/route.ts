@@ -1,5 +1,6 @@
 import { markTaskCompleted } from "@repo/domain/approval";
 import { NextResponse } from "next/server";
+import { getCurrentActorEmail } from "../../../../../auth-actor";
 
 export const runtime = "nodejs";
 
@@ -9,7 +10,7 @@ export async function POST(
 ) {
   const { taskId } = await context.params;
   const form = await req.formData();
-  const actorEmail = String(form.get("actorEmail") ?? "approver@example.com");
+  const actorEmail = await getCurrentActorEmail(String(form.get("actorEmail") ?? ""));
 
   await markTaskCompleted({ taskId, actorEmail });
 

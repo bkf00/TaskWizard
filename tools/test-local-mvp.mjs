@@ -536,6 +536,8 @@ Pregateste lista de observatii pentru acoperis.
       readFile(path.join(projectRoot, "packages/graph/src/subscriptions.ts"), "utf8"),
       readFile(path.join(projectRoot, "packages/domain/src/m365.ts"), "utf8"),
       readFile(path.join(projectRoot, "apps/web/app/api/graph/webhook/route.ts"), "utf8"),
+      readFile(path.join(projectRoot, "apps/web/auth-actor.ts"), "utf8"),
+      readFile(path.join(projectRoot, "apps/web/app/page.tsx"), "utf8"),
       readFile(path.join(projectRoot, "docs/microsoft-365-setup.md"), "utf8"),
       readFile(path.join(projectRoot, ".env.example"), "utf8")
     ]);
@@ -548,6 +550,8 @@ Pregateste lista de observatii pentru acoperis.
     assert(joined.includes("GRAPH_WEBHOOK_CLIENT_STATE"), "Webhook-ul trebuie sa valideze clientState.");
     assert(joined.includes("OUTLOOK_FOLDER_ID"), "Documentatia/env trebuie sa ceara folder Outlook configurabil.");
     assert(joined.includes("PLANNER_PLAN_ID") && joined.includes("PLANNER_BUCKET_ID"), "Planner plan/bucket trebuie configurabile.");
+    assert(joined.includes("getCurrentActorEmail"), "Rutele web trebuie sa foloseasca actorul autentificat Entra.");
+    assert(joined.includes("Actor:"), "Pagina web trebuie sa afiseze actorul curent folosit in audit.");
   });
 
   await record("long meeting dialog extracts multiple operational tasks", async () => {

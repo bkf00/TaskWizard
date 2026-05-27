@@ -2,13 +2,14 @@ import { ingestManualSource } from "@repo/domain/ingestion";
 import { parseEmailPaste } from "@repo/domain/email-format";
 import type { SourceType } from "@repo/domain/types";
 import { NextResponse } from "next/server";
+import { getCurrentActorEmail } from "../../../../auth-actor";
 
 export const runtime = "nodejs";
 const allowedSourceTypes = new Set(["email", "teams_transcript", "manual_upload"]);
 
 export async function POST(req: Request) {
   const form = await req.formData();
-  const actorEmail = String(form.get("actorEmail") ?? "").trim() || null;
+  const actorEmail = await getCurrentActorEmail(String(form.get("actorEmail") ?? ""));
   const rawEmail = String(form.get("rawEmail") ?? "").trim();
   const parsed = rawEmail
     ? parseEmailPaste({ rawEmail, fallbackActorEmail: actorEmail })
