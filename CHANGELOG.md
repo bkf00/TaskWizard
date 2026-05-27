@@ -78,6 +78,7 @@ Format inspirat de Keep a Changelog. Proiectul foloseste versionare pragmatica p
 - Review-ul permite acum `Aproba prioritar`, marcand taskul cu prioritate ridicata inainte de sincronizare/urmarire.
 - Filtrele de responsabili din `/tasks` sunt separate pe doua randuri: angajati interni si alti responsabili, cu curatare pentru taguri poluate de date/numere.
 - Tagurile de responsabili din `/tasks` sunt ordonate descrescator dupa numarul de taskuri, cu sortare alfabetica doar la egalitate.
+- Audit de clean code: view-ul `/tasks` calculeaza o singura data responsabilul/angajatul per task, storage-ul local foloseste lookup prin `Map`, iar versiunea dashboardului gaseste ultimul timestamp fara sortare inutila.
 - View-ul `/tasks` afiseaza doar taskuri actionabile: in asteptare de aprobare, aprobate sau active in Planner/sincronizare.
 
 ### Known Limitations

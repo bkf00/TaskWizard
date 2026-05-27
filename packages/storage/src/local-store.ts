@@ -69,10 +69,11 @@ export class JsonFileTaskWizardRepository implements TaskWizardRepository {
 
   async saveProposedTasks(tasks: ProposedTask[]): Promise<void> {
     const data = await this.readStore();
+    const taskIndexById = new Map(data.proposedTasks.map((task, index) => [task.id, index]));
     const seenIdentities = new Set(data.proposedTasks.map(taskIdentityKey).filter((key): key is string => Boolean(key)));
 
     for (const task of tasks) {
-      const index = data.proposedTasks.findIndex((item) => item.id === task.id);
+      const index = taskIndexById.get(task.id) ?? -1;
       if (index >= 0) {
         const previousIdentity = taskIdentityKey(data.proposedTasks[index]);
         if (previousIdentity) seenIdentities.delete(previousIdentity);
@@ -83,11 +84,13 @@ export class JsonFileTaskWizardRepository implements TaskWizardRepository {
         const identity = taskIdentityKey(task);
         if (!identity) {
           data.proposedTasks.push(task);
+          taskIndexById.set(task.id, data.proposedTasks.length - 1);
           continue;
         }
         if (seenIdentities.has(identity)) continue;
         seenIdentities.add(identity);
         data.proposedTasks.push(task);
+        taskIndexById.set(task.id, data.proposedTasks.length - 1);
       }
     }
     await this.writeStore(data);

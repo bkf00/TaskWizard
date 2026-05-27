@@ -57,6 +57,7 @@ Acest fisier este jurnalul de lucru al agentului. Se actualizeaza la fiecare sch
 - Am separat filtrele din `/tasks` in doua randuri: angajati interni cunoscuti si alti responsabili. Asta pregateste viitorul pas de asignare reala catre useri fara sa amestecam firmele sau fragmentele extrase gresit cu oamenii interni.
 - Am ordonat tagurile de responsabili dupa volum: cele cu mai multe taskuri sunt primele, iar cele fara taskuri cad la final.
 - Am definit `/tasks` ca view operational pentru taskuri actionabile: include `proposed`, `approved`, `created_in_planner` si `planner_sync_failed`, dar exclude istoricul inchis.
+- Am facut auditul de clean code pe zonele adaugate recent: am eliminat calcule repetate in `/tasks`, am simplificat calculul versiunii live si am optimizat salvarea batch in storage fara sa schimb comportamentul functional.
 
 ## Regula de utilizare
 

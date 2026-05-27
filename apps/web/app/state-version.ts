@@ -10,9 +10,11 @@ export type DashboardStateVersion = {
 };
 
 function latest(values: Array<string | null | undefined>): string | null {
-  const filtered = values.filter((value): value is string => Boolean(value));
-  if (filtered.length === 0) return null;
-  return filtered.sort().at(-1) ?? null;
+  let latestValue: string | null = null;
+  for (const value of values) {
+    if (value && (!latestValue || value > latestValue)) latestValue = value;
+  }
+  return latestValue;
 }
 
 export async function getDashboardStateVersion(): Promise<DashboardStateVersion> {

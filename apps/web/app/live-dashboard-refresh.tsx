@@ -10,7 +10,6 @@ type Props = {
 
 type VersionResponse = {
   version: string;
-  latestChangedAt: string | null;
 };
 
 function userIsEditing(): boolean {

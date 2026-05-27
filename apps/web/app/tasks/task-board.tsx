@@ -7,6 +7,16 @@ type SortMode = "dueDate" | "priority" | "assignee";
 
 const actionableStatuses = new Set<ProposedTask["status"]>(["proposed", "approved", "created_in_planner", "planner_sync_failed"]);
 const internalEmployees = ["Tudor", "Florin", "Bogdan", "Sebastian", "Valentin", "Sonia"];
+const employeeMatchers = internalEmployees.map((employee) => ({
+  name: employee,
+  pattern: new RegExp(`\\b${normalizeText(employee)}\\b`, "i")
+}));
+
+type TaskBoardRow = {
+  task: ProposedTask;
+  assignee: string;
+  employee: string | null;
+};
 
 function normalizeText(value: string): string {
   return value
@@ -32,13 +42,21 @@ function assigneeLabel(task: ProposedTask): string {
 
 function employeeForTask(task: ProposedTask): string | null {
   const raw = normalizeText(`${task.assigneeName ?? ""} ${task.assigneeEmail ?? ""}`);
-  return internalEmployees.find((employee) => new RegExp(`\\b${normalizeText(employee)}\\b`, "i").test(raw)) ?? null;
+  return employeeMatchers.find((employee) => employee.pattern.test(raw))?.name ?? null;
 }
 
-function taskMatchesAssigneeFilter(task: ProposedTask, filter: string): boolean {
+function taskBoardRow(task: ProposedTask): TaskBoardRow {
+  return {
+    task,
+    assignee: assigneeLabel(task),
+    employee: employeeForTask(task)
+  };
+}
+
+function taskMatchesAssigneeFilter(row: TaskBoardRow, filter: string): boolean {
   if (filter === "all") return true;
-  if (filter.startsWith("employee:")) return employeeForTask(task) === filter.slice("employee:".length);
-  if (filter.startsWith("other:")) return !employeeForTask(task) && assigneeLabel(task) === filter.slice("other:".length);
+  if (filter.startsWith("employee:")) return row.employee === filter.slice("employee:".length);
+  if (filter.startsWith("other:")) return !row.employee && row.assignee === filter.slice("other:".length);
   return true;
 }
 
@@ -76,46 +94,67 @@ export function TaskBoard({ tasks, actorEmail }: { tasks: ProposedTask[]; actorE
   const [assigneeFilter, setAssigneeFilter] = useState("all");
   const [sortMode, setSortMode] = useState<SortMode>("dueDate");
 
-  const scopedTasks = useMemo(() => {
-    return tasks.filter((task) => actionableStatuses.has(task.status));
+  const scopedRows = useMemo(() => {
+    return tasks.filter((task) => actionableStatuses.has(task.status)).map(taskBoardRow);
   }, [tasks]);
 
   const employeeFilters = useMemo(() => {
-    return sortFilterTags(internalEmployees.map((name) => ({
-      name,
-      count: scopedTasks.filter((task) => employeeForTask(task) === name).length
-    })));
-  }, [scopedTasks]);
+    const counts = new Map(internalEmployees.map((name) => [name, 0]));
+    for (const row of scopedRows) {
+      if (row.employee) counts.set(row.employee, (counts.get(row.employee) ?? 0) + 1);
+    }
+
+    return sortFilterTags(internalEmployees.map((name) => ({ name, count: counts.get(name) ?? 0 })));
+  }, [scopedRows]);
 
   const otherAssignees = useMemo(() => {
-    return sortFilterTags([...new Set(scopedTasks.filter((task) => !employeeForTask(task)).map(assigneeLabel))]
-      .map((name) => ({
-        name,
-        count: scopedTasks.filter((task) => !employeeForTask(task) && assigneeLabel(task) === name).length
-      })));
-  }, [scopedTasks]);
+    const counts = new Map<string, number>();
+    for (const row of scopedRows) {
+      if (!row.employee) counts.set(row.assignee, (counts.get(row.assignee) ?? 0) + 1);
+    }
 
-  const visibleTasks = useMemo(() => {
-    return scopedTasks
-      .filter((task) => taskMatchesAssigneeFilter(task, assigneeFilter))
+    return sortFilterTags([...counts].map(([name, count]) => ({ name, count })));
+  }, [scopedRows]);
+
+  const visibleRows = useMemo(() => {
+    return scopedRows
+      .filter((row) => taskMatchesAssigneeFilter(row, assigneeFilter))
       .sort((a, b) => {
-        if (sortMode === "priority") return priorityRank(a) - priorityRank(b) || dueSortValue(a) - dueSortValue(b);
-        if (sortMode === "assignee") return assigneeLabel(a).localeCompare(assigneeLabel(b), "ro") || dueSortValue(a) - dueSortValue(b);
-        return dueSortValue(a) - dueSortValue(b) || priorityRank(a) - priorityRank(b);
+        if (sortMode === "priority") return priorityRank(a.task) - priorityRank(b.task) || dueSortValue(a.task) - dueSortValue(b.task);
+        if (sortMode === "assignee") return a.assignee.localeCompare(b.assignee, "ro") || dueSortValue(a.task) - dueSortValue(b.task);
+        return dueSortValue(a.task) - dueSortValue(b.task) || priorityRank(a.task) - priorityRank(b.task);
       });
-  }, [assigneeFilter, scopedTasks, sortMode]);
+  }, [assigneeFilter, scopedRows, sortMode]);
+
+  const visibleTasks = useMemo(() => visibleRows.map((row) => row.task), [visibleRows]);
 
   const groupedByAssignee = useMemo(() => {
-    const assignees = [...new Set(visibleTasks.map(assigneeLabel))].sort((a, b) => a.localeCompare(b, "ro"));
-    return assignees.map((name) => ({
-      name,
-      tasks: visibleTasks.filter((task) => assigneeLabel(task) === name)
-    })).filter((group) => group.tasks.length > 0);
-  }, [visibleTasks]);
+    const groups = new Map<string, TaskBoardRow[]>();
+    for (const row of visibleRows) {
+      const group = groups.get(row.assignee);
+      if (group) {
+        group.push(row);
+      } else {
+        groups.set(row.assignee, [row]);
+      }
+    }
+
+    return [...groups]
+      .sort(([a], [b]) => a.localeCompare(b, "ro"))
+      .map(([name, rows]) => ({ name, rows }));
+  }, [visibleRows]);
 
   const calendar = useMemo(() => calendarDays(visibleTasks), [visibleTasks]);
-  const highPriorityCount = visibleTasks.filter((task) => task.priority === "high").length;
-  const overdueCount = visibleTasks.filter((task) => task.dueDate && dueSortValue(task) < Date.now()).length;
+  const taskCounts = useMemo(() => {
+    const now = Date.now();
+    let highPriority = 0;
+    let overdue = 0;
+    for (const task of visibleTasks) {
+      if (task.priority === "high") highPriority += 1;
+      if (task.dueDate && dueSortValue(task) < now) overdue += 1;
+    }
+    return { highPriority, overdue };
+  }, [visibleTasks]);
 
   return (
     <div className="task-board-shell">
@@ -139,7 +178,7 @@ export function TaskBoard({ tasks, actorEmail }: { tasks: ProposedTask[]; actorE
             <span className="filter-row-label">Angajati</span>
             <button className={assigneeFilter === "all" ? "filter-button active" : "filter-button"} type="button" onClick={() => setAssigneeFilter("all")}>
               <span>Toti</span>
-              <span className="count">{scopedTasks.length}</span>
+              <span className="count">{scopedRows.length}</span>
             </button>
             {employeeFilters.map((item) => (
               <button
@@ -181,11 +220,11 @@ export function TaskBoard({ tasks, actorEmail }: { tasks: ProposedTask[]; actorE
             groupedByAssignee.map((group) => (
               <section className="assignee-group" key={group.name}>
                 <h3>{group.name}</h3>
-                {group.tasks.map((task) => <TaskBoardCard actorEmail={actorEmail} key={task.id} task={task} />)}
+                {group.rows.map((row) => <TaskBoardCard actorEmail={actorEmail} assignee={row.assignee} key={row.task.id} task={row.task} />)}
               </section>
             ))
           ) : (
-            visibleTasks.map((task) => <TaskBoardCard actorEmail={actorEmail} key={task.id} task={task} />)
+            visibleRows.map((row) => <TaskBoardCard actorEmail={actorEmail} assignee={row.assignee} key={row.task.id} task={row.task} />)
           )}
         </div>
       </section>
@@ -195,8 +234,8 @@ export function TaskBoard({ tasks, actorEmail }: { tasks: ProposedTask[]; actorE
           <h2>Rezumat</h2>
           <div className="side-metrics">
             <div><strong>{visibleTasks.length}</strong><span>vizibile</span></div>
-            <div><strong>{highPriorityCount}</strong><span>prioritare</span></div>
-            <div><strong>{overdueCount}</strong><span>intarziate</span></div>
+            <div><strong>{taskCounts.highPriority}</strong><span>prioritare</span></div>
+            <div><strong>{taskCounts.overdue}</strong><span>intarziate</span></div>
           </div>
         </section>
 
@@ -226,7 +265,7 @@ export function TaskBoard({ tasks, actorEmail }: { tasks: ProposedTask[]; actorE
   );
 }
 
-function TaskBoardCard({ task, actorEmail }: { task: ProposedTask; actorEmail: string }) {
+function TaskBoardCard({ task, actorEmail, assignee }: { task: ProposedTask; actorEmail: string; assignee: string }) {
   const canClose = task.status === "approved" || task.status === "created_in_planner" || task.status === "planner_sync_failed";
 
   return (
@@ -236,7 +275,7 @@ function TaskBoardCard({ task, actorEmail }: { task: ProposedTask; actorEmail: s
         <span className={`badge ${task.status}`}>{task.status}</span>
       </div>
       <div className="meta">
-        <span className="badge">{assigneeLabel(task)}</span>
+        <span className="badge">{assignee}</span>
         <span className="badge">{formatDate(task.dueDate)}</span>
         <span className={task.priority === "high" ? "badge high-priority" : "badge"}>{task.priority === "high" ? "prioritar" : "normal"}</span>
         <span className="badge">confidence: {task.confidence}</span>
