@@ -70,6 +70,8 @@ Format inspirat de Keep a Changelog. Proiectul foloseste versionare pragmatica p
 - Confidence-ul fallback este calculat din semnale concrete: actiune detectata, responsabil, termen si titlu compact; taskurile complete pot ajunge `high`, iar cele vagi raman `low`.
 - Milestone 2 Microsoft 365: Entra ID sign-in, Graph client cu retry, Outlook folder sync, Graph subscriptions/webhook, Planner task creation cu descriere si Entra user lookup pentru assignment.
 - Aplicatia web foloseste sesiunea Entra ID pentru actorul de audit/aprobare, cu fallback local doar cand nu exista sesiune.
+- UI-ul Next.js a fost aliniat cu dashboardul TaskWizard organizat: header profesional, import email in modal, review central, taskuri active separate si istoric compact in dreapta.
+- Testele locale includ acum o regresie statica pentru layoutul Next.js, ca aplicatia sa nu revina accidental la interfata veche.
 
 ### Known Limitations
 

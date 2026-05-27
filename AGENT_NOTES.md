@@ -49,6 +49,8 @@ Acest fisier este jurnalul de lucru al agentului. Se actualizeaza la fiecare sch
 - Am imbunatatit criteriul de confidence: un task este considerat mai sigur cand are actiune, responsabil, termen si titlu compact; asta apropie scorul de verificarea umana.
 - Am implementat Milestone 2 la nivel de cod: Entra ID auth, Graph client, Outlook sync, subscriptions/webhook, Planner create si lookup email -> Entra user ID. Urmatorul risc major este validarea cu un tenant real si restrictii de acces pe mailbox.
 - Am legat UI-ul si rutele Next.js de actorul autentificat prin Entra, astfel incat aprobarile si auditul sa foloseasca emailul userului logat in locul fallback-ului local.
+- Am aliniat UI-ul Next.js cu interfata TaskWizard organizata folosita in runnerul local: import prin modal, review central, taskuri active separate si istoric compact cu filtre profesionale.
+- Am adaugat test de regresie pentru layoutul Next.js, deoarece pagina veche poate reaparea usor cand lucram separat pe runnerul local si pe aplicatia web.
 
 ## Regula de utilizare
 

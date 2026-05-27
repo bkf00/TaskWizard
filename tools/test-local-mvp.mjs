@@ -115,6 +115,24 @@ try {
     assert(html.includes("Toate taskurile"), "Pagina principala nu contine istoricul taskurilor.");
   });
 
+  await record("Next.js app uses the organized TaskWizard dashboard", async () => {
+    const [pageSource, formSource, historySource, cssSource] = await Promise.all([
+      readFile(path.join(projectRoot, "apps/web/app/page.tsx"), "utf8"),
+      readFile(path.join(projectRoot, "apps/web/app/email-source-form.tsx"), "utf8"),
+      readFile(path.join(projectRoot, "apps/web/app/task-history-panel.tsx"), "utf8"),
+      readFile(path.join(projectRoot, "apps/web/app/globals.css"), "utf8")
+    ]);
+
+    assert(pageSource.includes("app-header"), "UI-ul Next trebuie sa foloseasca headerul nou organizat.");
+    assert(pageSource.includes("workspace"), "UI-ul Next trebuie sa foloseasca layoutul nou pe zone.");
+    assert(pageSource.includes("TaskHistoryPanel"), "Istoricul compact trebuie randat prin componenta dedicata.");
+    assert(formSource.includes("id=\"import-dialog\""), "Importul emailurilor trebuie sa ramana intr-un dialog.");
+    assert(formSource.includes("Adauga email"), "Importul trebuie pornit din butonul principal.");
+    assert(historySource.includes("className=\"panel task-history\""), "Panoul de taskuri trebuie identificabil in UI.");
+    assert(cssSource.includes(".workspace"), "Stilurile pentru layoutul nou trebuie sa existe.");
+    assert(cssSource.includes(".history-list"), "Stilurile pentru istoricul compact trebuie sa existe.");
+  });
+
   await record("empty input is rejected", async () => {
     const response = await postForm("/sources/manual", {
       type: "manual_upload",

@@ -2,8 +2,16 @@ import type { ReactNode } from "react";
 import "./globals.css";
 
 export const metadata = {
-  title: "Taskuri AI",
-  description: "Taskuri propuse din Teams si emailuri"
+  title: "TaskWizard",
+  description: "Inbox de verificare pentru taskuri extrase din emailuri si minute",
+  icons: {
+    icon: [
+      {
+        url: "/assets/taskwizard-hat.png",
+        type: "image/png"
+      }
+    ]
+  }
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
@@ -13,4 +21,3 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     </html>
   );
 }
-
