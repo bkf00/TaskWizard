@@ -1,6 +1,8 @@
 import { store } from "@repo/storage/local-store";
 import { getCurrentActor } from "../auth-actor";
 import { EmailSourceForm } from "./email-source-form";
+import { LiveDashboardRefresh } from "./live-dashboard-refresh";
+import { getDashboardStateVersion } from "./state-version";
 import { TaskHistoryPanel } from "./task-history-panel";
 
 export const dynamic = "force-dynamic";
@@ -13,12 +15,12 @@ function formatDate(value: string | null): string {
 }
 
 export default async function HomePage() {
-  const [actor, sources, tasks, errors, auditEvents] = await Promise.all([
+  const [actor, tasks, errors, auditEvents, stateVersion] = await Promise.all([
     getCurrentActor(),
-    store.listSources(),
     store.listProposedTasks(),
     store.listProcessingErrors(),
-    store.listAuditEvents()
+    store.listAuditEvents(),
+    getDashboardStateVersion()
   ]);
 
   const reviewTasks = tasks.filter((task) => task.status === "proposed");
@@ -26,6 +28,7 @@ export default async function HomePage() {
 
   return (
     <main>
+      <LiveDashboardRefresh initialVersion={stateVersion.version} />
       <header className="app-header">
         <div className="brand">
           <img className="brand-mark" src="/assets/taskwizard-hat.png" alt="TaskWizard" />

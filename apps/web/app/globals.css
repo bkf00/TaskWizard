@@ -425,6 +425,22 @@ button:hover {
   background: #fbfcfd;
 }
 
+.sync-banner {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 20;
+  max-width: min(420px, calc(100vw - 36px));
+  border: 1px solid #fedf89;
+  border-radius: 8px;
+  background: #fffaeb;
+  color: #93370d;
+  padding: 10px 12px;
+  font-size: 13px;
+  font-weight: 700;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.14);
+}
+
 .review-heading {
   display: flex;
   justify-content: space-between;

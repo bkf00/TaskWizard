@@ -116,21 +116,30 @@ try {
   });
 
   await record("Next.js app uses the organized TaskWizard dashboard", async () => {
-    const [pageSource, formSource, historySource, cssSource] = await Promise.all([
+    const [pageSource, formSource, liveRefreshSource, historySource, cssSource, versionRouteSource] = await Promise.all([
       readFile(path.join(projectRoot, "apps/web/app/page.tsx"), "utf8"),
       readFile(path.join(projectRoot, "apps/web/app/email-source-form.tsx"), "utf8"),
+      readFile(path.join(projectRoot, "apps/web/app/live-dashboard-refresh.tsx"), "utf8"),
       readFile(path.join(projectRoot, "apps/web/app/task-history-panel.tsx"), "utf8"),
-      readFile(path.join(projectRoot, "apps/web/app/globals.css"), "utf8")
+      readFile(path.join(projectRoot, "apps/web/app/globals.css"), "utf8"),
+      readFile(path.join(projectRoot, "apps/web/app/api/state/version/route.ts"), "utf8")
     ]);
 
     assert(pageSource.includes("app-header"), "UI-ul Next trebuie sa foloseasca headerul nou organizat.");
     assert(pageSource.includes("workspace"), "UI-ul Next trebuie sa foloseasca layoutul nou pe zone.");
     assert(pageSource.includes("TaskHistoryPanel"), "Istoricul compact trebuie randat prin componenta dedicata.");
+    assert(pageSource.includes("LiveDashboardRefresh"), "Dashboardul trebuie sa primeasca refresh cand alt user schimba taskuri.");
     assert(formSource.includes("id=\"import-dialog\""), "Importul emailurilor trebuie sa ramana intr-un dialog.");
     assert(formSource.includes("Adauga email"), "Importul trebuie pornit din butonul principal.");
+    assert(liveRefreshSource.includes("router.refresh()"), "Refresh-ul live trebuie sa actualizeze view-ul fara reload manual.");
+    assert(liveRefreshSource.includes("userIsEditing()"), "Refresh-ul live trebuie sa protejeze formularele deschise.");
+    assert(liveRefreshSource.includes("details.edit[open]"), "Refresh-ul live nu trebuie sa inchida editari deschise.");
     assert(historySource.includes("className=\"panel task-history\""), "Panoul de taskuri trebuie identificabil in UI.");
     assert(cssSource.includes(".workspace"), "Stilurile pentru layoutul nou trebuie sa existe.");
     assert(cssSource.includes(".history-list"), "Stilurile pentru istoricul compact trebuie sa existe.");
+    assert(cssSource.includes(".sync-banner"), "UI-ul trebuie sa anunte cand exista refresh amanat.");
+    assert(liveRefreshSource.includes("/api/state/version"), "Refresh-ul live trebuie sa citeasca o versiune mica de stare.");
+    assert(versionRouteSource.includes("Cache-Control"), "Endpointul de versiune nu trebuie cache-uit.");
   });
 
   await record("empty input is rejected", async () => {
