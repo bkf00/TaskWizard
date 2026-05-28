@@ -1,4 +1,5 @@
 import { store } from "@repo/storage/local-store";
+import { filterVisibleTasks } from "@repo/domain/privacy";
 import { getCurrentActor } from "../../auth-actor";
 import { LiveDashboardRefresh } from "../live-dashboard-refresh";
 import { getDashboardStateVersion } from "../state-version";
@@ -7,10 +8,10 @@ import { TaskBoard } from "./task-board";
 export const dynamic = "force-dynamic";
 
 export default async function TasksPage() {
-  const [actor, tasks, stateVersion] = await Promise.all([
-    getCurrentActor(),
+  const actor = await getCurrentActor();
+  const [tasks, stateVersion] = await Promise.all([
     store.listProposedTasks(),
-    getDashboardStateVersion()
+    getDashboardStateVersion(actor.email)
   ]);
 
   return (
@@ -35,7 +36,7 @@ export default async function TasksPage() {
         </div>
       </header>
 
-      <TaskBoard tasks={tasks} actorEmail={actor.email} />
+      <TaskBoard tasks={filterVisibleTasks(tasks, actor.email)} actorEmail={actor.email} />
     </main>
   );
 }

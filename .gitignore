@@ -40,6 +40,7 @@ downloads/
 uploads/
 fixtures/private/
 fixtures/local/
+config/privacy-rules.local.json
 *secret*
 *secrets*
 *token*

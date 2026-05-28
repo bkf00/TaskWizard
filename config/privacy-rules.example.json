@@ -1,0 +1,17 @@
+{
+  "blockedSourceEmails": [
+    "contact@example.com"
+  ],
+  "privateSourceEmailOwners": [
+    {
+      "sourceEmails": [
+        "tudor.timofti@example.com",
+        "tudor.alias@example.com"
+      ],
+      "visibleToEmails": [
+        "tudor.timofti@example.com",
+        "tudor.alias@example.com"
+      ]
+    }
+  ]
+}

@@ -256,6 +256,8 @@ export async function extractProposedTasks(source: SourceItem): Promise<Proposed
     approvedBy: null,
     approvedAt: null,
     plannerTaskId: null,
+    visibility: "team",
+    visibleToEmails: [],
     createdAt: now,
     updatedAt: now
   }));

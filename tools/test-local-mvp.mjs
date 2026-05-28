@@ -116,7 +116,7 @@ try {
   });
 
   await record("Next.js app uses the organized TaskWizard dashboard", async () => {
-    const [pageSource, formSource, liveRefreshSource, historySource, taskBoardSource, tasksPageSource, cssSource, versionRouteSource] = await Promise.all([
+    const [pageSource, formSource, liveRefreshSource, historySource, taskBoardSource, tasksPageSource, cssSource, versionRouteSource, privacySource, ingestionSource, approvalSource, gitignoreSource] = await Promise.all([
       readFile(path.join(projectRoot, "apps/web/app/page.tsx"), "utf8"),
       readFile(path.join(projectRoot, "apps/web/app/email-source-form.tsx"), "utf8"),
       readFile(path.join(projectRoot, "apps/web/app/live-dashboard-refresh.tsx"), "utf8"),
@@ -124,7 +124,11 @@ try {
       readFile(path.join(projectRoot, "apps/web/app/tasks/task-board.tsx"), "utf8"),
       readFile(path.join(projectRoot, "apps/web/app/tasks/page.tsx"), "utf8"),
       readFile(path.join(projectRoot, "apps/web/app/globals.css"), "utf8"),
-      readFile(path.join(projectRoot, "apps/web/app/api/state/version/route.ts"), "utf8")
+      readFile(path.join(projectRoot, "apps/web/app/api/state/version/route.ts"), "utf8"),
+      readFile(path.join(projectRoot, "packages/domain/src/privacy.ts"), "utf8"),
+      readFile(path.join(projectRoot, "packages/domain/src/ingestion.ts"), "utf8"),
+      readFile(path.join(projectRoot, "packages/domain/src/approval.ts"), "utf8"),
+      readFile(path.join(projectRoot, ".gitignore"), "utf8")
     ]);
 
     assert(pageSource.includes("app-header"), "UI-ul Next trebuie sa foloseasca headerul nou organizat.");
@@ -157,6 +161,16 @@ try {
     assert(taskBoardSource.includes("priorityRank"), "View-ul taskurilor trebuie sa poata ordona dupa prioritate.");
     assert(taskBoardSource.includes("actionableStatuses"), "View-ul /tasks trebuie sa includa doar taskuri actionabile.");
     assert(taskBoardSource.includes("\"proposed\"") && taskBoardSource.includes("\"approved\""), "View-ul /tasks trebuie sa includa taskuri aprobate si in asteptare.");
+    assert(pageSource.includes("filterVisibleTasks"), "Dashboardul trebuie sa filtreze taskurile private in functie de actor.");
+    assert(tasksPageSource.includes("filterVisibleTasks"), "View-ul /tasks trebuie sa respecte regulile de vizibilitate.");
+    assert(versionRouteSource.includes("getCurrentActorEmail"), "Versiunea live trebuie calculata pentru actorul curent.");
+    assert(privacySource.includes("TASKWIZARD_PRIVACY_RULES_FILE"), "Regulile de privacy trebuie incarcate din fisier local configurabil.");
+    assert(privacySource.includes("blockedSourceEmails"), "Regulile de privacy trebuie sa poata bloca expeditori.");
+    assert(privacySource.includes("privateSourceEmailOwners"), "Regulile de privacy trebuie sa poata marca surse private.");
+    assert(ingestionSource.includes("source.privacy_ignored"), "Ingestia trebuie sa auditeze sursele blocate de privacy.");
+    assert(ingestionSource.includes("rawText: \"\""), "Sursele blocate nu trebuie sa pastreze textul brut al emailului.");
+    assert(approvalSource.includes("assertTaskAccess"), "Actiunile pe taskuri trebuie sa verifice accesul, nu doar UI-ul.");
+    assert(gitignoreSource.includes("config/privacy-rules.local.json"), "Fisierul local cu adrese reale trebuie ignorat de Git.");
   });
 
   await record("empty input is rejected", async () => {

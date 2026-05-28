@@ -23,7 +23,9 @@ export class JsonFileTaskWizardRepository implements TaskWizardRepository {
         ...parsed,
         proposedTasks: parsed.proposedTasks.map((task) => ({
           ...task,
-          priority: task.priority ?? "normal"
+          priority: task.priority ?? "normal",
+          visibility: task.visibility ?? "team",
+          visibleToEmails: task.visibleToEmails ?? []
         }))
       };
     } catch (error) {

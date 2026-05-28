@@ -4,6 +4,13 @@ import { audit } from "@repo/audit/audit";
 import { createPlannerTask, isPlannerConfigured } from "@repo/graph/planner";
 import { lookupEntraUserByEmail } from "@repo/graph/users";
 import { store } from "@repo/storage/local-store";
+import { canViewTask } from "./privacy";
+
+function assertTaskAccess(task: ProposedTask, actorEmail: string): void {
+  if (!canViewTask(task, actorEmail)) {
+    throw new Error("Nu ai acces la acest task privat.");
+  }
+}
 
 export async function approveTask(input: {
   taskId: string;
@@ -14,6 +21,7 @@ export async function approveTask(input: {
   if (!task) {
     throw new Error("Taskul propus nu exista.");
   }
+  assertTaskAccess(task, input.actorEmail);
   if (task.status !== "proposed" && task.status !== "planner_sync_failed") {
     throw new Error(`Taskul nu poate fi aprobat din statusul ${task.status}.`);
   }
@@ -110,6 +118,7 @@ export async function updateProposedTask(input: {
   if (!task) {
     throw new Error("Taskul propus nu exista.");
   }
+  assertTaskAccess(task, input.actorEmail);
   if (task.status !== "proposed" && task.status !== "planner_sync_failed") {
     throw new Error(`Taskul nu poate fi editat din statusul ${task.status}.`);
   }
@@ -152,6 +161,7 @@ export async function rejectTask(input: {
   if (!task) {
     throw new Error("Taskul propus nu exista.");
   }
+  assertTaskAccess(task, input.actorEmail);
   if (task.status !== "proposed") {
     throw new Error(`Taskul nu poate fi respins din statusul ${task.status}.`);
   }
@@ -188,6 +198,7 @@ export async function markTaskCompleted(input: {
   if (!task) {
     throw new Error("Taskul propus nu exista.");
   }
+  assertTaskAccess(task, input.actorEmail);
   if (!plannerTerminalSourceStatuses.has(task.status)) {
     throw new Error(`Taskul nu poate fi marcat terminat din statusul ${task.status}.`);
   }
@@ -219,6 +230,7 @@ export async function markTaskDeleted(input: {
   if (!task) {
     throw new Error("Taskul propus nu exista.");
   }
+  assertTaskAccess(task, input.actorEmail);
   if (!plannerTerminalSourceStatuses.has(task.status)) {
     throw new Error(`Taskul nu poate fi marcat sters din statusul ${task.status}.`);
   }

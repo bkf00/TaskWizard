@@ -1,4 +1,5 @@
 import { store } from "@repo/storage/local-store";
+import { filterVisibleTasks } from "@repo/domain/privacy";
 
 export type DashboardStateVersion = {
   version: string;
@@ -17,16 +18,17 @@ function latest(values: Array<string | null | undefined>): string | null {
   return latestValue;
 }
 
-export async function getDashboardStateVersion(): Promise<DashboardStateVersion> {
+export async function getDashboardStateVersion(actorEmail?: string | null): Promise<DashboardStateVersion> {
   const [sources, tasks, errors, auditEvents] = await Promise.all([
     store.listSources(),
     store.listProposedTasks(),
     store.listProcessingErrors(),
     store.listAuditEvents()
   ]);
+  const visibleTasks = filterVisibleTasks(tasks, actorEmail);
 
   const latestChangedAt = latest([
-    ...tasks.map((task) => task.updatedAt),
+    ...visibleTasks.map((task) => task.updatedAt),
     ...auditEvents.map((event) => event.createdAt),
     ...errors.map((error) => error.createdAt),
     ...sources.map((source) => source.receivedAt)
@@ -35,12 +37,12 @@ export async function getDashboardStateVersion(): Promise<DashboardStateVersion>
   return {
     version: [
       latestChangedAt ?? "empty",
-      `tasks:${tasks.length}`,
+      `tasks:${visibleTasks.length}`,
       `audit:${auditEvents.length}`,
       `errors:${errors.length}`,
       `sources:${sources.length}`
     ].join("|"),
-    tasks: tasks.length,
+    tasks: visibleTasks.length,
     auditEvents: auditEvents.length,
     errors: errors.length,
     sources: sources.length,

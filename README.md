@@ -143,6 +143,7 @@ Microsoft 365 setup:
 
 - app registration and permissions: [docs/microsoft-365-setup.md](docs/microsoft-365-setup.md);
 - required env vars: `ENTRA_ID_TENANT_ID`, `ENTRA_ID_CLIENT_ID`, `ENTRA_ID_CLIENT_SECRET`, `OUTLOOK_USER_ID`, `OUTLOOK_FOLDER_ID`, `GRAPH_WEBHOOK_NOTIFICATION_URL`, `GRAPH_WEBHOOK_CLIENT_STATE`, `PLANNER_PLAN_ID`, `PLANNER_BUCKET_ID`.
+- privacy rules for real email addresses are local-only: copy `config/privacy-rules.example.json` to ignored `config/privacy-rules.local.json` and set `TASKWIZARD_PRIVACY_RULES_FILE` if needed.
 
 ## Documentation Map
 

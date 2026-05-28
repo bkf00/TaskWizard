@@ -1,4 +1,5 @@
 import { store } from "@repo/storage/local-store";
+import { filterVisibleTasks } from "@repo/domain/privacy";
 import { getCurrentActor } from "../auth-actor";
 import { EmailSourceForm } from "./email-source-form";
 import { LiveDashboardRefresh } from "./live-dashboard-refresh";
@@ -15,16 +16,17 @@ function formatDate(value: string | null): string {
 }
 
 export default async function HomePage() {
-  const [actor, tasks, errors, auditEvents, stateVersion] = await Promise.all([
-    getCurrentActor(),
+  const actor = await getCurrentActor();
+  const [tasks, errors, auditEvents, stateVersion] = await Promise.all([
     store.listProposedTasks(),
     store.listProcessingErrors(),
     store.listAuditEvents(),
-    getDashboardStateVersion()
+    getDashboardStateVersion(actor.email)
   ]);
 
-  const reviewTasks = tasks.filter((task) => task.status === "proposed");
-  const plannerActiveTasks = tasks.filter((task) => plannerTerminalSourceStatuses.has(task.status));
+  const visibleTasks = filterVisibleTasks(tasks, actor.email);
+  const reviewTasks = visibleTasks.filter((task) => task.status === "proposed");
+  const plannerActiveTasks = visibleTasks.filter((task) => plannerTerminalSourceStatuses.has(task.status));
 
   return (
     <main>
@@ -54,7 +56,7 @@ export default async function HomePage() {
               <span>de verificat</span>
             </div>
             <div className="metric">
-              <strong>{tasks.length}</strong>
+              <strong>{visibleTasks.length}</strong>
               <span>total taskuri</span>
             </div>
             <div className="metric">
@@ -195,7 +197,7 @@ export default async function HomePage() {
         </section>
 
         <aside className="drawer">
-          <TaskHistoryPanel tasks={tasks} actorEmail={actor.email} />
+          <TaskHistoryPanel tasks={visibleTasks} actorEmail={actor.email} />
 
           <section className="panel">
             <h2>Erori procesare</h2>

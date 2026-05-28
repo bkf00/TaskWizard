@@ -6,10 +6,12 @@ export const sourceStatus = pgEnum("source_status", [
   "processing",
   "processed",
   "failed",
-  "ignored_duplicate"
+  "ignored_duplicate",
+  "ignored_privacy"
 ]);
 export const taskConfidence = pgEnum("task_confidence", ["high", "medium", "low"]);
 export const taskPriority = pgEnum("task_priority", ["normal", "high"]);
+export const taskVisibility = pgEnum("task_visibility", ["team", "private"]);
 export const proposedTaskStatus = pgEnum("proposed_task_status", [
   "proposed",
   "approved",
@@ -59,6 +61,8 @@ export const proposedTasks = pgTable("proposed_tasks", {
   approvedBy: text("approved_by"),
   approvedAt: timestamp("approved_at", { withTimezone: true }),
   plannerTaskId: text("planner_task_id"),
+  visibility: taskVisibility("visibility").notNull().default("team"),
+  visibleToEmails: jsonb("visible_to_emails").$type<string[]>().notNull().default([]),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull()
 });

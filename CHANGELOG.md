@@ -80,6 +80,7 @@ Format inspirat de Keep a Changelog. Proiectul foloseste versionare pragmatica p
 - Tagurile de responsabili din `/tasks` sunt ordonate descrescator dupa numarul de taskuri, cu sortare alfabetica doar la egalitate.
 - Audit de clean code: view-ul `/tasks` calculeaza o singura data responsabilul/angajatul per task, storage-ul local foloseste lookup prin `Map`, iar versiunea dashboardului gaseste ultimul timestamp fara sortare inutila.
 - View-ul `/tasks` afiseaza doar taskuri actionabile: in asteptare de aprobare, aprobate sau active in Planner/sincronizare.
+- Reguli locale de privacy pentru emailuri: expeditorii blocati nu creeaza taskuri si nu pastreaza text brut, iar sursele private creeaza taskuri vizibile/actionabile doar pentru adresele configurate in fisier local ignorat de Git.
 
 ### Known Limitations
 

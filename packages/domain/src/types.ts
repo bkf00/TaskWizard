@@ -5,7 +5,8 @@ export type SourceStatus =
   | "processing"
   | "processed"
   | "failed"
-  | "ignored_duplicate";
+  | "ignored_duplicate"
+  | "ignored_privacy";
 
 export type TaskConfidence = "high" | "medium" | "low";
 export type TaskPriority = "normal" | "high";
@@ -22,6 +23,7 @@ export type ProposedTaskStatus =
 export type AuditEventType =
   | "source.received"
   | "source.duplicate_ignored"
+  | "source.privacy_ignored"
   | "source.extraction_started"
   | "source.extraction_completed"
   | "source.extraction_failed"
@@ -71,6 +73,8 @@ export type ProposedTask = {
   approvedBy: string | null;
   approvedAt: string | null;
   plannerTaskId: string | null;
+  visibility: "team" | "private";
+  visibleToEmails: string[];
   createdAt: string;
   updatedAt: string;
 };

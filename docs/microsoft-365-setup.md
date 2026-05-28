@@ -78,6 +78,33 @@ Content-Type: application/json
 
 Codul gestioneaza pagination prin `@odata.nextLink`, retry pentru statusuri temporare Graph (`429`, `5xx`) si deduplicare prin `externalId` / hash.
 
+### Reguli locale de privacy
+
+Adresele reale nu se pun in repository. Copiaza `config/privacy-rules.example.json` in `config/privacy-rules.local.json` si completeaza local:
+
+```json
+{
+  "blockedSourceEmails": ["contact@example.com"],
+  "privateSourceEmailOwners": [
+    {
+      "sourceEmails": ["user.private@example.com"],
+      "visibleToEmails": ["user.private@example.com"]
+    }
+  ]
+}
+```
+
+Comportament:
+
+- `blockedSourceEmails` opreste complet ingestia din acei expeditori: emailul nu creeaza taskuri, iar textul brut nu este pastrat.
+- `privateSourceEmailOwners` marcheaza taskurile ca private daca adresa apare ca expeditor sau participant; doar adresele din `visibleToEmails` le vad si pot actiona asupra lor.
+
+Fisierul local este ignorat de Git prin `.gitignore`. Poti schimba locatia prin:
+
+```env
+TASKWIZARD_PRIVACY_RULES_FILE=config/privacy-rules.local.json
+```
+
 ## 4. Graph subscriptions
 
 Webhook:

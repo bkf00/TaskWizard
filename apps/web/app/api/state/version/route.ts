@@ -1,11 +1,13 @@
 import { NextResponse } from "next/server";
+import { getCurrentActorEmail } from "../../../../auth-actor";
 import { getDashboardStateVersion } from "../../../state-version";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export async function GET() {
-  const stateVersion = await getDashboardStateVersion();
+  const actorEmail = await getCurrentActorEmail();
+  const stateVersion = await getDashboardStateVersion(actorEmail);
 
   return NextResponse.json(stateVersion, {
     headers: {
