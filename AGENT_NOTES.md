@@ -62,6 +62,7 @@ Acest fisier este jurnalul de lucru al agentului. Se actualizeaza la fiecare sch
 - Am extins importul cu extractie de documente si atasamente: `.eml` poate alimenta taskurile din `.docx` atasat, iar documentele moderne `.docx`, `.pdf`, `.xlsx/.xlsm`, `.csv` si `.txt` pot fi incarcate direct. Am evitat pachetul `xlsx` din cauza vulnerabilitatilor fara fix si am folosit un parser XLSX minimal prin `jszip`.
 - Am reparat o corupere a `apps/web/data/store.json` aparuta dupa scrieri concurente si am schimbat storage-ul local sa foloseasca o coada de mutatii plus scriere atomica prin fisier temporar si rename.
 - Am corectat fallback-ul de extractie pentru linii precum `Soprema si Bouder - transmite solutie astazi sau maine`: titlul devine `Transmite solutie`, iar responsabilul ramane `Soprema si Bouder`, fara separatorul dintre responsabil si actiune.
+- Am corectat si cazul pasiv `Ordinul de incepere se transmite dupa solutia agreata`: `Ordinul de incepere se` nu mai este tratat ca responsabil, iar titlul devine `Transmite ordin incepere`.
 
 ## Regula de utilizare
 

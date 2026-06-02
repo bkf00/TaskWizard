@@ -140,7 +140,8 @@ function compactTaskTitle(actionText) {
     { pattern: /\bcentralizator\w*\s+IMSAT/i, title: "Actualizeaza centralizator IMSAT" },
     { pattern: /\bvarianta\s+curata\b.*\btabel/i, title: "Transmite tabel curat client" },
     { pattern: /\bpersoana\b.*\bsemneaza/i, title: "Confirma semnatar minute" },
-    { pattern: /\btransmit\w*\b.*\bsolutie/i, title: "Transmite solutie" }
+    { pattern: /\btransmit\w*\b.*\bsolutie/i, title: "Transmite solutie" },
+    { pattern: /\bordinul?\s+de\s+incepere\b/i, title: "Transmite ordin incepere" }
   ];
   const known = knownPatterns.find((item) => item.pattern.test(normalized));
   if (known) return known.title;
@@ -251,20 +252,23 @@ function structuredActionFromLine(line) {
   const structured = normalized.match(/^(?:(?:\d{1,2}\.\d{1,2}\.\d{4}|\d{4})\s*=\s*)?(.+?)\s+(trebuie|pregateste|pregatesc|transmite|transmit|trimite|verifica|actualizeaza|creeaza|preia|preluat|stabileste|confirma|clarifica)\b(.*)$/i);
   if (!structured) return null;
 
-  const assigneeName = structured[1]
+  const rawAssigneeName = structured[1]
     .trim()
     .replace(/\s+(?:a|te rog|va rog)$/i, "")
     .replace(/[\s\u2010-\u2015-]+$/g, "")
     .trim();
-  if (/^(te rog|ramane sa|de facut)$/i.test(assigneeName)) return null;
+  const passiveSubject = rawAssigneeName.match(/^(.+?)\s+se$/i)?.[1]?.trim() ?? null;
+  const assigneeName = passiveSubject ? null : rawAssigneeName;
+  if (assigneeName && /^(te rog|ramane sa|de facut)$/i.test(assigneeName)) return null;
   const actionVerb = structured[2].trim();
   const actionRest = structured[3].trim();
-  const title = compactTaskTitle(`${actionVerb} ${actionRest}`.trim());
+  const titleSubject = passiveSubject ? `${passiveSubject} ${actionRest}` : actionRest;
+  const title = compactTaskTitle(`${actionVerb} ${titleSubject}`.trim());
 
   return {
     title,
     description: normalized,
-    assigneeName: assigneeName.length <= 60 ? assigneeName : null,
+    assigneeName: assigneeName && assigneeName.length <= 60 ? assigneeName : null,
     dueDate: extractDueDate(normalized)
   };
 }

@@ -84,6 +84,7 @@ Format inspirat de Keep a Changelog. Proiectul foloseste versionare pragmatica p
 - Importul citeste acum fisiere reale si atasamente din `.eml`: `.docx`, `.pdf`, `.xlsx/.xlsm`, `.csv` si `.txt` sunt transformate in text inainte de extractia taskurilor; `.doc` vechi are doar extractie best-effort.
 - Storage-ul JSON local scrie atomic prin fisier temporar si serializeaza mutatiile, evitand coruperea `store.json` la requesturi concurente.
 - Extractorul fallback nu mai produce titluri trunchiate de tip `Transmite solutie astazi sau` si curata separatorii `-` / `–` ramasi in responsabil.
+- Extractorul fallback recunoaste forme pasive de tip `Ordinul de incepere se transmite...`, punand obiectul in titlu si evitand responsabilul fals `Ordinul de incepere se`.
 
 ### Known Limitations
 
