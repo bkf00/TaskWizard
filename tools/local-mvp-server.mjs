@@ -141,7 +141,17 @@ function compactTaskTitle(actionText) {
     { pattern: /\bvarianta\s+curata\b.*\btabel/i, title: "Transmite tabel curat client" },
     { pattern: /\bpersoana\b.*\bsemneaza/i, title: "Confirma semnatar minute" },
     { pattern: /\btransmit\w*\b.*\bsolutie/i, title: "Transmite solutie" },
-    { pattern: /\bordinul?\s+de\s+incepere\b/i, title: "Transmite ordin incepere" }
+    { pattern: /\bordinul?\s+de\s+incepere\b/i, title: "Transmite ordin incepere" },
+    { pattern: /\boferta\s+finala\b/i, title: "Revine oferta finala" },
+    { pattern: /\bmaterialele\b.*\bFM\b/i, title: "Verifica materiale FM" },
+    { pattern: /\bavizele\b.*\bDSS\b.*\bscanat/i, title: "Scaneaza avize DSS" },
+    { pattern: /\banex\w*\b.*\bcontract/i, title: "Transmite anexe contract" },
+    { pattern: /\bstudiu\b.*\bsolutii\b.*\balternative/i, title: "Transmite studiu solutii" },
+    { pattern: /\bprocedura\s+management\b/i, title: "Finalizeaza procedura management" },
+    { pattern: /\bcerere\s+detalii\s+pentru\s+pereti/i, title: "Clarifica detalii pereti" },
+    { pattern: /\banunt\s+ITM\b/i, title: "Pregateste anunt ITM" },
+    { pattern: /\bdepozit\b.*\bmateriale\b/i, title: "Transmite detalii depozit materiale" },
+    { pattern: /\bpuncte\s+complet/i, title: "Transmite puncte completare" }
   ];
   const known = knownPatterns.find((item) => item.pattern.test(normalized));
   if (known) return known.title;
@@ -217,6 +227,7 @@ function extractDueDate(text, baseDate = referenceDate()) {
     const month = Number(explicit[2]);
     let year = explicit[3] ? Number(explicit[3]) : baseDate.getUTCFullYear();
     if (year < 100) year += 2000;
+    if (year < 2020 || year > 2035) return null;
     const candidate = new Date(Date.UTC(year, month - 1, day));
     if (candidate.getUTCFullYear() === year && candidate.getUTCMonth() === month - 1 && candidate.getUTCDate() === day) {
       return isoDate(candidate);
@@ -249,7 +260,20 @@ function extractDueDate(text, baseDate = referenceDate()) {
 
 function structuredActionFromLine(line) {
   const normalized = normalizeLine(line);
-  const structured = normalized.match(/^(?:(?:\d{1,2}\.\d{1,2}\.\d{4}|\d{4})\s*=\s*)?(.+?)\s+(trebuie|pregateste|pregatesc|transmite|transmit|trimite|verifica|actualizeaza|creeaza|preia|preluat|stabileste|confirma|clarifica)\b(.*)$/i);
+  const terminalActorAction = normalized.match(/[\u2010-\u2015-]\s*([A-Z0-9]{2,}|[A-Z][\p{L}0-9&.\s]{1,30}?)\s+(transmite|transmit|trimite|clarifica|confirma)\b(.*)$/iu);
+  if (terminalActorAction) {
+    const assigneeName = terminalActorAction[1].trim().replace(/[\s\u2010-\u2015-]+$/g, "");
+    const cleanAssigneeName = /^(de|se|ne|noi|acestia|acestea)$/i.test(assigneeName) ? null : assigneeName;
+    const title = compactTaskTitle(`${terminalActorAction[2].trim()} ${terminalActorAction[3].trim()} ${normalized}`.trim());
+    return {
+      title,
+      description: normalized,
+      assigneeName: cleanAssigneeName && cleanAssigneeName.length <= 60 ? cleanAssigneeName : null,
+      dueDate: extractDueDate(normalized)
+    };
+  }
+
+  const structured = normalized.match(/^(?:(?:\d{1,2}\.\d{1,2}\.\d{4}|\d{4})\s*=\s*)?(.+?)\s+(trebuie|pregateste|pregatesc|transmite|transmit|trimite|verifica|verificat|actualizeaza|creeaza|preia|preluat|stabileste|confirma|clarifica|revine)\b(.*)$/i);
   if (!structured) return null;
 
   const rawAssigneeName = structured[1]
@@ -258,7 +282,8 @@ function structuredActionFromLine(line) {
     .replace(/[\s\u2010-\u2015-]+$/g, "")
     .trim();
   const passiveSubject = rawAssigneeName.match(/^(.+?)\s+se$/i)?.[1]?.trim() ?? null;
-  const assigneeName = passiveSubject ? null : rawAssigneeName;
+  const pronounSubject = /^(de|se|ne|noi|acestia|acestea)$/i.test(rawAssigneeName);
+  const assigneeName = passiveSubject || pronounSubject ? null : rawAssigneeName;
   if (assigneeName && /^(te rog|ramane sa|de facut)$/i.test(assigneeName)) return null;
   const actionVerb = structured[2].trim();
   const actionRest = structured[3].trim();
@@ -292,12 +317,14 @@ function fallbackExtract(source) {
     .map(normalizeLine)
     .filter(Boolean)
     .filter((line) => !/^daca sunt elemente pe care le-am omis/i.test(line))
+    .filter((line) => !/^ce este deja existent ramane/i.test(normalizeSearchText(line)))
     .filter((line) => !/^(taskuri|actiuni|de facut)\b/i.test(normalizeSearchText(line)))
     .filter((line) => !/:\s*$/.test(line))
     .filter((line) =>
       /\b(trebuie|de facut|rog|te rog|ramane|verifica|trimite|transmite|pregateste|pregatesc|actualizeaza|creeaza|preia|preluat|stabileste|confirma|clarifica)\b/i.test(line)
+      || /\b(verificat|revine|procedura\s+management|anex\w*\s+aferente|studiu\s+de\s+solutii|anunt\s+ITM)\b/i.test(normalizeSearchText(line))
     )
-    .slice(0, 5)
+    .slice(0, 20)
     .map((line) => {
       const structured = structuredActionFromLine(line);
       const title = structured?.title ?? compactTaskTitle(line);

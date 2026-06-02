@@ -170,6 +170,9 @@ try {
     assert(taskBoardSource.includes("b.count - a.count"), "Tagurile cu mai multe taskuri trebuie sa apara primele.");
     assert(taskBoardSource.includes("Calendar"), "View-ul taskurilor trebuie sa includa o vedere calendaristica.");
     assert(taskBoardSource.includes("priorityRank"), "View-ul taskurilor trebuie sa poata ordona dupa prioritate.");
+    assert(taskBoardSource.includes("isTaskOverdue"), "View-ul taskurilor trebuie sa marcheze taskurile intarziate ca urgente.");
+    assert(taskBoardSource.includes("/follow-up"), "Taskurile intarziate trebuie sa poata crea follow-up.");
+    assert(taskBoardSource.includes("/extend"), "Taskurile intarziate trebuie sa poata primi termen prelungit.");
     assert(taskBoardSource.includes("actionableStatuses"), "View-ul /tasks trebuie sa includa doar taskuri actionabile.");
     assert(taskBoardSource.includes("\"proposed\"") && taskBoardSource.includes("\"approved\""), "View-ul /tasks trebuie sa includa taskuri aprobate si in asteptare.");
     assert(pageSource.includes("filterVisibleTasks"), "Dashboardul trebuie sa filtreze taskurile private in functie de actor.");
@@ -680,7 +683,7 @@ Ana: Mai trebuie sa confirmam cine aproba taskurile propuse de AI.
     const longSource = store.sources.find((source) => source.subject === "Dialog lung sedinta PV-uri");
     assert(longSource, "Sursa dialogului lung trebuie salvata.");
     const tasks = store.proposedTasks.filter((task) => task.sourceId === longSource.id);
-    assert(tasks.length === 5, "Fallback-ul limiteaza dialogul lung la primele 5 taskuri actionabile.", tasks);
+    assert(tasks.length > 5, "Fallback-ul trebuie sa extraga mai mult de 5 taskuri din dialoguri lungi.", tasks);
     assert(
       tasks.some((task) => /PV-uri lipsa/i.test(task.title)),
       "Ar trebui extras taskul despre PV-uri lipsa."

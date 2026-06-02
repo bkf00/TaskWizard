@@ -1,6 +1,7 @@
 "use client";
 
 import type { ProposedTask } from "@repo/domain/types";
+import { effectiveTaskPriority, isTaskOverdue } from "@repo/domain/task-urgency";
 import { useMemo, useState } from "react";
 
 type SortMode = "dueDate" | "priority" | "assignee";
@@ -75,6 +76,7 @@ function dueSortValue(task: ProposedTask): number {
 }
 
 function priorityRank(task: ProposedTask): number {
+  if (effectiveTaskPriority(task) === "urgent") return -1;
   if (task.priority === "high") return 0;
   if (task.confidence === "high") return 1;
   if (task.confidence === "medium") return 2;
@@ -146,12 +148,11 @@ export function TaskBoard({ tasks, actorEmail }: { tasks: ProposedTask[]; actorE
 
   const calendar = useMemo(() => calendarDays(visibleTasks), [visibleTasks]);
   const taskCounts = useMemo(() => {
-    const now = Date.now();
     let highPriority = 0;
     let overdue = 0;
     for (const task of visibleTasks) {
       if (task.priority === "high") highPriority += 1;
-      if (task.dueDate && dueSortValue(task) < now) overdue += 1;
+      if (isTaskOverdue(task)) overdue += 1;
     }
     return { highPriority, overdue };
   }, [visibleTasks]);
@@ -250,7 +251,7 @@ export function TaskBoard({ tasks, actorEmail }: { tasks: ProposedTask[]; actorE
                   <div className="calendar-date">{formatDate(day.date)}</div>
                   <div className="calendar-items">
                     {day.tasks.map((task) => (
-                      <div className={task.priority === "high" ? "calendar-item priority" : "calendar-item"} key={task.id}>
+                      <div className={isTaskOverdue(task) ? "calendar-item urgent" : task.priority === "high" ? "calendar-item priority" : "calendar-item"} key={task.id}>
                         {task.title}
                       </div>
                     ))}
@@ -267,9 +268,11 @@ export function TaskBoard({ tasks, actorEmail }: { tasks: ProposedTask[]; actorE
 
 function TaskBoardCard({ task, actorEmail, assignee }: { task: ProposedTask; actorEmail: string; assignee: string }) {
   const canClose = task.status === "approved" || task.status === "created_in_planner" || task.status === "planner_sync_failed";
+  const taskIsOverdue = isTaskOverdue(task);
+  const nextDueDate = tomorrowIsoDate();
 
   return (
-    <article className="task-card board-card" data-status={task.status}>
+    <article className={taskIsOverdue ? "task-card board-card overdue-card" : "task-card board-card"} data-status={task.status}>
       <div className="task-top">
         <div className="task-title">{task.title}</div>
         <span className={`badge ${task.status}`}>{task.status}</span>
@@ -277,10 +280,27 @@ function TaskBoardCard({ task, actorEmail, assignee }: { task: ProposedTask; act
       <div className="meta">
         <span className="badge">{assignee}</span>
         <span className="badge">{formatDate(task.dueDate)}</span>
+        {taskIsOverdue ? <span className="badge urgent-priority">urgent</span> : null}
         <span className={task.priority === "high" ? "badge high-priority" : "badge"}>{task.priority === "high" ? "prioritar" : "normal"}</span>
         <span className="badge">confidence: {task.confidence}</span>
       </div>
       {task.description ? <div className="evidence">{task.description}</div> : null}
+      {taskIsOverdue ? (
+        <div className="overdue-actions">
+          <form action={`/api/tasks/${task.id}/follow-up`} method="post">
+            <input type="hidden" name="actorEmail" value={actorEmail} />
+            <input type="hidden" name="redirectTo" value="/tasks" />
+            <input type="hidden" name="dueDate" value={nextDueDate} />
+            <button className="button-priority" type="submit">Creeaza follow-up</button>
+          </form>
+          <form action={`/api/tasks/${task.id}/extend`} className="inline-date-form" method="post">
+            <input type="hidden" name="actorEmail" value={actorEmail} />
+            <input type="hidden" name="redirectTo" value="/tasks" />
+            <input aria-label="Noul termen" name="dueDate" type="date" defaultValue={nextDueDate} required />
+            <button className="button-muted" type="submit">Prelungeste</button>
+          </form>
+        </div>
+      ) : null}
       {canClose ? (
         <div className="actions">
           <form action={`/api/tasks/${task.id}/complete`} method="post">
@@ -295,4 +315,13 @@ function TaskBoardCard({ task, actorEmail, assignee }: { task: ProposedTask; act
       ) : null}
     </article>
   );
+}
+
+function tomorrowIsoDate(): string {
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const year = tomorrow.getFullYear();
+  const month = String(tomorrow.getMonth() + 1).padStart(2, "0");
+  const day = String(tomorrow.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }

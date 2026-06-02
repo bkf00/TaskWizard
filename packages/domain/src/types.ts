@@ -31,6 +31,8 @@ export type AuditEventType =
   | "task.duplicate_ignored"
   | "task.approved"
   | "task.rejected"
+  | "task.follow_up_created"
+  | "task.due_date_extended"
   | "task.completed"
   | "task.deleted"
   | "task.planner_created"

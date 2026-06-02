@@ -63,6 +63,8 @@ Acest fisier este jurnalul de lucru al agentului. Se actualizeaza la fiecare sch
 - Am reparat o corupere a `apps/web/data/store.json` aparuta dupa scrieri concurente si am schimbat storage-ul local sa foloseasca o coada de mutatii plus scriere atomica prin fisier temporar si rename.
 - Am corectat fallback-ul de extractie pentru linii precum `Soprema si Bouder - transmite solutie astazi sau maine`: titlul devine `Transmite solutie`, iar responsabilul ramane `Soprema si Bouder`, fara separatorul dintre responsabil si actiune.
 - Am corectat si cazul pasiv `Ordinul de incepere se transmite dupa solutia agreata`: `Ordinul de incepere se` nu mai este tratat ca responsabil, iar titlul devine `Transmite ordin incepere`.
+- Am adaugat stare derivata de urgenta pentru taskurile cu termen depasit: apar cu badge `urgent`, sunt ordonate inaintea taskurilor prioritare si permit follow-up sau prelungire termen din view-ul `/tasks`.
+- Am extins fallback-ul de extractie pentru minute lungi: limita a crescut de la 5 la 20 de actiuni, pronumele `se`/`ne`/`de` nu mai devin responsabili, iar minuta DSS produce taskuri mai curate pentru Sika, Soprema/Bouder, AVT, anexe, procedura si anunt ITM.
 
 ## Regula de utilizare
 

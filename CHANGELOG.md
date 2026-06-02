@@ -85,6 +85,8 @@ Format inspirat de Keep a Changelog. Proiectul foloseste versionare pragmatica p
 - Storage-ul JSON local scrie atomic prin fisier temporar si serializeaza mutatiile, evitand coruperea `store.json` la requesturi concurente.
 - Extractorul fallback nu mai produce titluri trunchiate de tip `Transmite solutie astazi sau` si curata separatorii `-` / `–` ramasi in responsabil.
 - Extractorul fallback recunoaste forme pasive de tip `Ordinul de incepere se transmite...`, punand obiectul in titlu si evitand responsabilul fals `Ordinul de incepere se`.
+- View-ul `/tasks` marcheaza automat taskurile depasite ca urgente, le prioritizeaza in sortare si ofera actiuni rapide de follow-up sau prelungire termen.
+- Extractorul fallback proceseaza acum pana la 20 de actiuni din minute lungi, ignora pronume false ca responsabili si curata mai bine taskurile din minuta DSS.
 
 ### Known Limitations
 

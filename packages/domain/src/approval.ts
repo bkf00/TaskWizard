@@ -253,3 +253,87 @@ export async function markTaskDeleted(input: {
 
   return deleted;
 }
+
+export async function extendTaskDueDate(input: {
+  taskId: string;
+  actorEmail: string;
+  dueDate: string;
+}): Promise<ProposedTask> {
+  const task = await store.getProposedTask(input.taskId);
+  if (!task) {
+    throw new Error("Taskul propus nu exista.");
+  }
+  assertTaskAccess(task, input.actorEmail);
+  if (!plannerTerminalSourceStatuses.has(task.status) && task.status !== "proposed") {
+    throw new Error(`Taskul nu poate fi prelungit din statusul ${task.status}.`);
+  }
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(input.dueDate)) {
+    throw new Error("Noul termen trebuie sa fie in format YYYY-MM-DD.");
+  }
+
+  const extended: ProposedTask = {
+    ...task,
+    dueDate: input.dueDate,
+    updatedAt: new Date().toISOString()
+  };
+
+  await store.saveProposedTask(extended);
+  await audit({
+    type: "task.due_date_extended",
+    actorEmail: input.actorEmail,
+    sourceId: extended.sourceId,
+    proposedTaskId: extended.id,
+    message: "Termenul taskului a fost prelungit.",
+    metadata: { previousDueDate: task.dueDate, dueDate: extended.dueDate }
+  });
+
+  return extended;
+}
+
+export async function createFollowUpTask(input: {
+  taskId: string;
+  actorEmail: string;
+  dueDate?: string | null;
+}): Promise<ProposedTask> {
+  const task = await store.getProposedTask(input.taskId);
+  if (!task) {
+    throw new Error("Taskul propus nu exista.");
+  }
+  assertTaskAccess(task, input.actorEmail);
+  if (!plannerTerminalSourceStatuses.has(task.status) && task.status !== "proposed") {
+    throw new Error(`Nu se poate crea follow-up din statusul ${task.status}.`);
+  }
+
+  const now = new Date().toISOString();
+  const followUp: ProposedTask = {
+    ...task,
+    id: newId("ptask"),
+    title: `Follow-up: ${task.title}`.slice(0, 96),
+    description: [
+      "Follow-up creat dintr-un task existent.",
+      task.description ? `Context initial: ${task.description}` : null
+    ].filter(Boolean).join("\n"),
+    dueDate: input.dueDate?.trim() || null,
+    confidence: "high",
+    priority: "high",
+    evidence: task.evidence,
+    status: "proposed",
+    approvedBy: null,
+    approvedAt: null,
+    plannerTaskId: null,
+    createdAt: now,
+    updatedAt: now
+  };
+
+  await store.saveProposedTask(followUp);
+  await audit({
+    type: "task.follow_up_created",
+    actorEmail: input.actorEmail,
+    sourceId: task.sourceId,
+    proposedTaskId: followUp.id,
+    message: "A fost creat un follow-up pentru task.",
+    metadata: { parentTaskId: task.id, parentStatus: task.status, parentDueDate: task.dueDate }
+  });
+
+  return followUp;
+}

@@ -1,5 +1,6 @@
 import { store } from "@repo/storage/local-store";
 import { filterVisibleTasks } from "@repo/domain/privacy";
+import { isTaskOverdue } from "@repo/domain/task-urgency";
 import { getCurrentActor } from "../auth-actor";
 import { EmailSourceForm } from "./email-source-form";
 import { LiveDashboardRefresh } from "./live-dashboard-refresh";
@@ -90,6 +91,7 @@ export default async function HomePage() {
                   <div className="meta">
                     <span className="badge">{task.assigneeName ?? task.assigneeEmail ?? "fara responsabil"}</span>
                     <span className="badge">{formatDate(task.dueDate)}</span>
+                    {isTaskOverdue(task) ? <span className="badge urgent-priority">urgent</span> : null}
                     {task.priority === "high" ? <span className="badge high-priority">prioritar</span> : null}
                     <span className="badge">confidence: {task.confidence}</span>
                   </div>
@@ -173,6 +175,7 @@ export default async function HomePage() {
                   <div className="meta">
                     <span className="badge">{task.assigneeName ?? task.assigneeEmail ?? "fara responsabil"}</span>
                     <span className="badge">{formatDate(task.dueDate)}</span>
+                    {isTaskOverdue(task) ? <span className="badge urgent-priority">urgent</span> : null}
                     {task.plannerTaskId ? <span className="badge">Planner: {task.plannerTaskId}</span> : null}
                   </div>
                   {task.description ? <div className="evidence">{task.description}</div> : null}

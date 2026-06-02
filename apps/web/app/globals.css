@@ -292,6 +292,15 @@ button:hover {
   color: #b54708;
 }
 
+.urgent-priority {
+  background: #fef3f2;
+  color: #b42318;
+}
+
+.overdue-card {
+  border-color: #fecdca;
+}
+
 .meta {
   display: flex;
   flex-wrap: wrap;
@@ -351,6 +360,29 @@ button:hover {
   gap: 8px;
   flex-wrap: wrap;
   margin-top: 10px;
+}
+
+.overdue-actions {
+  align-items: center;
+  background: #fffbfa;
+  border: 1px solid #fecdca;
+  border-radius: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 10px;
+}
+
+.inline-date-form {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+}
+
+.inline-date-form input[type="date"] {
+  min-width: 150px;
+  padding: 8px 9px;
 }
 
 .filters {
@@ -665,6 +697,12 @@ button:hover {
   border-color: #fedf89;
   background: #fffaeb;
   color: #93370d;
+}
+
+.calendar-item.urgent {
+  border-color: #fecdca;
+  background: #fef3f2;
+  color: #912018;
 }
 
 dialog {
