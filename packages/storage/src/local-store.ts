@@ -1,4 +1,4 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import path from "node:path";
 import type { AuditEvent, ProcessingError, ProposedTask, SourceItem } from "@repo/domain/types";
 import { taskIdentityKey } from "@repo/domain/task-identity";
@@ -13,6 +13,8 @@ function storePath(): string {
 }
 
 export class JsonFileTaskWizardRepository implements TaskWizardRepository {
+  private writeQueue = Promise.resolve();
+
   constructor(private readonly filePath = storePath()) {}
 
   private async readStore(): Promise<StoreSnapshot> {
@@ -38,7 +40,20 @@ export class JsonFileTaskWizardRepository implements TaskWizardRepository {
 
   private async writeStore(data: StoreSnapshot): Promise<void> {
     await mkdir(path.dirname(this.filePath), { recursive: true });
-    await writeFile(this.filePath, JSON.stringify(data, null, 2), "utf8");
+    const tempPath = `${this.filePath}.${process.pid}.${Date.now()}.tmp`;
+    await writeFile(tempPath, JSON.stringify(data, null, 2), "utf8");
+    await rename(tempPath, this.filePath);
+  }
+
+  private async updateStore<T>(update: (data: StoreSnapshot) => T | Promise<T>): Promise<T> {
+    const operation = this.writeQueue.then(async () => {
+      const data = await this.readStore();
+      const result = await update(data);
+      await this.writeStore(data);
+      return result;
+    });
+    this.writeQueue = operation.then(() => undefined, () => undefined);
+    return operation;
   }
 
   async listSources(): Promise<SourceItem[]> {
@@ -50,15 +65,15 @@ export class JsonFileTaskWizardRepository implements TaskWizardRepository {
   }
 
   async saveSource(source: SourceItem): Promise<SourceItem> {
-    const data = await this.readStore();
-    const index = data.sources.findIndex((item) => item.id === source.id);
-    if (index >= 0) {
-      data.sources[index] = source;
-    } else {
-      data.sources.push(source);
-    }
-    await this.writeStore(data);
-    return source;
+    return this.updateStore((data) => {
+      const index = data.sources.findIndex((item) => item.id === source.id);
+      if (index >= 0) {
+        data.sources[index] = source;
+      } else {
+        data.sources.push(source);
+      }
+      return source;
+    });
   }
 
   async listProposedTasks(): Promise<ProposedTask[]> {
@@ -70,32 +85,32 @@ export class JsonFileTaskWizardRepository implements TaskWizardRepository {
   }
 
   async saveProposedTasks(tasks: ProposedTask[]): Promise<void> {
-    const data = await this.readStore();
-    const taskIndexById = new Map(data.proposedTasks.map((task, index) => [task.id, index]));
-    const seenIdentities = new Set(data.proposedTasks.map(taskIdentityKey).filter((key): key is string => Boolean(key)));
+    await this.updateStore((data) => {
+      const taskIndexById = new Map(data.proposedTasks.map((task, index) => [task.id, index]));
+      const seenIdentities = new Set(data.proposedTasks.map(taskIdentityKey).filter((key): key is string => Boolean(key)));
 
-    for (const task of tasks) {
-      const index = taskIndexById.get(task.id) ?? -1;
-      if (index >= 0) {
-        const previousIdentity = taskIdentityKey(data.proposedTasks[index]);
-        if (previousIdentity) seenIdentities.delete(previousIdentity);
-        data.proposedTasks[index] = task;
-        const nextIdentity = taskIdentityKey(task);
-        if (nextIdentity) seenIdentities.add(nextIdentity);
-      } else {
-        const identity = taskIdentityKey(task);
-        if (!identity) {
+      for (const task of tasks) {
+        const index = taskIndexById.get(task.id) ?? -1;
+        if (index >= 0) {
+          const previousIdentity = taskIdentityKey(data.proposedTasks[index]);
+          if (previousIdentity) seenIdentities.delete(previousIdentity);
+          data.proposedTasks[index] = task;
+          const nextIdentity = taskIdentityKey(task);
+          if (nextIdentity) seenIdentities.add(nextIdentity);
+        } else {
+          const identity = taskIdentityKey(task);
+          if (!identity) {
+            data.proposedTasks.push(task);
+            taskIndexById.set(task.id, data.proposedTasks.length - 1);
+            continue;
+          }
+          if (seenIdentities.has(identity)) continue;
+          seenIdentities.add(identity);
           data.proposedTasks.push(task);
           taskIndexById.set(task.id, data.proposedTasks.length - 1);
-          continue;
         }
-        if (seenIdentities.has(identity)) continue;
-        seenIdentities.add(identity);
-        data.proposedTasks.push(task);
-        taskIndexById.set(task.id, data.proposedTasks.length - 1);
       }
-    }
-    await this.writeStore(data);
+    });
   }
 
   async saveProposedTask(task: ProposedTask): Promise<ProposedTask> {
@@ -104,9 +119,9 @@ export class JsonFileTaskWizardRepository implements TaskWizardRepository {
   }
 
   async addAuditEvent(event: AuditEvent): Promise<void> {
-    const data = await this.readStore();
-    data.auditEvents.push(event);
-    await this.writeStore(data);
+    await this.updateStore((data) => {
+      data.auditEvents.push(event);
+    });
   }
 
   async listAuditEvents(): Promise<AuditEvent[]> {
@@ -114,9 +129,9 @@ export class JsonFileTaskWizardRepository implements TaskWizardRepository {
   }
 
   async addProcessingError(error: ProcessingError): Promise<void> {
-    const data = await this.readStore();
-    data.processingErrors.push(error);
-    await this.writeStore(data);
+    await this.updateStore((data) => {
+      data.processingErrors.push(error);
+    });
   }
 
   async listProcessingErrors(): Promise<ProcessingError[]> {
