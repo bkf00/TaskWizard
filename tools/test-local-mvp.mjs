@@ -116,9 +116,12 @@ try {
   });
 
   await record("Next.js app uses the organized TaskWizard dashboard", async () => {
-    const [pageSource, formSource, liveRefreshSource, historySource, taskBoardSource, tasksPageSource, cssSource, versionRouteSource, privacySource, ingestionSource, approvalSource, gitignoreSource] = await Promise.all([
+    const [pageSource, formSource, manualRouteSource, emailFormatSource, documentExtractSource, liveRefreshSource, historySource, taskBoardSource, tasksPageSource, cssSource, versionRouteSource, privacySource, ingestionSource, approvalSource, gitignoreSource] = await Promise.all([
       readFile(path.join(projectRoot, "apps/web/app/page.tsx"), "utf8"),
       readFile(path.join(projectRoot, "apps/web/app/email-source-form.tsx"), "utf8"),
+      readFile(path.join(projectRoot, "apps/web/app/api/sources/manual/route.ts"), "utf8"),
+      readFile(path.join(projectRoot, "packages/domain/src/email-format.ts"), "utf8"),
+      readFile(path.join(projectRoot, "packages/domain/src/document-extract.ts"), "utf8"),
       readFile(path.join(projectRoot, "apps/web/app/live-dashboard-refresh.tsx"), "utf8"),
       readFile(path.join(projectRoot, "apps/web/app/task-history-panel.tsx"), "utf8"),
       readFile(path.join(projectRoot, "apps/web/app/tasks/task-board.tsx"), "utf8"),
@@ -139,6 +142,14 @@ try {
     assert(pageSource.includes("href=\"/tasks\""), "Review-ul trebuie sa lege view-ul dedicat de taskuri.");
     assert(formSource.includes("id=\"import-dialog\""), "Importul emailurilor trebuie sa ramana intr-un dialog.");
     assert(formSource.includes("Adauga email"), "Importul trebuie pornit din butonul principal.");
+    assert(formSource.includes("encType=\"multipart/form-data\""), "Importul trebuie sa trimita fisiere reale, inclusiv documente binare.");
+    assert(formSource.includes(".docx") && formSource.includes(".pdf") && formSource.includes(".xlsx"), "Importul trebuie sa accepte documente uzuale atasate sau directe.");
+    assert(manualRouteSource.includes("sourceFile"), "Ruta de import trebuie sa citeasca fisierul incarcat.");
+    assert(manualRouteSource.includes("parseEmailPasteWithAttachments"), "Emailurile .eml trebuie procesate impreuna cu atasamentele.");
+    assert(documentExtractSource.includes("mammoth"), "Extractorul trebuie sa suporte Word .docx.");
+    assert(documentExtractSource.includes("pdf-parse"), "Extractorul trebuie sa suporte PDF.");
+    assert(documentExtractSource.includes("jszip"), "Extractorul trebuie sa suporte Excel modern fara pachetul xlsx vulnerabil.");
+    assert(emailFormatSource.includes("extractEmailAttachments"), "Parserul de email trebuie sa caute atasamente procesabile.");
     assert(liveRefreshSource.includes("router.refresh()"), "Refresh-ul live trebuie sa actualizeze view-ul fara reload manual.");
     assert(liveRefreshSource.includes("userIsEditing()"), "Refresh-ul live trebuie sa protejeze formularele deschise.");
     assert(liveRefreshSource.includes("details.edit[open]"), "Refresh-ul live nu trebuie sa inchida editari deschise.");

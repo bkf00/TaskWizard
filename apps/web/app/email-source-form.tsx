@@ -41,33 +41,22 @@ export function EmailSourceForm({
             </button>
           </div>
 
-          <form action="/api/sources/manual" method="post">
+          <form action="/api/sources/manual" method="post" encType="multipart/form-data">
             <input id="actorEmail" name="actorEmail" type="hidden" value={defaultActorEmail} />
 
-            <label htmlFor="emailFile">Fisier .eml</label>
+            <label htmlFor="sourceFile">Fisier email sau document</label>
             <input
-              id="emailFile"
+              id="sourceFile"
+              name="sourceFile"
               type="file"
-              accept=".eml,message/rfc822,text/plain"
-              onChange={(event) => {
-                const file = event.currentTarget.files?.[0];
-                if (!file) return;
-
-                const reader = new FileReader();
-                reader.onload = () => {
-                  const textarea = document.getElementById("rawEmail") as HTMLTextAreaElement | null;
-                  if (textarea) textarea.value = String(reader.result ?? "");
-                };
-                reader.readAsText(file);
-              }}
+              accept=".eml,message/rfc822,.doc,.docx,.pdf,.xlsx,.xlsm,.csv,.txt,text/plain,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             />
 
-            <label htmlFor="rawEmail">Email complet / text copiat</label>
+            <label htmlFor="rawEmail">Email complet / text copiat optional</label>
             <textarea
               id="rawEmail"
               name="rawEmail"
-              required
-              placeholder="Alege fisierul .eml sau lipeste aici emailul complet din Outlook. Subiectul, expeditorul si participantii vor fi extrasi automat cand exista headere."
+              placeholder="Alege un fisier sau lipeste aici emailul complet din Outlook. Subiectul, expeditorul si participantii vor fi extrasi automat cand exista headere."
             />
 
             <details className="advanced-source">

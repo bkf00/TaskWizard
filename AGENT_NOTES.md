@@ -59,6 +59,7 @@ Acest fisier este jurnalul de lucru al agentului. Se actualizeaza la fiecare sch
 - Am definit `/tasks` ca view operational pentru taskuri actionabile: include `proposed`, `approved`, `created_in_planner` si `planner_sync_failed`, dar exclude istoricul inchis.
 - Am facut auditul de clean code pe zonele adaugate recent: am eliminat calcule repetate in `/tasks`, am simplificat calculul versiunii live si am optimizat salvarea batch in storage fara sa schimb comportamentul functional.
 - Am adaugat privacy local configurabil prin fisier ignorat de Git: expeditorii blocati nu genereaza taskuri si nu pastreaza raw text, iar taskurile private sunt filtrate pe actor si protejate si in actiunile de aprobare/editare/inchidere.
+- Am extins importul cu extractie de documente si atasamente: `.eml` poate alimenta taskurile din `.docx` atasat, iar documentele moderne `.docx`, `.pdf`, `.xlsx/.xlsm`, `.csv` si `.txt` pot fi incarcate direct. Am evitat pachetul `xlsx` din cauza vulnerabilitatilor fara fix si am folosit un parser XLSX minimal prin `jszip`.
 
 ## Regula de utilizare
 

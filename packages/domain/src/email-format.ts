@@ -1,4 +1,5 @@
 import type { SourceType } from "./types";
+import { extractDocumentText, formatExtractedDocuments, isSupportedDocument, type ExtractedDocumentText } from "./document-extract";
 
 export type ParsedEmailPaste = {
   type: SourceType;
@@ -6,6 +7,7 @@ export type ParsedEmailPaste = {
   fromEmail: string | null;
   participants: string[];
   rawText: string;
+  attachments: ExtractedDocumentText[];
 };
 
 function unfoldHeaders(raw: string): string {
@@ -26,9 +28,10 @@ function emailAddresses(value: string | null): string[] {
 
 function decodeQuotedPrintable(value: string): string {
   const withoutSoftBreaks = value.replace(/=\r?\n/g, "");
-  return withoutSoftBreaks.replace(/=([0-9A-F]{2})/gi, (_, hex: string) =>
+  const encoded = withoutSoftBreaks.replace(/=([0-9A-F]{2})/gi, (_, hex: string) =>
     String.fromCharCode(Number.parseInt(hex, 16))
   );
+  return Buffer.from(encoded, "binary").toString("utf8");
 }
 
 function stripMimeNoise(value: string): string {
@@ -52,6 +55,55 @@ function extractTextPlainBody(raw: string): string {
   return stripMimeNoise(decodeQuotedPrintable(firstBody || raw));
 }
 
+function decodeMimeFilename(value: string): string {
+  const trimmed = value.trim().replace(/^["']|["']$/g, "");
+  const encodedWord = trimmed.match(/^=\?([^?]+)\?([BQ])\?(.+)\?=$/i);
+  if (!encodedWord) return trimmed;
+
+  const [, charset, encoding, content] = encodedWord;
+  const bytes = encoding.toUpperCase() === "B"
+    ? Buffer.from(content, "base64")
+    : Buffer.from(content.replace(/_/g, " ").replace(/=([0-9A-F]{2})/gi, (_, hex: string) =>
+        String.fromCharCode(Number.parseInt(hex, 16))
+      ), "binary");
+  return bytes.toString(charset.toLowerCase().includes("utf") ? "utf8" : "latin1");
+}
+
+function attachmentParts(rawEmail: string): Array<{ filename: string; buffer: Buffer }> {
+  const parts: Array<{ filename: string; buffer: Buffer }> = [];
+  const matches = rawEmail.matchAll(/Content-Type:[\s\S]*?(?=\r?\n--[^\r\n]+|$)/gi);
+
+  for (const match of matches) {
+    const part = match[0];
+    if (!/Content-Disposition:\s*attachment/i.test(part) && !/filename\s*=|name\s*=/i.test(part)) continue;
+
+    const filenameMatch = part.match(/(?:filename|name)\*?=(?:"([^"]+)"|([^\r\n;]+))/i);
+    const filename = filenameMatch ? decodeMimeFilename(filenameMatch[1] ?? filenameMatch[2]) : "attachment";
+    if (!isSupportedDocument(filename)) continue;
+
+    const bodyMatch = part.match(/Content-Transfer-Encoding:\s*base64[\s\S]*?\r?\n\r?\n([\s\S]*)$/i);
+    if (!bodyMatch?.[1]) continue;
+
+    const base64 = bodyMatch[1]
+      .replace(/\r?\n--[\s\S]*$/g, "")
+      .replace(/\s/g, "");
+    if (!base64) continue;
+
+    try {
+      parts.push({ filename, buffer: Buffer.from(base64, "base64") });
+    } catch {
+      // Ignore malformed attachment payloads; body extraction still works.
+    }
+  }
+
+  return parts;
+}
+
+export async function extractEmailAttachments(rawEmail: string): Promise<ExtractedDocumentText[]> {
+  const parts = attachmentParts(rawEmail);
+  return Promise.all(parts.map((part) => extractDocumentText(part)));
+}
+
 export function parseEmailPaste(input: {
   rawEmail: string;
   fallbackActorEmail?: string | null;
@@ -72,7 +124,22 @@ export function parseEmailPaste(input: {
     subject,
     fromEmail,
     participants: [...new Set(participants)],
-    rawText
+    rawText,
+    attachments: []
   };
 }
 
+export async function parseEmailPasteWithAttachments(input: {
+  rawEmail: string;
+  fallbackActorEmail?: string | null;
+}): Promise<ParsedEmailPaste> {
+  const parsed = parseEmailPaste(input);
+  const attachments = await extractEmailAttachments(input.rawEmail);
+  const attachmentText = formatExtractedDocuments(attachments);
+
+  return {
+    ...parsed,
+    attachments,
+    rawText: [parsed.rawText, attachmentText].filter(Boolean).join("\n\n")
+  };
+}

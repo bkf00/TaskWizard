@@ -139,6 +139,8 @@ npm run build
 
 Create `.env.local` from `.env.example`.
 
+Import supports pasted email text plus uploaded `.eml`, `.docx`, `.pdf`, `.xlsx/.xlsm`, `.csv`, and `.txt` files. `.eml` uploads also scan supported document attachments and append their extracted text to the source before task extraction.
+
 Microsoft 365 setup:
 
 - app registration and permissions: [docs/microsoft-365-setup.md](docs/microsoft-365-setup.md);

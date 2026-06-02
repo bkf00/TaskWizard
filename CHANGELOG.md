@@ -81,6 +81,7 @@ Format inspirat de Keep a Changelog. Proiectul foloseste versionare pragmatica p
 - Audit de clean code: view-ul `/tasks` calculeaza o singura data responsabilul/angajatul per task, storage-ul local foloseste lookup prin `Map`, iar versiunea dashboardului gaseste ultimul timestamp fara sortare inutila.
 - View-ul `/tasks` afiseaza doar taskuri actionabile: in asteptare de aprobare, aprobate sau active in Planner/sincronizare.
 - Reguli locale de privacy pentru emailuri: expeditorii blocati nu creeaza taskuri si nu pastreaza text brut, iar sursele private creeaza taskuri vizibile/actionabile doar pentru adresele configurate in fisier local ignorat de Git.
+- Importul citeste acum fisiere reale si atasamente din `.eml`: `.docx`, `.pdf`, `.xlsx/.xlsm`, `.csv` si `.txt` sunt transformate in text inainte de extractia taskurilor; `.doc` vechi are doar extractie best-effort.
 
 ### Known Limitations
 
