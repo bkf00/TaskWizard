@@ -139,7 +139,8 @@ function compactTaskTitle(actionText) {
     { pattern: /\barhiva\b.*\bverifica/i, title: "Verifica arhiva proiect" },
     { pattern: /\bcentralizator\w*\s+IMSAT/i, title: "Actualizeaza centralizator IMSAT" },
     { pattern: /\bvarianta\s+curata\b.*\btabel/i, title: "Transmite tabel curat client" },
-    { pattern: /\bpersoana\b.*\bsemneaza/i, title: "Confirma semnatar minute" }
+    { pattern: /\bpersoana\b.*\bsemneaza/i, title: "Confirma semnatar minute" },
+    { pattern: /\btransmit\w*\b.*\bsolutie/i, title: "Transmite solutie" }
   ];
   const known = knownPatterns.find((item) => item.pattern.test(normalized));
   if (known) return known.title;
@@ -148,6 +149,7 @@ function compactTaskTitle(actionText) {
     "a",
     "ale",
     "al",
+    "astazi",
     "catre",
     "cu",
     "de",
@@ -166,6 +168,7 @@ function compactTaskTitle(actionText) {
     "pana",
     "respectiv",
     "sa",
+    "sau",
     "se",
     "si",
     "termenul",
@@ -248,7 +251,11 @@ function structuredActionFromLine(line) {
   const structured = normalized.match(/^(?:(?:\d{1,2}\.\d{1,2}\.\d{4}|\d{4})\s*=\s*)?(.+?)\s+(trebuie|pregateste|pregatesc|transmite|transmit|trimite|verifica|actualizeaza|creeaza|preia|preluat|stabileste|confirma|clarifica)\b(.*)$/i);
   if (!structured) return null;
 
-  const assigneeName = structured[1].trim().replace(/\s+(?:a|te rog|va rog)$/i, "");
+  const assigneeName = structured[1]
+    .trim()
+    .replace(/\s+(?:a|te rog|va rog)$/i, "")
+    .replace(/[\s\u2010-\u2015-]+$/g, "")
+    .trim();
   if (/^(te rog|ramane sa|de facut)$/i.test(assigneeName)) return null;
   const actionVerb = structured[2].trim();
   const actionRest = structured[3].trim();

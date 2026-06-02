@@ -83,6 +83,7 @@ Format inspirat de Keep a Changelog. Proiectul foloseste versionare pragmatica p
 - Reguli locale de privacy pentru emailuri: expeditorii blocati nu creeaza taskuri si nu pastreaza text brut, iar sursele private creeaza taskuri vizibile/actionabile doar pentru adresele configurate in fisier local ignorat de Git.
 - Importul citeste acum fisiere reale si atasamente din `.eml`: `.docx`, `.pdf`, `.xlsx/.xlsm`, `.csv` si `.txt` sunt transformate in text inainte de extractia taskurilor; `.doc` vechi are doar extractie best-effort.
 - Storage-ul JSON local scrie atomic prin fisier temporar si serializeaza mutatiile, evitand coruperea `store.json` la requesturi concurente.
+- Extractorul fallback nu mai produce titluri trunchiate de tip `Transmite solutie astazi sau` si curata separatorii `-` / `–` ramasi in responsabil.
 
 ### Known Limitations
 

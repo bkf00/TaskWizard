@@ -344,6 +344,7 @@ Pregateste lista de observatii pentru acoperis.
       rawText: [
         "Ac\u021biuni ramase / posibil de f\u0103cut:",
         "Bogdan te rog verifica lista de PV-uri lipsa pana maine dimineata.",
+        "Soprema si Bouder - transmite solutie astazi sau maine.",
         "Sika confirma miercuri disponibilitatea membranei si termenul de livrare estimat.",
         "DSS trebuie sa clarifice cu financiarul daca acordul tripartit poate fi semnat pana marti."
       ].join("\n")
@@ -353,9 +354,11 @@ Pregateste lista de observatii pentru acoperis.
     const source = store.sources.find((item) => item.subject === "Email haotic cu heading");
     assert(source, "Sursa haotica trebuie salvata.");
     const tasks = store.proposedTasks.filter((task) => task.sourceId === source.id);
-    assert(tasks.length === 3, "Headingul de taskuri nu trebuie sa devina task.", tasks);
+    assert(tasks.length === 4, "Headingul de taskuri nu trebuie sa devina task.", tasks);
     assert(tasks.some((task) => task.assigneeName === "Bogdan"), "Formula 'te rog' nu trebuie sa ramana in responsabil.", tasks);
+    assert(tasks.some((task) => task.assigneeName === "Soprema si Bouder"), "Cratima dintre responsabil si actiune nu trebuie pastrata in responsabil.", tasks);
     assert(tasks.some((task) => task.title === "Verifica lista PV-uri lipsa"), "Titlul trebuie curatat de termenul relativ.", tasks);
+    assert(tasks.some((task) => task.title === "Transmite solutie"), "Titlul pentru solutie nu trebuie trunchiat cu termeni temporali.", tasks);
     assert(tasks.some((task) => task.title === "Clarifica acord tripartit"), "Titlul pentru acordul tripartit trebuie curatat.", tasks);
     assert(tasks.some((task) => task.title === "Confirma disponibilitate membrana"), "Titlul pentru membrana trebuie naturalizat.", tasks);
     assert(tasks.some((task) => task.dueDate === "2026-05-26"), "Termenul 'maine' trebuie pastrat ca data.", tasks);
@@ -377,7 +380,7 @@ Pregateste lista de observatii pentru acoperis.
     assert(response.status === 303, "Duplicatul ar trebui sa redirectioneze.", response.status);
     const store = await readStore();
     assert(store.sources.length === 6, "Duplicatul nu trebuie sa creeze o sursa noua.", store.sources);
-    assert(store.proposedTasks.length === 15, "Duplicatul nu trebuie sa creeze taskuri noi.", store.proposedTasks);
+    assert(store.proposedTasks.length === 16, "Duplicatul nu trebuie sa creeze taskuri noi.", store.proposedTasks);
     assert(
       store.auditEvents.some((event) => event.type === "source.duplicate_ignored"),
       "Duplicatul trebuie marcat in audit."
