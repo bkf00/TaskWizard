@@ -1,6 +1,7 @@
 import { z } from "zod";
 import type { ProposedTask, SourceItem } from "@repo/domain/types";
 import { newId } from "@repo/domain/ids";
+import { cleanAssigneeName } from "@repo/domain/assignee";
 
 const ExtractedTaskSchema = z.object({
   title: z.string().min(3),
@@ -188,13 +189,12 @@ function fallbackExtractTasks(source: SourceItem): ExtractedTask[] {
     const normalized = normalizeLine(line);
     const terminalActorAction = normalized.match(/[\u2010-\u2015-]\s*([A-Z0-9]{2,}|[A-Z][\p{L}0-9&.\s]{1,30}?)\s+(transmite|transmit|trimite|clarifica|confirma)\b(.*)$/iu);
     if (terminalActorAction) {
-      const assigneeName = terminalActorAction[1].trim().replace(/[\s\u2010-\u2015-]+$/g, "");
-      const cleanAssigneeName = /^(de|se|ne|noi|acestia|acestea)$/i.test(assigneeName) ? null : assigneeName;
+      const assigneeName = cleanAssigneeName(terminalActorAction[1]);
       const title = compactTaskTitle(`${terminalActorAction[2].trim()} ${terminalActorAction[3].trim()} ${normalized}`.trim());
       return {
         title,
         description: normalized,
-        assigneeName: cleanAssigneeName && cleanAssigneeName.length <= 60 ? cleanAssigneeName : null,
+        assigneeName: assigneeName && assigneeName.length <= 60 ? assigneeName : null,
         dueDate: extractDueDate(normalized)
       };
     }
@@ -202,14 +202,9 @@ function fallbackExtractTasks(source: SourceItem): ExtractedTask[] {
     const structured = normalized.match(/^(?:(?:\d{1,2}\.\d{1,2}\.\d{4}|\d{4})\s*=\s*)?(.+?)\s+(trebuie|pregateste|pregatesc|transmite|transmit|trimite|verifica|verificat|actualizeaza|creeaza|preia|preluat|stabileste|confirma|clarifica|revine)\b(.*)$/i);
     if (!structured) return null;
 
-    const rawAssigneeName = structured[1]
-      .trim()
-      .replace(/\s+(?:a|te rog|va rog)$/i, "")
-      .replace(/[\s\u2010-\u2015-]+$/g, "")
-      .trim();
+    const rawAssigneeName = structured[1].trim().replace(/\s+(?:a|te rog|va rog)$/i, "");
     const passiveSubject = rawAssigneeName.match(/^(.+?)\s+se$/i)?.[1]?.trim() ?? null;
-    const pronounSubject = /^(de|se|ne|noi|acestia|acestea)$/i.test(rawAssigneeName);
-    const assigneeName = passiveSubject || pronounSubject ? null : rawAssigneeName;
+    const assigneeName = passiveSubject ? null : cleanAssigneeName(rawAssigneeName);
     if (assigneeName && /^(te rog|ramane sa|de facut)$/i.test(assigneeName)) return null;
 
     const titleSubject = passiveSubject ? `${passiveSubject} ${structured[3].trim()}` : structured[3].trim();
@@ -282,7 +277,7 @@ export async function extractProposedTasks(source: SourceItem): Promise<Proposed
     title: task.title,
     description: task.description,
     assigneeEmail: task.assigneeEmail,
-    assigneeName: task.assigneeName,
+    assigneeName: cleanAssigneeName(task.assigneeName),
     dueDate: task.dueDate,
     projectHint: task.projectHint,
     confidence: task.confidence,

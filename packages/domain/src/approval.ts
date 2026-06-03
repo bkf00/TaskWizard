@@ -4,6 +4,7 @@ import { audit } from "@repo/audit/audit";
 import { createPlannerTask, isPlannerConfigured } from "@repo/graph/planner";
 import { lookupEntraUserByEmail } from "@repo/graph/users";
 import { store } from "@repo/storage/local-store";
+import { cleanAssigneeName } from "./assignee";
 import { canViewTask } from "./privacy";
 
 function assertTaskAccess(task: ProposedTask, actorEmail: string): void {
@@ -134,7 +135,7 @@ export async function updateProposedTask(input: {
     title: title ?? task.title,
     description: input.patch.description?.trim() || null,
     assigneeEmail: input.patch.assigneeEmail?.trim() || null,
-    assigneeName: input.patch.assigneeName?.trim() || null,
+    assigneeName: cleanAssigneeName(input.patch.assigneeName),
     dueDate: input.patch.dueDate?.trim() || null,
     projectHint: input.patch.projectHint?.trim() || null,
     updatedAt: new Date().toISOString()

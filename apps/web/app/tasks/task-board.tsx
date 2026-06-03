@@ -2,6 +2,7 @@
 
 import type { ProposedTask } from "@repo/domain/types";
 import { effectiveTaskPriority, isTaskOverdue } from "@repo/domain/task-urgency";
+import { cleanAssigneeName } from "@repo/domain/assignee";
 import { useMemo, useState } from "react";
 
 type SortMode = "dueDate" | "priority" | "assignee";
@@ -38,7 +39,7 @@ function cleanAssigneeLabel(value: string): string {
 }
 
 function assigneeLabel(task: ProposedTask): string {
-  return cleanAssigneeLabel(task.assigneeName ?? task.assigneeEmail ?? "fara responsabil");
+  return cleanAssigneeLabel(cleanAssigneeName(task.assigneeName) ?? task.assigneeEmail ?? "fara responsabil");
 }
 
 function employeeForTask(task: ProposedTask): string | null {

@@ -1,6 +1,7 @@
 "use client";
 
 import type { ProposedTask } from "@repo/domain/types";
+import { cleanAssigneeName } from "@repo/domain/assignee";
 import { useMemo, useState } from "react";
 
 const statusFilters: Array<{ value: ProposedTask["status"]; label: string }> = [
@@ -16,6 +17,10 @@ const statusFilters: Array<{ value: ProposedTask["status"]; label: string }> = [
 function formatDate(value: string | null): string {
   if (!value) return "fara termen";
   return new Intl.DateTimeFormat("ro-RO", { dateStyle: "medium" }).format(new Date(value));
+}
+
+function formatAssignee(task: ProposedTask): string {
+  return cleanAssigneeName(task.assigneeName) ?? task.assigneeEmail ?? "fara responsabil";
 }
 
 export function TaskHistoryPanel({ tasks, actorEmail }: { tasks: ProposedTask[]; actorEmail: string }) {
@@ -60,7 +65,7 @@ export function TaskHistoryPanel({ tasks, actorEmail }: { tasks: ProposedTask[];
                 <span className={`badge ${task.status}`}>{task.status}</span>
               </div>
               <div className="history-meta">
-                <span className="badge">{task.assigneeName ?? task.assigneeEmail ?? "fara responsabil"}</span>
+                <span className="badge">{formatAssignee(task)}</span>
                 <span className="badge">{formatDate(task.dueDate)}</span>
                 {task.priority === "high" ? <span className="badge high-priority">prioritar</span> : null}
               </div>

@@ -173,6 +173,8 @@ try {
     assert(taskBoardSource.includes("isTaskOverdue"), "View-ul taskurilor trebuie sa marcheze taskurile intarziate ca urgente.");
     assert(taskBoardSource.includes("/follow-up"), "Taskurile intarziate trebuie sa poata crea follow-up.");
     assert(taskBoardSource.includes("/extend"), "Taskurile intarziate trebuie sa poata primi termen prelungit.");
+    assert(taskBoardSource.includes("cleanAssigneeName"), "View-ul taskurilor trebuie sa ascunda responsabilii falsi ramasi in date vechi.");
+    assert(pageSource.includes("cleanAssigneeName"), "Review inbox trebuie sa ascunda responsabilii falsi ramasi in date vechi.");
     assert(taskBoardSource.includes("actionableStatuses"), "View-ul /tasks trebuie sa includa doar taskuri actionabile.");
     assert(taskBoardSource.includes("\"proposed\"") && taskBoardSource.includes("\"approved\""), "View-ul /tasks trebuie sa includa taskuri aprobate si in asteptare.");
     assert(pageSource.includes("filterVisibleTasks"), "Dashboardul trebuie sa filtreze taskurile private in functie de actor.");
@@ -349,6 +351,8 @@ Pregateste lista de observatii pentru acoperis.
         "Bogdan te rog verifica lista de PV-uri lipsa pana maine dimineata.",
         "Soprema si Bouder - transmite solutie astazi sau maine.",
         "Ordinul de incepere se transmite dupa solutia agreata.",
+        "Ne trebuie toate avizele de la DSS pentru scanat.",
+        "Se transmite catre proiectant/beneficiar pentru analiza.",
         "Sika confirma miercuri disponibilitatea membranei si termenul de livrare estimat.",
         "DSS trebuie sa clarifice cu financiarul daca acordul tripartit poate fi semnat pana marti."
       ].join("\n")
@@ -358,7 +362,7 @@ Pregateste lista de observatii pentru acoperis.
     const source = store.sources.find((item) => item.subject === "Email haotic cu heading");
     assert(source, "Sursa haotica trebuie salvata.");
     const tasks = store.proposedTasks.filter((task) => task.sourceId === source.id);
-    assert(tasks.length === 5, "Headingul de taskuri nu trebuie sa devina task.", tasks);
+    assert(tasks.length === 7, "Headingul de taskuri nu trebuie sa devina task.", tasks);
     assert(tasks.some((task) => task.assigneeName === "Bogdan"), "Formula 'te rog' nu trebuie sa ramana in responsabil.", tasks);
     assert(tasks.some((task) => task.assigneeName === "Soprema si Bouder"), "Cratima dintre responsabil si actiune nu trebuie pastrata in responsabil.", tasks);
     assert(
@@ -366,6 +370,8 @@ Pregateste lista de observatii pentru acoperis.
       "Forma pasiva 'X se transmite' trebuie sa puna X in titlu, nu in responsabil.",
       tasks
     );
+    assert(tasks.some((task) => task.title === "Scaneaza avize DSS" && task.assigneeName === null), "Pronumele 'Ne' nu trebuie sa devina responsabil.", tasks);
+    assert(tasks.some((task) => task.title === "Transmite proiectant/beneficiar analiza" && task.assigneeName === null), "Pronumele 'Se' nu trebuie sa devina responsabil.", tasks);
     assert(tasks.some((task) => task.title === "Verifica lista PV-uri lipsa"), "Titlul trebuie curatat de termenul relativ.", tasks);
     assert(tasks.some((task) => task.title === "Transmite solutie"), "Titlul pentru solutie nu trebuie trunchiat cu termeni temporali.", tasks);
     assert(tasks.some((task) => task.title === "Clarifica acord tripartit"), "Titlul pentru acordul tripartit trebuie curatat.", tasks);
@@ -389,7 +395,7 @@ Pregateste lista de observatii pentru acoperis.
     assert(response.status === 303, "Duplicatul ar trebui sa redirectioneze.", response.status);
     const store = await readStore();
     assert(store.sources.length === 6, "Duplicatul nu trebuie sa creeze o sursa noua.", store.sources);
-    assert(store.proposedTasks.length === 17, "Duplicatul nu trebuie sa creeze taskuri noi.", store.proposedTasks);
+    assert(store.proposedTasks.length === 19, "Duplicatul nu trebuie sa creeze taskuri noi.", store.proposedTasks);
     assert(
       store.auditEvents.some((event) => event.type === "source.duplicate_ignored"),
       "Duplicatul trebuie marcat in audit."

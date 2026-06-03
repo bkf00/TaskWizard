@@ -1,6 +1,7 @@
 import { store } from "@repo/storage/local-store";
 import { filterVisibleTasks } from "@repo/domain/privacy";
 import { isTaskOverdue } from "@repo/domain/task-urgency";
+import { cleanAssigneeName } from "@repo/domain/assignee";
 import { getCurrentActor } from "../auth-actor";
 import { EmailSourceForm } from "./email-source-form";
 import { LiveDashboardRefresh } from "./live-dashboard-refresh";
@@ -14,6 +15,10 @@ const plannerTerminalSourceStatuses = new Set(["approved", "created_in_planner",
 function formatDate(value: string | null): string {
   if (!value) return "fara termen";
   return new Intl.DateTimeFormat("ro-RO", { dateStyle: "medium" }).format(new Date(value));
+}
+
+function formatAssignee(task: { assigneeName: string | null; assigneeEmail: string | null }): string {
+  return cleanAssigneeName(task.assigneeName) ?? task.assigneeEmail ?? "fara responsabil";
 }
 
 export default async function HomePage() {
@@ -89,7 +94,7 @@ export default async function HomePage() {
                     <span className={`badge ${task.status}`}>{task.status}</span>
                   </div>
                   <div className="meta">
-                    <span className="badge">{task.assigneeName ?? task.assigneeEmail ?? "fara responsabil"}</span>
+                    <span className="badge">{formatAssignee(task)}</span>
                     <span className="badge">{formatDate(task.dueDate)}</span>
                     {isTaskOverdue(task) ? <span className="badge urgent-priority">urgent</span> : null}
                     {task.priority === "high" ? <span className="badge high-priority">prioritar</span> : null}
@@ -112,7 +117,7 @@ export default async function HomePage() {
                           <input
                             id={`assignee-${task.id}`}
                             name="assigneeName"
-                            defaultValue={task.assigneeName ?? task.assigneeEmail ?? ""}
+                            defaultValue={cleanAssigneeName(task.assigneeName) ?? task.assigneeEmail ?? ""}
                           />
                         </div>
                         <div>
@@ -173,7 +178,7 @@ export default async function HomePage() {
                     <span className={`badge ${task.status}`}>{task.status}</span>
                   </div>
                   <div className="meta">
-                    <span className="badge">{task.assigneeName ?? task.assigneeEmail ?? "fara responsabil"}</span>
+                    <span className="badge">{formatAssignee(task)}</span>
                     <span className="badge">{formatDate(task.dueDate)}</span>
                     {isTaskOverdue(task) ? <span className="badge urgent-priority">urgent</span> : null}
                     {task.plannerTaskId ? <span className="badge">Planner: {task.plannerTaskId}</span> : null}

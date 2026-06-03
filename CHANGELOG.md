@@ -87,6 +87,7 @@ Format inspirat de Keep a Changelog. Proiectul foloseste versionare pragmatica p
 - Extractorul fallback recunoaste forme pasive de tip `Ordinul de incepere se transmite...`, punand obiectul in titlu si evitand responsabilul fals `Ordinul de incepere se`.
 - View-ul `/tasks` marcheaza automat taskurile depasite ca urgente, le prioritizeaza in sortare si ofera actiuni rapide de follow-up sau prelungire termen.
 - Extractorul fallback proceseaza acum pana la 20 de actiuni din minute lungi, ignora pronume false ca responsabili si curata mai bine taskurile din minuta DSS.
+- Responsabilii falsi de tip `Ne`, `Se`, `De` sunt sanitizati central in extractor, editare si UI, inclusiv pentru date vechi deja salvate.
 
 ### Known Limitations
 

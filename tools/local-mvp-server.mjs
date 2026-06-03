@@ -123,6 +123,11 @@ function normalizeSearchText(text) {
   return text.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 }
 
+function cleanAssigneeName(value) {
+  const cleaned = String(value || "").replace(/[\s\u2010-\u2015-]+$/g, "").trim();
+  return /^(acestea|acestia|de|el|ea|ei|ele|ne|noi|se)$/i.test(cleaned) ? null : cleaned || null;
+}
+
 function compactTaskTitle(actionText) {
   const normalized = normalizeSearchText(normalizeLine(actionText));
   const knownPatterns = [
@@ -262,13 +267,12 @@ function structuredActionFromLine(line) {
   const normalized = normalizeLine(line);
   const terminalActorAction = normalized.match(/[\u2010-\u2015-]\s*([A-Z0-9]{2,}|[A-Z][\p{L}0-9&.\s]{1,30}?)\s+(transmite|transmit|trimite|clarifica|confirma)\b(.*)$/iu);
   if (terminalActorAction) {
-    const assigneeName = terminalActorAction[1].trim().replace(/[\s\u2010-\u2015-]+$/g, "");
-    const cleanAssigneeName = /^(de|se|ne|noi|acestia|acestea)$/i.test(assigneeName) ? null : assigneeName;
+    const assigneeName = cleanAssigneeName(terminalActorAction[1]);
     const title = compactTaskTitle(`${terminalActorAction[2].trim()} ${terminalActorAction[3].trim()} ${normalized}`.trim());
     return {
       title,
       description: normalized,
-      assigneeName: cleanAssigneeName && cleanAssigneeName.length <= 60 ? cleanAssigneeName : null,
+      assigneeName: assigneeName && assigneeName.length <= 60 ? assigneeName : null,
       dueDate: extractDueDate(normalized)
     };
   }
@@ -276,14 +280,9 @@ function structuredActionFromLine(line) {
   const structured = normalized.match(/^(?:(?:\d{1,2}\.\d{1,2}\.\d{4}|\d{4})\s*=\s*)?(.+?)\s+(trebuie|pregateste|pregatesc|transmite|transmit|trimite|verifica|verificat|actualizeaza|creeaza|preia|preluat|stabileste|confirma|clarifica|revine)\b(.*)$/i);
   if (!structured) return null;
 
-  const rawAssigneeName = structured[1]
-    .trim()
-    .replace(/\s+(?:a|te rog|va rog)$/i, "")
-    .replace(/[\s\u2010-\u2015-]+$/g, "")
-    .trim();
+  const rawAssigneeName = structured[1].trim().replace(/\s+(?:a|te rog|va rog)$/i, "");
   const passiveSubject = rawAssigneeName.match(/^(.+?)\s+se$/i)?.[1]?.trim() ?? null;
-  const pronounSubject = /^(de|se|ne|noi|acestia|acestea)$/i.test(rawAssigneeName);
-  const assigneeName = passiveSubject || pronounSubject ? null : rawAssigneeName;
+  const assigneeName = passiveSubject ? null : cleanAssigneeName(rawAssigneeName);
   if (assigneeName && /^(te rog|ramane sa|de facut)$/i.test(assigneeName)) return null;
   const actionVerb = structured[2].trim();
   const actionRest = structured[3].trim();
@@ -575,7 +574,7 @@ async function handleUpdate(req, res, taskId) {
   task.title = title;
   task.description = String(form.description || "").trim() || null;
   task.assigneeEmail = String(form.assigneeEmail || "").trim() || null;
-  task.assigneeName = String(form.assigneeName || "").trim() || null;
+  task.assigneeName = cleanAssigneeName(form.assigneeName);
   task.dueDate = String(form.dueDate || "").trim() || null;
   task.projectHint = String(form.projectHint || "").trim() || null;
   task.priority = form.priority === "high" ? "high" : task.priority ?? "normal";
