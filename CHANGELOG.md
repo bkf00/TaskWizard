@@ -89,10 +89,14 @@ Format inspirat de Keep a Changelog. Proiectul foloseste versionare pragmatica p
 - Extractorul fallback proceseaza acum pana la 20 de actiuni din minute lungi, ignora pronume false ca responsabili si curata mai bine taskurile din minuta DSS.
 - Responsabilii falsi de tip `Ne`, `Se`, `De` sunt sanitizati central in extractor, editare si UI, inclusiv pentru date vechi deja salvate.
 - Audit extins TaskWizard documentat in `docs/test-audit-2026-06-09.md`, cu rezultate pentru typecheck, test:local, build, HTTP smoke test, npm audit si backlog tehnic.
+- Lint non-interactiv prin ESLint flat config, pregatit pentru CI fara prompturi.
+- Teste separate pe pachete pentru reguli de domeniu, Microsoft Graph/M365 si importuri reale generate `.eml/.docx/.pdf/.xlsx/.csv/.txt`.
+- Documentatie pentru clasificarea taskurilor interne/externe/watch si pentru migrarea controlata la PostgreSQL.
+- Workflow GitHub Actions care ruleaza lint, typecheck, testele locale, testele pe pachete, audit high si build.
 
 ### Known Limitations
 
-- `npm`/`pnpm` nu este disponibil in PATH pe masina curenta.
-- Varianta Next.js nu a fost inca build-uita local.
+- Pe Windows PowerShell local, `npm.ps1` poate fi blocat de execution policy; foloseste `npm.cmd` pentru comenzi non-interactive.
 - Graph/Planner sunt implementate la nivel de client si endpoint, dar nu au fost validate inca pe tenant real.
 - Storage-ul activ pentru MVP local este JSON, nu PostgreSQL.
+- `npm audit --omit=dev` raporteaza inca vulnerabilitatea moderata PostCSS via Next; auditul high trece, iar fixul automat propus este breaking.

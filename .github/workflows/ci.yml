@@ -10,24 +10,8 @@ env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
-  local-mvp-tests:
-    name: Local MVP tests
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: .node-version
-
-      - name: Run dependency-free MVP tests
-        run: node tools/test-local-mvp.mjs
-
-  typescript-build:
-    name: TypeScript and Next.js checks
+  checks:
+    name: Lint, tests, build
     runs-on: ubuntu-latest
 
     steps:
@@ -40,10 +24,22 @@ jobs:
           node-version-file: .node-version
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
 
       - name: Typecheck
         run: npm run typecheck
+
+      - name: Local MVP tests
+        run: npm run test:local
+
+      - name: Package unit and import tests
+        run: npm run test:packages
+
+      - name: Production dependency audit
+        run: npm audit --omit=dev --audit-level=high
 
       - name: Build
         run: npm run build

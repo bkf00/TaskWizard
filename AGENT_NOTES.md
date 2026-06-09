@@ -67,6 +67,10 @@ Acest fisier este jurnalul de lucru al agentului. Se actualizeaza la fiecare sch
 - Am extins fallback-ul de extractie pentru minute lungi: limita a crescut de la 5 la 20 de actiuni, pronumele `se`/`ne`/`de` nu mai devin responsabili, iar minuta DSS produce taskuri mai curate pentru Sika, Soprema/Bouder, AVT, anexe, procedura si anunt ITM.
 - Am centralizat sanitizarea responsabililor astfel incat `Ne`, `Se`, `De` si alte pronume/scurte particule sa fie afisate si salvate ca `fara responsabil`, indiferent daca vin din AI, fallback, editare manuala sau date vechi.
 - Am rulat audit extins pe TaskWizard pe 2026-06-09: typecheck, test:local, build, audit npm, verificari HTTP locale si am documentat urmatoarele puncte de lucru in `docs/test-audit-2026-06-09.md`.
+- Am reparat lint-ul non-interactiv cu ESLint flat config si am adaugat CI GitHub complet: lint, typecheck, test:local, test:packages, audit high si build.
+- Am actualizat `drizzle-orm` la versiune fara vulnerabilitatea high raportata de audit; vulnerabilitatea PostCSS via Next ramane moderata si nu se forteaza downgrade-ul breaking propus de npm.
+- Am spart acoperirea noua in teste mai mici: reguli de domeniu, contracte Graph/M365 si harness de importuri generate pentru `.eml`, `.docx`, `.pdf`, `.xlsx`, `.csv` si `.txt`.
+- Am documentat modelul robust pentru taskuri interne/externe/watch si proiect/context, plus planul de migrare JSON -> PostgreSQL.
 
 ## Regula de utilizare
 

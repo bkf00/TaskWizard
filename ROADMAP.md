@@ -34,6 +34,7 @@
 ## Milestone 3 - Production foundation
 
 - [ ] PostgreSQL/Drizzle repository.
+- [x] Plan de migrare PostgreSQL documentat.
 - [ ] Azure Key Vault.
 - [ ] Terraform pentru Azure.
 - [ ] Observability si backup.
@@ -46,6 +47,8 @@
 - [ ] Azure OpenAI configurat ca optiune platita, doar daca Ollama/local AI nu este suficient.
 - [ ] Teste Playwright UI.
 - [ ] Coverage instrumentat minimum 80% pe module critice.
-- [ ] Teste cu dialoguri romanesti reale.
+- [x] Harness de importuri reale generate pentru `.eml/.docx/.pdf/.xlsx/.csv/.txt`.
+- [ ] Teste cu dialoguri romanesti reale extinse prin API/UI.
 - [ ] Deduplicare cu `pgvector`.
-- [ ] Clasificare pe proiect/client.
+- [x] Model de clasificare intern/extern/watch si proiect/context documentat.
+- [ ] Clasificare pe proiect/client implementata in schema si UI.

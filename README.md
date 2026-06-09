@@ -108,6 +108,21 @@ Latest local result:
 0 failed
 ```
 
+## Full Checks
+
+When `npm` is available, use:
+
+```powershell
+npm run lint
+npm run typecheck
+npm run test:local
+npm run test:packages
+npm run build
+npm audit --omit=dev --audit-level=high
+```
+
+`test:packages` splits critical checks into smaller suites for domain rules, Microsoft Graph/M365 request shaping and real import fixtures for `.eml`, `.docx`, `.pdf`, `.xlsx`, `.csv` and `.txt`.
+
 ## GitHub Remote Setup
 
 On Windows PowerShell, after installing Git and GitHub CLI:
@@ -152,6 +167,8 @@ Microsoft 365 setup:
 - `pasi/` - project operating steps and impasse checklist.
 - `implementare/` - implementation status, runbooks, tests and coverage notes.
 - `docs/adr/` - architecture decision records.
+- `docs/task-classification-model.md` - internal/external/watch task model and project context rules.
+- `docs/postgres-migration-plan.md` - controlled path from JSON MVP storage to PostgreSQL.
 - `SECURITY.md` - security and confidentiality policy.
 - `ROADMAP.md` - staged delivery plan.
 - `AGENT_NOTES.md` - Codex working journal.

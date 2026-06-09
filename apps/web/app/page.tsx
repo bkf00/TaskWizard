@@ -7,6 +7,8 @@ import { EmailSourceForm } from "./email-source-form";
 import { LiveDashboardRefresh } from "./live-dashboard-refresh";
 import { getDashboardStateVersion } from "./state-version";
 import { TaskHistoryPanel } from "./task-history-panel";
+import Image from "next/image";
+import Link from "next/link";
 
 export const dynamic = "force-dynamic";
 
@@ -39,7 +41,7 @@ export default async function HomePage() {
       <LiveDashboardRefresh initialVersion={stateVersion.version} />
       <header className="app-header">
         <div className="brand">
-          <img className="brand-mark" src="/assets/taskwizard-hat.png" alt="TaskWizard" />
+          <Image className="brand-mark" src="/assets/taskwizard-hat.png" alt="TaskWizard" width={64} height={64} priority />
           <div>
             <h1>TaskWizard</h1>
             <p className="muted">Inbox de verificare pentru taskuri extrase din emailuri si minute.</p>
@@ -51,9 +53,9 @@ export default async function HomePage() {
         </div>
         <div>
           <div className="top-actions">
-            <a className="button-link" href="/tasks">
+            <Link className="button-link" href="/tasks">
               View taskuri
-            </a>
+            </Link>
             <EmailSourceForm defaultActorEmail={actor.email} authenticated={actor.authenticated} />
           </div>
           <div className="summary">
