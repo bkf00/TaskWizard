@@ -88,6 +88,7 @@ Format inspirat de Keep a Changelog. Proiectul foloseste versionare pragmatica p
 - View-ul `/tasks` marcheaza automat taskurile depasite ca urgente, le prioritizeaza in sortare si ofera actiuni rapide de follow-up sau prelungire termen.
 - Extractorul fallback proceseaza acum pana la 20 de actiuni din minute lungi, ignora pronume false ca responsabili si curata mai bine taskurile din minuta DSS.
 - Responsabilii falsi de tip `Ne`, `Se`, `De` sunt sanitizati central in extractor, editare si UI, inclusiv pentru date vechi deja salvate.
+- Audit extins TaskWizard documentat in `docs/test-audit-2026-06-09.md`, cu rezultate pentru typecheck, test:local, build, HTTP smoke test, npm audit si backlog tehnic.
 
 ### Known Limitations
 

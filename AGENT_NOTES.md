@@ -66,6 +66,7 @@ Acest fisier este jurnalul de lucru al agentului. Se actualizeaza la fiecare sch
 - Am adaugat stare derivata de urgenta pentru taskurile cu termen depasit: apar cu badge `urgent`, sunt ordonate inaintea taskurilor prioritare si permit follow-up sau prelungire termen din view-ul `/tasks`.
 - Am extins fallback-ul de extractie pentru minute lungi: limita a crescut de la 5 la 20 de actiuni, pronumele `se`/`ne`/`de` nu mai devin responsabili, iar minuta DSS produce taskuri mai curate pentru Sika, Soprema/Bouder, AVT, anexe, procedura si anunt ITM.
 - Am centralizat sanitizarea responsabililor astfel incat `Ne`, `Se`, `De` si alte pronume/scurte particule sa fie afisate si salvate ca `fara responsabil`, indiferent daca vin din AI, fallback, editare manuala sau date vechi.
+- Am rulat audit extins pe TaskWizard pe 2026-06-09: typecheck, test:local, build, audit npm, verificari HTTP locale si am documentat urmatoarele puncte de lucru in `docs/test-audit-2026-06-09.md`.
 
 ## Regula de utilizare
 
