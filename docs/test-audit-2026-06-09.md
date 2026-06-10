@@ -86,6 +86,6 @@ Nu am rulat `npm audit fix --force`, deoarece pentru PostCSS propune o schimbare
    - Pastreaza JSON local doar pentru dev/MVP.
 
 8. CI GitHub
-   - Ruleaza typecheck, test:local, build, audit.
-   - Adauga lint dupa repararea ESLint.
-   - Adauga artifact cu sumar test.
+   - DONE: workflow-ul ruleaza lint, typecheck, test:local, test:packages, audit high si build.
+   - TODO: verifica primul run real in GitHub Actions dupa activarea/initializarea Actions pe repository.
+   - TODO: adauga artifact cu sumar test daca avem nevoie de istoric descarcabil.
