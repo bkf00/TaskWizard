@@ -75,10 +75,10 @@ h2 {
 }
 
 .brand-mark {
-  background: linear-gradient(145deg, #ffffff 0%, #eef4fb 100%);
-  border: 1px solid #d8dee8;
+  background: linear-gradient(145deg, #17202a 0%, #243447 100%);
+  border: 1px solid #31455e;
   border-radius: 12px;
-  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.18);
   width: 88px;
   height: 88px;
   object-fit: contain;
