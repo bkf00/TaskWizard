@@ -21,7 +21,9 @@ export default async function TasksPage() {
       <LiveDashboardRefresh initialVersion={stateVersion.version} />
       <header className="app-header compact-header">
         <div className="brand">
-          <Image className="brand-mark" src="/assets/taskwizard-hat.png" alt="TaskWizard" width={64} height={64} priority />
+          <span className="brand-mark-frame">
+            <Image className="brand-mark" src="/assets/taskwizard-hat.png" alt="TaskWizard" width={64} height={64} priority />
+          </span>
           <div>
             <h1>TaskWizard</h1>
             <p className="muted">View operational pentru taskuri, termene si responsabili.</p>

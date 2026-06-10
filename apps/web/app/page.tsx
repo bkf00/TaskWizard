@@ -41,7 +41,9 @@ export default async function HomePage() {
       <LiveDashboardRefresh initialVersion={stateVersion.version} />
       <header className="app-header">
         <div className="brand">
-          <Image className="brand-mark" src="/assets/taskwizard-hat.png" alt="TaskWizard" width={64} height={64} priority />
+          <span className="brand-mark-frame">
+            <Image className="brand-mark" src="/assets/taskwizard-hat.png" alt="TaskWizard" width={64} height={64} priority />
+          </span>
           <div>
             <h1>TaskWizard</h1>
             <p className="muted">Inbox de verificare pentru taskuri extrase din emailuri si minute.</p>

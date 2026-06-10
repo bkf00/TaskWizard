@@ -74,18 +74,27 @@ h2 {
   align-items: flex-start;
 }
 
-.brand-mark {
+.brand-mark-frame {
   background:
     radial-gradient(circle at 76% 24%, rgba(251, 191, 36, 0.32), transparent 30%),
     linear-gradient(145deg, #2b174f 0%, #4c1d95 58%, #1e1b4b 100%);
   border: 1px solid #6d4cc2;
   border-radius: 12px;
   box-shadow: 0 10px 24px rgba(43, 23, 79, 0.24);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 88px;
   height: 88px;
-  object-fit: contain;
   padding: 8px;
   flex: 0 0 88px;
+}
+
+.brand-mark {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  filter: drop-shadow(0 7px 8px rgba(0, 0, 0, 0.32)) drop-shadow(0 1px 0 rgba(255, 255, 255, 0.24));
 }
 
 .top-actions {
@@ -794,10 +803,16 @@ dialog::backdrop {
     padding: 14px;
   }
 
-  .brand-mark {
+  .brand-mark-frame {
     width: 64px;
     height: 64px;
     flex-basis: 64px;
+    padding: 6px;
+  }
+
+  .brand-mark {
+    width: 50px;
+    height: 50px;
   }
 
   .compact,
