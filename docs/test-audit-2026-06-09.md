@@ -62,18 +62,19 @@ Nu am rulat `npm audit fix --force`, deoarece pentru PostCSS propune o schimbare
 
 3. Test harness pentru importuri reale
    - DONE: genereaza si testeaza local `.eml`, `.docx`, `.pdf`, `.xlsx`, `.csv`, `.txt` prin extractorii de domeniu.
-   - TODO: porneste Next cu `LOCAL_DATA_DIR` temporar si incarca aceleasi fisiere prin API.
+   - DONE: testeaza ruta `POST /api/sources/manual` cu `LOCAL_DATA_DIR` temporar, `FormData`, documente generate si `.eml` cu atasament.
 
 4. Teste unitare separate
    - DONE: teste dedicate pentru `packages/domain`: privacy, assignee, urgency, task identity.
-   - DONE: teste dedicate pentru `packages/graph`: encoding, mapping Outlook si subscription request.
+   - DONE: teste dedicate pentru `packages/graph`: encoding, mapping Outlook, subscription request, retry Graph, paginare Outlook, lookup Entra, payload Planner si webhook validation/clientState.
    - TODO: mutare pe termen lung in test runners per workspace cand repo-ul creste.
 
 5. Hardening Microsoft 365
-   - Teste pentru Graph webhook validation token.
-   - Teste pentru clientState invalid.
-   - Teste pentru retry/pagination in Outlook.
-   - Teste pentru mapping email -> Entra user.
+   - DONE: teste pentru Graph webhook validation token.
+   - DONE: teste pentru clientState invalid.
+   - DONE: teste pentru retry Graph si pagination in Outlook.
+   - DONE: teste pentru mapping email -> Entra user.
+   - TODO: teste cu contract real pe tenant sandbox, doar dupa ce exista admin consent si mailbox de test.
 
 6. UX pentru taskuri externe si proiecte
    - Defineste explicit tipul taskului: intern, extern, watch/follow-up.

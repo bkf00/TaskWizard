@@ -14,10 +14,11 @@
     "start": "npm run start --workspace @taskuri-ai/web",
     "dev:local": "node tools/local-mvp-server.mjs",
     "test": "node tools/test-local-mvp.mjs",
+    "test:api-imports": "tsx --test tools/test-api-import-route.ts",
     "test:domain": "tsx --test tools/test-domain-units.ts",
     "test:graph": "tsx --test tools/test-graph-units.ts",
     "test:imports": "tsx --test tools/test-import-fixtures.ts",
-    "test:packages": "npm run test:domain && npm run test:graph && npm run test:imports",
+    "test:packages": "npm run test:domain && npm run test:graph && npm run test:imports && npm run test:api-imports",
     "test:local": "node tools/test-local-mvp.mjs",
     "typecheck": "tsc --noEmit",
     "lint": "eslint . --ext .ts,.tsx,.mjs --max-warnings=0"

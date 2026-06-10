@@ -121,7 +121,7 @@ npm run build
 npm audit --omit=dev --audit-level=high
 ```
 
-`test:packages` splits critical checks into smaller suites for domain rules, Microsoft Graph/M365 request shaping and real import fixtures for `.eml`, `.docx`, `.pdf`, `.xlsx`, `.csv` and `.txt`.
+`test:packages` splits critical checks into smaller suites for domain rules, Microsoft Graph/M365 request shaping, Graph retry/pagination/webhook behavior, real import fixtures for `.eml`, `.docx`, `.pdf`, `.xlsx`, `.csv` and `.txt`, plus an isolated API import route test with temporary local storage.
 
 ## GitHub Remote Setup
 

@@ -71,6 +71,8 @@ Acest fisier este jurnalul de lucru al agentului. Se actualizeaza la fiecare sch
 - Am actualizat `drizzle-orm` la versiune fara vulnerabilitatea high raportata de audit; vulnerabilitatea PostCSS via Next ramane moderata si nu se forteaza downgrade-ul breaking propus de npm.
 - Am spart acoperirea noua in teste mai mici: reguli de domeniu, contracte Graph/M365 si harness de importuri generate pentru `.eml`, `.docx`, `.pdf`, `.xlsx`, `.csv` si `.txt`.
 - Am documentat modelul robust pentru taskuri interne/externe/watch si proiect/context, plus planul de migrare JSON -> PostgreSQL.
+- Am extins harness-ul de importuri pana la ruta reala `POST /api/sources/manual`, cu `FormData`, fisiere generate in memorie si `LOCAL_DATA_DIR` temporar.
+- Am intarit testele Graph/M365 cu retry pe 429, paginare Outlook, lookup Entra found/missing/ambiguous, payload Planner cu assignment/details si webhook validation/clientState.
 
 ## Regula de utilizare
 

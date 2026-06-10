@@ -91,6 +91,8 @@ Format inspirat de Keep a Changelog. Proiectul foloseste versionare pragmatica p
 - Audit extins TaskWizard documentat in `docs/test-audit-2026-06-09.md`, cu rezultate pentru typecheck, test:local, build, HTTP smoke test, npm audit si backlog tehnic.
 - Lint non-interactiv prin ESLint flat config, pregatit pentru CI fara prompturi.
 - Teste separate pe pachete pentru reguli de domeniu, Microsoft Graph/M365 si importuri reale generate `.eml/.docx/.pdf/.xlsx/.csv/.txt`.
+- Harness API pentru importuri reale prin `POST /api/sources/manual`, cu `LOCAL_DATA_DIR` temporar si fisiere generate in memorie.
+- Teste M365 intarite pentru retry Graph, paginare Outlook, lookup Entra, payload Planner si webhook validation/clientState.
 - Documentatie pentru clasificarea taskurilor interne/externe/watch si pentru migrarea controlata la PostgreSQL.
 - Workflow GitHub Actions care ruleaza lint, typecheck, testele locale, testele pe pachete, audit high si build.
 
